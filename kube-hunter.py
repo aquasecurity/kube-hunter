@@ -9,6 +9,7 @@ from discovery import DEFAULT_PORTS, HostScanner
 from hunters import Dashboard, Kubelet, Proxy
 from services import *
 from validation import ip, subnet
+import chromedriver_binary
 
 HUNT_MODE = "hunt"
 SCAN_MODE = "scan"
@@ -29,8 +30,10 @@ def hunt_callback(host):
     if service_type not in hunters:
         warning("Unsupported service type: {}".format(describe_service_type(service_type)))
     else:
-        hunters[service_type]().hunt(host)
-
+        try:
+            hunters[service_type](host).hunt()
+        except NotImplementedError: 
+            pass
 
 def scan_callback(host):
     print("{} - {}".format(host, describe_service_type(identify_service(host))))
@@ -39,8 +42,8 @@ def scan_callback(host):
 def hunt(*args, **kwargs):
     target = args[0]
     info("Hunting target {}".format(target))
-    # scanner = HostScanner(threads=1)
-    # scanner.scan(target, DEFAULT_PORTS, hunt_callback)
+    scanner = HostScanner(threads=1)
+    scanner.scan(target, DEFAULT_PORTS, hunt_callback)
 
 
 def scan(*args, **kwargs):

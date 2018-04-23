@@ -1,5 +1,5 @@
 from io import BytesIO
-from logging import debug, warning
+from logging import info, warning, debug
 
 from PIL import Image
 from requests import get
@@ -9,7 +9,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from hunters.hunter import Hunter
 
+
+
 DASHBOARD_PATHS = [
+    "",
     "/ui",
     "/api/v1/namespaces/kube-system/services/kubernetes-dashboard/proxy"
 ]
@@ -89,7 +92,6 @@ class Dashboard(Hunter):
         debug("Hunting dashboard at {}".format(self.host))
 
         debug("Checking authentication...")
-
         if self.is_auth_required:
             warning("Authentication is required")
             return
