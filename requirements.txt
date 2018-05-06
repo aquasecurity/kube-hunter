@@ -1,4 +1,0 @@
-selenium
-pillow
-netaddr
-chromedriver_binary
