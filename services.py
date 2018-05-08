@@ -11,19 +11,13 @@ disable_warnings()
 
 
 def describe_service_type(service_type):
-    if service_type == KUBERNETES_DASHBOARD:
-        return "Kubernetes Dashboard"
-
-    if service_type == KUBERNETES_PROXY:
-        return "Kubernetes Proxy"
-
-    if service_type == KUBERNETES_KUBELET_HTTPS:
-        return "Kubernetes Kubelet"
-
-    if service_type == KUBERNETES_KUBELET_HTTP:
-        return "Kubernetes Kubelet (Read only)"
-
-    return "Unknown Service"
+    service_types = {
+        KUBERNETES_DASHBOARD: "Kubernetes Dashboard",
+        KUBERNETES_PROXY: "Kubernetes Proxy",
+        KUBERNETES_KUBELET_HTTPS: "Kubernetes Kubelet",
+        KUBERNETES_KUBELET_HTTP: "Kubernetes Kubelet (Read only)",
+    }
+    return service_types.get(service_type, "Unknown Service")
 
 
 def is_dashboard(host):
