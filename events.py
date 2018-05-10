@@ -16,8 +16,8 @@ class EventQueue(Queue, object):
             t.start()
 
     def publish_event(self, name, item):
+        safe_print('Event {} got published with {}'.format(name, item))
         if name in self.hooks:
-            safe_print('Event {} got published with {}'.format(name, item))
             for single_hook in self.hooks[name]:
                 self.put(single_hook(item))
 

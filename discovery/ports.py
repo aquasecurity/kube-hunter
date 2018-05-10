@@ -1,8 +1,8 @@
 from socket import socket
 import events
 
-default_ports = [8001, 10250, 10255, 30000]
 
+default_ports = [8001, 10250, 10255, 30000]
 
 class PortDiscovery(object):
     def __init__(self, task):
@@ -11,9 +11,7 @@ class PortDiscovery(object):
     def execute(self):
         for single_port in default_ports:
             if self.test_connection(self.host, single_port):
-                events.handler.publish_event('OPEN_PORT', {'host': self.host, 'port': single_port})
-                events.handler.publish_event('OPEN_PORT_{port}'.format(port=single_port),
-                                     {'host': self.host, 'port': single_port})
+                events.handler.publish_event('OPEN_PORT_{port}'.format(port=single_port), {'host': self.host, 'port': single_port})
 
     @staticmethod
     def test_connection(host, port):

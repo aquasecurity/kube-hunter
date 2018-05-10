@@ -1,11 +1,12 @@
-import modules
+import discovery
+import hunting
 import threading
 import time
 import sys
 
 def main():
     try:
-        modules.HostDiscovery({}).execute()    
+        discovery.HostDiscovery({}).execute()    
         # Blocking to see discovery output
         while(True): 
             time.sleep(1)
