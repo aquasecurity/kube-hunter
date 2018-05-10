@@ -11,8 +11,8 @@ class PortDiscovery(object):
     def execute(self):
         for single_port in default_ports:
             if self.test_connection(self.host, single_port):
-                events.trigger_event('OPEN_PORT', {'host': self.host, 'port': single_port})
-                events.trigger_event('OPEN_PORT_{port}'.format(port=single_port),
+                events.handler.publish_event('OPEN_PORT', {'host': self.host, 'port': single_port})
+                events.handler.publish_event('OPEN_PORT_{port}'.format(port=single_port),
                                      {'host': self.host, 'port': single_port})
 
     @staticmethod
@@ -26,7 +26,7 @@ class PortDiscovery(object):
         return False
 
 
-events.register_event('NEW_HOST', PortDiscovery)
+events.handler.subscribe_event('NEW_HOST', PortDiscovery)
 
 if __name__ == "__main__":
     queue = list()

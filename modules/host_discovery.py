@@ -1,6 +1,6 @@
 from netifaces import interfaces, ifaddresses, AF_INET
 from netaddr import IPNetwork
-import events
+import events 
 
 
 class HostDiscovery(object):
@@ -13,4 +13,4 @@ class HostDiscovery(object):
             if addresses:
                 subnet = IPNetwork('{0}/24'.format(addresses[0]))
                 for single_ip in IPNetwork(subnet):
-                    events.trigger_event('NEW_HOST', {'host': single_ip})
+                    events.handler.publish_event('NEW_HOST', {'host': single_ip})
