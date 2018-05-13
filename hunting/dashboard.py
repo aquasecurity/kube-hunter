@@ -6,24 +6,23 @@ class KubeDashboard(object):
     def __init__(self, task):
         self.host = task['host']
         self.port = task['port'] or 30000
+        self.secure = task['secure'] if 'secure' in task else False
+        self.location = task["location"] if "location" in task else ""
+
+    @property
+    def accessible(self):
+        protocol = "https" if self.secure else "http"
+        r = requests.get("{protocol}://{host}:{port}/{loc}".format(protocol=protocol, host=self.host, port=self.port, loc=self.location))
+        return r.status_code == 200
 
     def execute(self):
-        print("KUBEDASHBOARD At: {} {}".format(self.host, self.port))
-        if self.secured:    
-            safe_print("SECURED DASHBOARD")
-        else:
-            safe_print("INSECURE DASHBOARD")
-    
-    @property
-    def secured(self):
-        try:
-            r = requests.get("http://{host}:{port}/api/v1/node?itemsPerPage=100".format(host=self.host, port=self.port))
-        except requests.exceptions.ConnectionError:
-            return True
+        if not self.accessible:
+            return
 
-        ret = r.json()
-        if 'listMeta' in ret:
-            return False
-        return True
+        if self.secure:    
+            safe_print("SECURED DASHBOARD AT {}:{}/{}".format(self.host, self.port, self.location))
+        else:
+            safe_print("INSECURE DASHBOARD AT {}:{}/{}".format(self.host, self.port, self.location))
+    
 
 events.handler.subscribe_event('KUBE_DASHBOARD', KubeDashboard)
