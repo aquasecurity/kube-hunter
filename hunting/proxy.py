@@ -1,23 +1,22 @@
-import events
+from events import handler, KubeProxyEvent, KubeDashboardEvent
 from requests import get
 from enum import Enum
 
 class Service(Enum):
     DASHBOARD = "kubernetes-dashboard"
 
+@handler.subscribe(KubeProxyEvent)
 class KubeProxy(object):
     def __init__(self, task):
-        self.host = task['host']
-        self.port = task['port'] or 8001
-
-        self.api_url = "http://{host}:{port}/api/v1".format(host=self.host, port=self.port)
+        self.task = task
+        self.api_url = "http://{host}:{port}/api/v1".format(host=self.task.host, port=self.task.port)
 
     def execute(self):
         for namespace, services in self.services.items():
             for service in services:
                 curr_path = "api/v1/namespaces/{ns}/services/{sv}/proxy".format(ns=namespace,sv=service) # TODO: check if /proxy is a convention on other services
                 if service == Service.DASHBOARD.value:
-                    events.handler.publish_event('KUBE_DASHBOARD', {"host": self.host, "port": self.port, "location": curr_path, 'secure': False})
+                    handler.publish_event(KubeDashboardEvent(host=self.task.host, port=self.task.port, location=curr_path, secure=False))
 
     @property
     def namespaces(self):
@@ -40,5 +39,3 @@ class KubeProxy(object):
         for item in resource_json["items"]:
             names.append(item["metadata"]["name"])
         return names
-
-events.handler.subscribe_event('KUBE_PROXY', KubeProxy)

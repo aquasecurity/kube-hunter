@@ -1,12 +1,13 @@
-import events
+from events import handler, OpenPortEvent, KubeProxyEvent
 from collections import defaultdict
 from requests import get
 
+@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 8001)
 class KubeProxy(object):
     def __init__(self, task):
         self.task = task
-        self.host = task['host']
-        self.port = task['port'] or 8001
+        self.host = task.host
+        self.port = task.port or 8001
 
     @property
     def accesible(self):
@@ -14,6 +15,5 @@ class KubeProxy(object):
 
     def execute(self):
         if self.accesible:
-            events.handler.publish_event('KUBE_PROXY', self.task)        
+            handler.publish_event(KubeProxyEvent(host=self.host, port=self.port))        
             
-events.handler.subscribe_event('OPEN_PORT_8001', KubeProxy)

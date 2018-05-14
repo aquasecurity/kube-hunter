@@ -1,18 +1,23 @@
+import log
+import logging
+from events import handler
 import discovery
 import hunting
-import threading
 import time
 import sys
 
 def main():
+    logging.info("Started")
     try:
         discovery.HostDiscovery({}).execute()    
         # Blocking to see discovery output
         while(True): 
-            time.sleep(1)
+            time.sleep(100)
     except KeyboardInterrupt:
-        print('User stopped kubehunter')
-        sys.exit(1)
+        logging.info("Kube-Hunter Stopped")        
+    finally:
+        handler.free()
+        logging.debug("Cleaned Queue")        
 
 if __name__ == '__main__':
     main()

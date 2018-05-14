@@ -13,4 +13,4 @@ class HostDiscovery(object):
             if addresses:
                 subnet = IPNetwork('{0}/24'.format(addresses[0]))
                 for single_ip in IPNetwork(subnet):
-                    events.handler.publish_event('NEW_HOST', {'host': single_ip})
+                    events.handler.publish_event(events.NewHostEvent(host=single_ip))
