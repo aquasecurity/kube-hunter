@@ -1,6 +1,7 @@
 from events import handler, OpenPortEvent, KubeProxyEvent
 from collections import defaultdict
 from requests import get
+import logging
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 8001)
 class KubeProxy(object):

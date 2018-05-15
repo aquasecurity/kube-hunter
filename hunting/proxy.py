@@ -1,6 +1,7 @@
-from events import handler, KubeProxyEvent, KubeDashboardEvent
-from requests import get
 from enum import Enum
+from requests import get
+from events import KubeDashboardEvent, KubeProxyEvent, handler
+
 
 class Service(Enum):
     DASHBOARD = "kubernetes-dashboard"

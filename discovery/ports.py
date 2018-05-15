@@ -17,7 +17,7 @@ class PortDiscovery(object):
     @staticmethod
     def test_connection(host, port):
         s = socket()
-        s.settimeout(1)
+        s.settimeout(1.5)
         success = s.connect_ex((str(host), port))
         s.close()
         if success == 0:

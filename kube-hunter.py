@@ -1,10 +1,11 @@
 import log
-import logging
+
 from events import handler
 import discovery
 import hunting
 import time
 import sys
+import logging
 
 def main():
     logging.info("Started")

@@ -40,60 +40,18 @@ class EventQueue(Queue, object):
                     continue
                 self.put(hook(event))
 
-    # executes callbacks on dedicated thread
+    # executes callbacks on dedicated thread as a daemon
     def worker(self):
         while self.running:
             hook = self.get()
             hook.execute()
             self.task_done()
 
+    # stops execution of all daemons
     def free(self):
         self.running = False
         with self.mutex:
             self.queue.clear()
 
 
-handler = EventQueue(500)
-
-print_lock = Lock()
-def safe_print(*args, **kargs):
-    with print_lock:
-        print(args, kargs)
-
-    
-
-""" Parent Event Objects """
-class NetworkEvent(object):
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-
-class ServiceEvent(NetworkEvent):
-    def __init__(self, secure, location, host, port):
-        super(ServiceEvent, self).__init__(host=host, port=port)
-        self.secure = secure
-        self.location = location       
-
-""" Event Objects """
-class NewHostEvent(NetworkEvent):
-    def __init__(self, host, port=0):
-        super(NewHostEvent, self).__init__(port=port, host=host)
-    
-    def __str__(self):
-        return str(self.host)
-
-class OpenPortEvent(NetworkEvent):
-    def __init__(self, host, port):
-        super(OpenPortEvent, self).__init__(port=port, host=host)
-
-    def __str__(self):
-        return str(self.port)
-
-class KubeProxyEvent(ServiceEvent):
-    def __init__(self, host, port=8001, secure=True, location=""):
-        super(KubeProxyEvent, self).__init__(secure=secure, location=location, host=host, port=port)
-
-class KubeDashboardEvent(ServiceEvent):
-    def __init__(self, host, secure=True, port=30000, location=""):
-        super(KubeDashboardEvent, self).__init__(location=location, secure=secure, host=host, port=port)
-        
+handler = EventQueue(800)
