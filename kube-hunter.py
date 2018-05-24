@@ -1,7 +1,7 @@
 import log
 
-from events import handler
-import discovery
+from events import handler, HostScanEvent
+from discovery import HostDiscovery
 import hunting
 import time
 import sys
@@ -10,7 +10,7 @@ import logging
 def main():
     logging.info("Started")
     try:
-        discovery.HostDiscovery({}).execute()    
+        handler.publish_event(HostScanEvent(interal=True, localhost=False))
         # Blocking to see discovery output
         while(True): 
             time.sleep(100)

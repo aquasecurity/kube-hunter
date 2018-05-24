@@ -8,16 +8,16 @@ class Service(Enum):
 
 @handler.subscribe(KubeProxyEvent)
 class KubeProxy(object):
-    def __init__(self, task):
-        self.task = task
-        self.api_url = "http://{host}:{port}/api/v1".format(host=self.task.host, port=self.task.port)
+    def __init__(self, event):
+        self.event = event
+        self.api_url = "http://{host}:{port}/api/v1".format(host=self.event.host, port=self.event.port)
 
     def execute(self):
         for namespace, services in self.services.items():
             for service in services:
                 curr_path = "api/v1/namespaces/{ns}/services/{sv}/proxy".format(ns=namespace,sv=service) # TODO: check if /proxy is a convention on other services
                 if service == Service.DASHBOARD.value:
-                    handler.publish_event(KubeDashboardEvent(host=self.task.host, port=self.task.port, location=curr_path, secure=False))
+                    handler.publish_event(KubeDashboardEvent(path=curr_path, secure=False))
 
     @property
     def namespaces(self):

@@ -1,9 +1,9 @@
+import inspect
 import logging
-from Queue import Queue
-from threading import Thread
-from collections import defaultdict
-from threading import Lock
 from abc import ABCMeta
+from collections import defaultdict
+from Queue import Queue
+from threading import Lock, Thread
 
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue, object):
@@ -38,6 +38,13 @@ class EventQueue(Queue, object):
             for hook, predicate in self.hooks[event_name]:
                 if predicate and not predicate(event):
                     continue
+
+                # access to stack frame, can also be implemented by changing the function call to recieve self.
+                # TODO: decide whether invisibility to the developer is the best approach
+                last_frame = inspect.stack()[1][0]
+                if "self" in last_frame.f_locals:
+                    event.previous = last_frame.f_locals["self"].event
+                
                 self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon
@@ -55,3 +62,4 @@ class EventQueue(Queue, object):
 
 
 handler = EventQueue(800)
+

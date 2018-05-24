@@ -3,10 +3,10 @@ import requests
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
 class KubeDashboard(object):
-    def __init__(self, task):
-        self.task = task
-        self.host = task.host
-        self.port = task.port 
+    def __init__(self, event):
+        self.event = event
+        self.host = event.host
+        self.port = event.port 
 
     @property
     def secure(self):
@@ -14,4 +14,4 @@ class KubeDashboard(object):
         return False
 
     def execute(self):
-        handler.publish_event(KubeDashboardEvent(host=self.host, port=self.port, secure=self.secure))
+        handler.publish_event(KubeDashboardEvent())
