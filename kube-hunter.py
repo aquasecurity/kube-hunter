@@ -1,79 +1,25 @@
-#! /usr/bin/python
+#!/bin/env python
+import log
 
-from __future__ import print_function
+from events import handler, HostScanEvent
+from discovery import HostDiscovery
+import hunting
+import time
+import sys
+import logging
 
-from argparse import ArgumentParser
-from logging import DEBUG, basicConfig, info, warning
+def main():
+    logging.info("Started")
+    try:
+        handler.publish_event(HostScanEvent(interal=True, localhost=False))
+        # Blocking to see discovery output
+        while(True): 
+            time.sleep(100)
+    except KeyboardInterrupt:
+        logging.info("Kube-Hunter Stopped")        
+    finally:
+        handler.free()
+        logging.debug("Cleaned Queue")        
 
-from discovery import DEFAULT_PORTS, HostScanner
-from hunters import Dashboard, Kubelet, Proxy
-from services import *
-from validation import ip, subnet
-import chromedriver_binary
-
-HUNT_MODE = "hunt"
-SCAN_MODE = "scan"
-
-
-def hunt_callback(host):
-    hunters = {
-        KUBERNETES_DASHBOARD: Dashboard,
-        KUBERNETES_KUBELET_HTTPS: Kubelet,
-        KUBERNETES_KUBELET_HTTP: Kubelet,
-        KUBERNETES_PROXY: Proxy
-    }
-
-    service_type = identify_service(host)
-    if service_type == UNKNOWN:
-        return
-
-    if service_type not in hunters:
-        warning("Unsupported service type: {}".format(describe_service_type(service_type)))
-    else:
-        try:
-            hunters[service_type](host).hunt()
-        except NotImplementedError: 
-            pass
-
-def scan_callback(host):
-    print("{} - {}".format(host, describe_service_type(identify_service(host))))
-
-
-def hunt(*args, **kwargs):
-    target = args[0]
-    info("Hunting target {}".format(target))
-    scanner = HostScanner(threads=1)
-    scanner.scan(target, DEFAULT_PORTS, hunt_callback)
-
-
-def scan(*args, **kwargs):
-    target = args[0]
-    info("Scanning for targets on {}".format(target))
-    scanner = HostScanner(threads=20)
-    scanner.scan(target, DEFAULT_PORTS, scan_callback)
-
-
-def main(mode, *args, **kwargs):
-    actions = {
-        SCAN_MODE: scan,
-        HUNT_MODE: hunt
-    }
-
-    actions[mode](*args, **kwargs)
-
-
-if __name__ == "__main__":
-    basicConfig(level=DEBUG)
-    parser = ArgumentParser()
-
-    subparsers = parser.add_subparsers(dest="action", description="Available actions")
-
-    hunt_parser = subparsers.add_parser(HUNT_MODE)
-    hunt_parser.add_argument("host", type=ip, help="host to hunt")
-
-    scan_parser = subparsers.add_parser(SCAN_MODE)
-    scan_parser.add_argument("subnet", type=subnet, help="subnet to scan (CIDR notation)")
-
-    arguments = parser.parse_args()
-
-    main(arguments.action, *([i[1] for i in arguments._get_kwargs()[1:]]))
+if __name__ == '__main__':
+    main()
