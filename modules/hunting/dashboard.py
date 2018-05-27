@@ -1,9 +1,14 @@
-from events import handler, KubeDashboardEvent
 import logging
+from ..types import Hunter
+
 import requests
 
+from ..events import handler
+from ..events.types import KubeDashboardEvent
+
+
 @handler.subscribe(KubeDashboardEvent)
-class KubeDashboard(object):
+class KubeDashboard(Hunter):
     def __init__(self, event):
         self.event = event
         
@@ -17,7 +22,7 @@ class KubeDashboard(object):
         if not self.accessible:
             return
 
-        if self.event.secure:   
+        if self.event.secure:
             logging.info("[OPEN SERVICE] SECURE DASHBOARD - {}:{}{}".format(self.event.host, self.event.port, self.event.path))        
         else:
             logging.info("[OPEN SERVICE] INSECURE DASHBOARD - {}:{}{}".format(self.event.host, self.event.port, self.event.path))            

@@ -1,12 +1,17 @@
 #!/bin/env python
+import logging
+import sys
+import time
+
 import log
 
-from events import handler, HostScanEvent
-from discovery import HostDiscovery
-import hunting
-import time
-import sys
-import logging
+# executes all registrations from sub packages
+import modules
+
+from modules.discovery import HostDiscovery
+from modules.events import handler
+from modules.events.types import HostScanEvent
+
 
 def main():
     logging.info("Started")

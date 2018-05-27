@@ -1,10 +1,14 @@
-from events import handler, NewHostEvent, OpenPortEvent
 from socket import socket
+from ..types import Hunter
+
+from ..events import handler
+from ..events.types import NewHostEvent, OpenPortEvent
+
 
 default_ports = [8001, 10250, 10255, 30000]
 
 @handler.subscribe(NewHostEvent)
-class PortDiscovery(object):
+class PortDiscovery(Hunter):
     def __init__(self, event):
         self.event = event
         self.host = event.host
@@ -13,7 +17,7 @@ class PortDiscovery(object):
     def execute(self):
         for single_port in default_ports:
             if self.test_connection(self.host, single_port):
-                handler.publish_event(OpenPortEvent(port=single_port))
+                self.publish_event(OpenPortEvent(port=single_port))
 
     @staticmethod
     def test_connection(host, port):

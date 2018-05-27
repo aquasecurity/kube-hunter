@@ -1,10 +1,15 @@
-from events import handler, OpenPortEvent, KubeProxyEvent
-from collections import defaultdict
-from requests import get
 import logging
+from collections import defaultdict
+from ..types import Hunter
+
+from requests import get
+
+from ..events import handler
+from ..events.types import KubeProxyEvent, OpenPortEvent
+
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 8001)
-class KubeProxy(object):
+class KubeProxy(Hunter):
     def __init__(self, event):
         self.event = event
         self.host = event.host
@@ -16,5 +21,4 @@ class KubeProxy(object):
 
     def execute(self):
         if self.accesible:
-            handler.publish_event(KubeProxyEvent())        
-            
+            self.publish_event(KubeProxyEvent())        

@@ -1,8 +1,13 @@
-from events import handler, OpenPortEvent, KubeDashboardEvent
+from ..types import Hunter
+
 import requests
 
+from ..events import handler
+from ..events.types import KubeDashboardEvent, OpenPortEvent
+
+
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
-class KubeDashboard(object):
+class KubeDashboard(Hunter):
     def __init__(self, event):
         self.event = event
         self.host = event.host
@@ -14,4 +19,4 @@ class KubeDashboard(object):
         return False
 
     def execute(self):
-        handler.publish_event(KubeDashboardEvent())
+        self.publish_event(KubeDashboardEvent())

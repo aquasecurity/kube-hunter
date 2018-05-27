@@ -21,8 +21,11 @@ class Event(object):
             previous = previous.previous
         return history
 
+class ServiceEvent(object):
+    pass
 
-""" Event Objects """
+
+""" Discovery/Hunting Events """
 class NewHostEvent(Event):
     def __init__(self, host):
         self.host = host
@@ -42,20 +45,20 @@ class HostScanEvent(Event):
         self.internal = interal
         self.localhost = localhost
 
-class KubeDashboardEvent(Event):
+class KubeDashboardEvent(Event, ServiceEvent):
     def __init__(self, path="/", secure=False):
         self.path = path
         self.secure
         pass
 
-class ReadOnlyKubeletEvent(Event):
+class ReadOnlyKubeletEvent(Event, ServiceEvent):
     def __init__(self):
         pass
 
-class SecureKubeletEvent(Event):
+class SecureKubeletEvent(Event, ServiceEvent):
     def __init__(self):
         pass
 
-class KubeProxyEvent(Event):
+class KubeProxyEvent(Event, ServiceEvent):
     def __init__(self):
         pass

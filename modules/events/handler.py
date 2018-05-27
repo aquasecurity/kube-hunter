@@ -26,26 +26,22 @@ class EventQueue(Queue, object):
 
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
-        logging.debug('{} subscribed to {}'.format(event.__name__, hook))
-        if hook not in self.hooks[event.__name__]:
-            self.hooks[event.__name__].append((hook, predicate))
+        logging.debug('{} subscribed to {}'.format(event, hook))
+        if hook not in self.hooks[event]:
+            self.hooks[event].append((hook, predicate))
 
     # getting instantiated event object
-    def publish_event(self, event):
-        logging.debug('Event {} got published with {}'.format(event.__class__.__name__, event))
-        event_name = event.__class__.__name__
-        if event_name in self.hooks:
-            for hook, predicate in self.hooks[event_name]:
-                if predicate and not predicate(event):
-                    continue
+    def publish_event(self, event, caller=None):
+        logging.debug('Event {} got published with {}'.format(event.__class__, event))
+        for hooked_event in self.hooks.keys():
+            if hooked_event in event.__class__.__mro__:
+                for hook, predicate in self.hooks[hooked_event]:
+                    if predicate and not predicate(event):
+                        continue
 
-                # access to stack frame, can also be implemented by changing the function call to recieve self.
-                # TODO: decide whether invisibility to the developer is the best approach
-                last_frame = inspect.stack()[1][0]
-                if "self" in last_frame.f_locals:
-                    event.previous = last_frame.f_locals["self"].event
-                
-                self.put(hook(event))
+                    if caller:
+                        event.previous = caller.event
+                    self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon
     def worker(self):
@@ -53,6 +49,7 @@ class EventQueue(Queue, object):
             hook = self.get()
             hook.execute()
             self.task_done()
+        logging.debug("closing thread...")
 
     # stops execution of all daemons
     def free(self):
@@ -62,4 +59,3 @@ class EventQueue(Queue, object):
 
 
 handler = EventQueue(800)
-
