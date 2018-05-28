@@ -1,4 +1,4 @@
-from defaults import Event
+from common import Event
 
 class Vulnerability(object):
     """ Information Events """
@@ -6,6 +6,6 @@ class Vulnerability(object):
     def __init__(self, desc):
         self.desc = desc
 
-class KubeletVulnerability(Vulnerability, Event):
+class KubeletDebugHandler(Vulnerability, Event):
     def __init__(self, **kargs):
-        super(KubeletVulnerability, self).__init__(**kargs)
+        super(KubeletDebugHandler, self).__init__(**kargs)
