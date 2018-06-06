@@ -21,8 +21,25 @@ class Event(object):
             previous = previous.previous
         return history
 
+
+""" Information Fathers """
+# TODO: make explain an abstract method.
 class ServiceEvent(object):
-    pass
+    def __init__(self, name, data=""):
+        self.name = name
+        self.data = data
+
+    def explain(self):
+        return self.data
+
+class Vulnerability(object):
+    def __init__(self, name, data=""):
+        self.name = name
+        self.data = data
+
+    def explain(self):
+        return self.data
+
 
 
 """ Discovery/Hunting Events """
@@ -41,24 +58,38 @@ class OpenPortEvent(Event):
         return str(self.port)
 
 class HostScanEvent(Event):
-    def __init__(self, interal=True, localhost=True):
-        self.internal = interal
-        self.localhost = localhost
+    def __init__(self, pod=False):
+        self.pod = pod
+        self.auth_token = self.get_auth_token()
+        self.client_cert = self.get_client_cert()
+
+    def get_auth_token(self):
+        if self.pod:
+            with open("/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
+                return token_file.read()
+        return None
+
+    def get_client_cert(self):
+        if self.pod:
+            return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
+        return None
+
 
 class KubeDashboardEvent(Event, ServiceEvent):
     def __init__(self, path="/", secure=False):
         self.path = path
         self.secure
-        pass
 
 class ReadOnlyKubeletEvent(Event, ServiceEvent):
     def __init__(self):
-        pass
+        ServiceEvent.__init__(self, name="Kubelet API (readonly)")
 
 class SecureKubeletEvent(Event, ServiceEvent):
-    def __init__(self):
-        pass
+    def __init__(self, cert=False, token=False):
+        self.cert = cert
+        self.token = token
+        ServiceEvent.__init__(self, name="Kubelet API") 
 
 class KubeProxyEvent(Event, ServiceEvent):
     def __init__(self):
-        pass
+        ServiceEvent.__init__(self, name="Kubernetes Proxy")        

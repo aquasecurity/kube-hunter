@@ -4,8 +4,7 @@ from ..types import Hunter
 import requests
 
 from ..events import handler
-from ..events.types import KubeDashboardEvent
-
+from ..events.types import Vulnerability, Event, KubeDashboardEvent
 
 @handler.subscribe(KubeDashboardEvent)
 class KubeDashboard(Hunter):
@@ -22,7 +21,7 @@ class KubeDashboard(Hunter):
         if not self.accessible:
             return
 
-        if self.event.secure:
-            logging.info("[OPEN SERVICE] SECURE DASHBOARD - {}:{}{}".format(self.event.host, self.event.port, self.event.path))        
-        else:
-            logging.info("[OPEN SERVICE] INSECURE DASHBOARD - {}:{}{}".format(self.event.host, self.event.port, self.event.path))            
+        # if self.event.secure:
+            # logging.info("[OPEN SERVICE] SECURE DASHBOARD - {}:{}{}".format(self.event.host, self.event.port, self.event.path))        
+        # else:
+            # logging.info("[OPEN SERVICE] INSECURE DASHBOARD - {}:{}{}".format(self.event.host, self.event.port, self.event.path))            

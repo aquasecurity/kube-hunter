@@ -1,22 +1,31 @@
 #!/bin/env python
+import argparse
 import logging
+
 import sys
 import time
 
-import log
+parser = argparse.ArgumentParser(description='Kube-Hunter, Hunter for weak Kubernetes cluster')
+parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are:\nDEBUG INFO WARNING")
+parser.add_argument('--pod', action="store_true", help="When set, will scan the cluster as a pod, when unset, will scan all network interfaces")
+args = parser.parse_args()
+try:
+    loglevel = getattr(logging, args.log.upper())
+except:
+    pass
+logging.basicConfig(level=loglevel, format='%(asctime)s - [%(levelname)s]: %(message)s')
 
+import log
 # executes all registrations from sub packages
 import modules
-
 from modules.discovery import HostDiscovery
 from modules.events import handler
 from modules.events.types import HostScanEvent
 
-
 def main():
     logging.info("Started")
     try:
-        handler.publish_event(HostScanEvent(interal=True, localhost=False))
+        handler.publish_event(HostScanEvent(pod=args.pod))
         # Blocking to see discovery output
         while(True): 
             time.sleep(100)

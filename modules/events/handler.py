@@ -26,7 +26,7 @@ class EventQueue(Queue, object):
 
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
-        logging.debug('{} subscribed to {}'.format(event, hook))
+        logging.debug('{} subscribed to {}'.format(hook, event))
         if hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
 

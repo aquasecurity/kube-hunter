@@ -1,6 +1,5 @@
-selenium
-pillow
 netaddr
-chromedriver_binary
 netifaces
-enum
+enum34
+scapy
+requests

@@ -19,7 +19,7 @@ class KubeProxy(Hunter):
         for namespace, services in self.services.items():
             for service in services:
                 curr_path = "api/v1/namespaces/{ns}/services/{sv}/proxy".format(ns=namespace,sv=service) # TODO: check if /proxy is a convention on other services
-                if service == Service.DASHBOARD.value:
+                if service == Service.DASHBOARD:
                     self.publish_event(KubeDashboardEvent(path=curr_path, secure=False))
 
     @property

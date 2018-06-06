@@ -23,8 +23,10 @@ class PortDiscovery(Hunter):
     def test_connection(host, port):
         s = socket()
         s.settimeout(1.5)
-        success = s.connect_ex((str(host), port))
-        s.close()
-        if success == 0:
-            return True
+        try: 
+            success = s.connect_ex((str(host), port))
+            if success == 0:
+                return True
+        except: pass
+        finally: s.close()
         return False
