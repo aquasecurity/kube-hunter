@@ -14,7 +14,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class ContainerLogsHandler:
     """Outputs logs from a running container"""
-    name="/containerlogs"
+    name="/containerLogs"
     remediation="--enable-debugging-handlers=False On Kubelet"
 
 class RunningPodsHandler:
@@ -248,24 +248,37 @@ class SecureKubeletPortHunter(Hunter):
 
 
 """ Active Hunting Of Handlers"""
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler=="exec" and x.active)
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ExecHandler.name and x.active)
 class ActiveExecHandler(Hunter):
     def __init__(self, event):
-        self.event = Event
+        self.event = event
 
     def execute(self):
         pass
-
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler=="run" and x.active)
+        
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==RunHandler.name and x.active)
 class ActiveRunHandler(Hunter):
     def __init__(self, event):
-        self.event = Event
+        self.event = event
 
     def execute(self):
         pass
 
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ContainerLogsHandler.name and x.active)
+class ActiveContainerLogs(Hunter):
+    def __init__(self, event):
+        self.event = event
 
+    def execute(self):
+        pass
 
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==AttachHandler.name and x.active)
+class ActiveContainerLogs(Hunter):
+    def __init__(self, event):
+        self.event = event
+
+    def execute(self):
+        pass
 # def get_kubesystem_pod_container(self):
 #     pods_data = json.loads(requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text)['items']
 #     # filter running kubesystem pod

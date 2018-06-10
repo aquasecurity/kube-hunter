@@ -8,10 +8,8 @@ from ..types import Hunter
 
 class KubeDashboardEvent(Service, Event):
     """Allows multiple arbitrary operations on the cluster from all connections"""
-    def __init__(self, path="/", secure=False):
-        self.path = path
-        self.secure
-        Service.__init__(self, name="Kubernetes Dashboard")     
+    def __init__(self, **kargs):
+        Service.__init__(self, name="Kubernetes Dashboard", **kargs)     
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
 class KubeDashboard(Hunter):

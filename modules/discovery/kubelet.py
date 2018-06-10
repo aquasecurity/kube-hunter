@@ -23,6 +23,7 @@ class SecureKubeletEvent(Service, Event):
         self.token = token
         Service.__init__(self, name="Kubelet API") 
 
+
 """ Vulnerabilities """
 class PodsHandler:
     """Exposes sensitive information about pods that are bound to the node"""
@@ -46,6 +47,12 @@ class AnonymousAuthEnabled(Vulnerability, Event):
 
     def proof(self):
         pass # TODO: decide on an appropriate proof
+
+
+
+class KubeletPorts(Enum):
+    SECURED = 10250
+    READ_ONLY = 10255
 
 @handler.subscribe(OpenPortEvent, predicate= lambda x: x.port == 10255 or x.port == 10250)
 class KubeletDiscovery(Hunter):
@@ -90,8 +97,3 @@ class KubeletDiscovery(Hunter):
             self.get_secure_access()
         elif self.event.port == KubeletPorts.READ_ONLY.value:
             self.get_read_only_access()
-
-
-class KubeletPorts(Enum):
-    SECURED = 10250
-    READ_ONLY = 10255

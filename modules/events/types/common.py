@@ -35,11 +35,16 @@ class Kubelet(KubernetesCluster):
 """ Event Types """
 # TODO: make proof an abstract method.
 class Service(object):
-    def __init__(self, name):
+    def __init__(self, name, path="", secure=False):
         self.name = name
+        self.secure = secure
+        self.path = path
 
     def get_name(self):
         return self.name
+
+    def get_path(self):
+        return "/" + self.path if self.path else ""
 
     def explain(self):
         return self.__doc__

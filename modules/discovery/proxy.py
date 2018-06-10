@@ -8,6 +8,7 @@ from ..events import handler
 from ..events.types import Service, Event, OpenPortEvent
 
 class KubeProxyEvent(Event, Service):
+    """proxies from a localhost address to the Kubernetes apiserver"""
     def __init__(self):
         Service.__init__(self, name="Kubernetes Proxy")        
 

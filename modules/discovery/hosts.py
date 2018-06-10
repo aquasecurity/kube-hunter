@@ -13,9 +13,10 @@ from ..events.types import Event, NewHostEvent
 from ..types import Hunter
 
 class HostScanEvent(Event):
-    def __init__(self, pod=False, active=False):
+    def __init__(self, pod=False, active=False, predefined_hosts=list()):
         self.pod = pod
         self.active = active # flag to specify whether to get actual data from vulnerabilities
+        self.predefined_hosts = predefined_hosts
         self.auth_token = self.get_auth_token()
         self.client_cert = self.get_client_cert()
 
@@ -37,14 +38,17 @@ class HostDiscovery(Hunter):
 
     def execute(self):
         logging.info("Discovering Open Kubernetes Services...")
+        
         if self.event.pod:
             if self.is_azure_cluster():
                 self.azure_metadata_discovery()
             else:
                 self.traceroute_discovery()
-        else:
-            # self.publish_event(NewHostEvent(host="acs954agent1.westus2.cloudapp.azure.com")) # test cluster
+        elif len(self.event.predefined_hosts) == 0:
             self.scan_interfaces()
+        else:
+            for host in self.event.predefined_hosts:
+                self.publish_event(NewHostEvent(host=host))
 
     def is_azure_cluster(self):
         try:
