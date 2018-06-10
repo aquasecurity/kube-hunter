@@ -1,8 +1,8 @@
 from socket import socket
-from ..types import Hunter
+from ...core.types import Hunter
 
-from ..events import handler
-from ..events.types import NewHostEvent, OpenPortEvent
+from ...core.events import handler
+from ...core.events.types import NewHostEvent, OpenPortEvent
 
 
 default_ports = [8001, 10250, 10255, 30000]

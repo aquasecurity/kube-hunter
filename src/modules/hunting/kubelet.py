@@ -5,10 +5,10 @@ from enum import Enum
 import requests
 import urllib3
 
-from ..events import handler
-from ..events.types import (KubernetesCluster, Kubelet, Vulnerability, Information, Event)
+from ...core.events import handler
+from ...core.events.types import (KubernetesCluster, Kubelet, Vulnerability, Information, Event)
 from ..discovery.kubelet import KubeletExposedHandler, ReadOnlyKubeletEvent, SecureKubeletEvent
-from ..types import Hunter
+from ...core.types import Hunter
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 

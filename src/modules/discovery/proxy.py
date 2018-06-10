@@ -1,11 +1,11 @@
 import logging
 from collections import defaultdict
-from ..types import Hunter
+from ...core.types import Hunter
 
 from requests import get
 
-from ..events import handler
-from ..events.types import Service, Event, OpenPortEvent
+from ...core.events import handler
+from ...core.events.types import Service, Event, OpenPortEvent
 
 class KubeProxyEvent(Event, Service):
     """proxies from a localhost address to the Kubernetes apiserver"""

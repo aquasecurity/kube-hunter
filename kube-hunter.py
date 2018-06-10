@@ -19,10 +19,10 @@ logging.basicConfig(level=loglevel, format='%(asctime)s - [%(levelname)s]: %(mes
 
 import log
 # executes all registrations from sub packages
-import modules
-from modules.discovery import HostDiscovery
-from modules.events import handler
-from modules.discovery.hosts import HostScanEvent
+import src.modules
+from src.modules.discovery import HostDiscovery
+from src.core.events import handler
+from src.modules.discovery.hosts import HostScanEvent
 
 def main():
     logging.info("Started")

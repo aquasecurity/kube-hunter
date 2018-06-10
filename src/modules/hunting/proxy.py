@@ -5,9 +5,9 @@ from requests import get
 
 from ..discovery.dashboard import KubeDashboardEvent
 from ..discovery.proxy import KubeProxyEvent
-from ..events import handler
-from ..events.types import Vulnerability, Event, KubernetesCluster
-from ..types import Hunter
+from ...core.events import handler
+from ...core.events.types import Vulnerability, Event, KubernetesCluster
+from ...core.types import Hunter
 
 
 class Service(Enum):

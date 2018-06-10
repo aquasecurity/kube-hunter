@@ -1,4 +1,4 @@
-from ..events import handler
+from ...core.events import handler
 
 class Hunter(object):
     def __init__(self):

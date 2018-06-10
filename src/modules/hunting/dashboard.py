@@ -1,9 +1,9 @@
 import logging
-from ..types import Hunter
+from ...core.types import Hunter
 
 import requests
 
-from ..events import handler
+from ...core.events import handler
 from ..discovery.dashboard import KubeDashboardEvent
 
 @handler.subscribe(KubeDashboardEvent)

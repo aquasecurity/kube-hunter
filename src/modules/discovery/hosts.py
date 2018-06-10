@@ -8,9 +8,9 @@ import requests
 from netaddr import IPNetwork
 from netifaces import AF_INET, ifaddresses, interfaces
 
-from ..events import handler
-from ..events.types import Event, NewHostEvent
-from ..types import Hunter
+from ...core.events import handler
+from ...core.events.types import Event, NewHostEvent
+from ...core.types import Hunter
 
 class HostScanEvent(Event):
     def __init__(self, pod=False, active=False, predefined_hosts=list()):

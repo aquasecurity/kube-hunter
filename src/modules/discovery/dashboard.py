@@ -2,9 +2,9 @@ import json
 
 import requests
 
-from ..events import handler
-from ..events.types import Event, Service, OpenPortEvent
-from ..types import Hunter
+from ...core.events import handler
+from ...core.events.types import Event, Service, OpenPortEvent
+from ...core.types import Hunter
 
 class KubeDashboardEvent(Service, Event):
     """Allows multiple arbitrary operations on the cluster from all connections"""
