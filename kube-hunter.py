@@ -20,12 +20,12 @@ import log
 import modules
 from modules.discovery import HostDiscovery
 from modules.events import handler
-from modules.events.types import HostScanEvent
+from modules.discovery.hosts import HostScanEvent
 
 def main():
     logging.info("Started")
     try:
-        handler.publish_event(HostScanEvent(pod=args.pod))
+        handler.publish_event(HostScanEvent(pod=args.pod, active=True))
         # Blocking to see discovery output
         while(True): 
             time.sleep(100)
@@ -34,6 +34,7 @@ def main():
     finally:
         handler.free()
         logging.debug("Cleaned Queue")        
+        log.print_results()
 
 if __name__ == '__main__':
     main()

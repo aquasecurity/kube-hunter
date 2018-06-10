@@ -22,31 +22,68 @@ class Event(object):
         return history
 
 
-""" Information Fathers """
-# TODO: make explain an abstract method.
-class ServiceEvent(object):
-    def __init__(self, name, data=""):
+"""Kubernetes Components"""
+class KubernetesCluster():
+    """Kubernetes Cluster"""
+    name = "Kubernetes Cluster"
+
+class Kubelet(KubernetesCluster):
+    """The kubelet is the primary "node agent" that runs on each node"""
+    name = "Kubelet"
+
+
+""" Event Types """
+# TODO: make proof an abstract method.
+class Service(object):
+    def __init__(self, name):
         self.name = name
-        self.data = data
+
+    def get_name(self):
+        return self.name
 
     def explain(self):
-        return self.data
+        return self.__doc__
+
+    def proof(self):
+        return self.name
 
 class Vulnerability(object):
-    def __init__(self, name, data=""):
+    def __init__(self, component, name):
+        self.component = component
         self.name = name
-        self.data = data
+
+    def get_name(self):
+        return self.name
 
     def explain(self):
-        return self.data
+        return self.__doc__
+
+    def proof(self):
+        return self.name
+
+class Information(object):
+    def __init__(self, name):
+        self.name = name
+
+    def get_name(self):
+        return self.name
+
+    def explain(self):
+        return self.__doc__
+        
+    def proof(self):
+        return self.name
 
 
-
+event_id_count = 0
 """ Discovery/Hunting Events """
 class NewHostEvent(Event):
     def __init__(self, host):
+        global event_id_count
         self.host = host
-    
+        self.id = event_id_count
+        event_id_count += 1
+
     def __str__(self):
         return str(self.host)
 
@@ -56,40 +93,3 @@ class OpenPortEvent(Event):
     
     def __str__(self):
         return str(self.port)
-
-class HostScanEvent(Event):
-    def __init__(self, pod=False):
-        self.pod = pod
-        self.auth_token = self.get_auth_token()
-        self.client_cert = self.get_client_cert()
-
-    def get_auth_token(self):
-        if self.pod:
-            with open("/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
-                return token_file.read()
-        return None
-
-    def get_client_cert(self):
-        if self.pod:
-            return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
-        return None
-
-
-class KubeDashboardEvent(Event, ServiceEvent):
-    def __init__(self, path="/", secure=False):
-        self.path = path
-        self.secure
-
-class ReadOnlyKubeletEvent(Event, ServiceEvent):
-    def __init__(self):
-        ServiceEvent.__init__(self, name="Kubelet API (readonly)")
-
-class SecureKubeletEvent(Event, ServiceEvent):
-    def __init__(self, cert=False, token=False):
-        self.cert = cert
-        self.token = token
-        ServiceEvent.__init__(self, name="Kubelet API") 
-
-class KubeProxyEvent(Event, ServiceEvent):
-    def __init__(self):
-        ServiceEvent.__init__(self, name="Kubernetes Proxy")        

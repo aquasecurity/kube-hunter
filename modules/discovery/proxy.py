@@ -5,8 +5,11 @@ from ..types import Hunter
 from requests import get
 
 from ..events import handler
-from ..events.types import KubeProxyEvent, OpenPortEvent
+from ..events.types import Service, Event, OpenPortEvent
 
+class KubeProxyEvent(Event, Service):
+    def __init__(self):
+        Service.__init__(self, name="Kubernetes Proxy")        
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 8001)
 class KubeProxy(Hunter):

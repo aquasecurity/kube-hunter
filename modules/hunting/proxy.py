@@ -4,7 +4,8 @@ from ..types import Hunter
 from requests import get
 
 from ..events import handler
-from ..events.types import KubeDashboardEvent, KubeProxyEvent
+from ..discovery.dashboard import KubeDashboardEvent
+from ..discovery.proxy import KubeProxyEvent
 
 class Service(Enum):
     DASHBOARD = "kubernetes-dashboard"

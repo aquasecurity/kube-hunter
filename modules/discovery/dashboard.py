@@ -1,10 +1,17 @@
-from ..types import Hunter
+import json
 
 import requests
 
 from ..events import handler
-from ..events.types import KubeDashboardEvent, OpenPortEvent
+from ..events.types import Event, Service, OpenPortEvent
+from ..types import Hunter
 
+class KubeDashboardEvent(Service, Event):
+    """Allows multiple arbitrary operations on the cluster from all connections"""
+    def __init__(self, path="/", secure=False):
+        self.path = path
+        self.secure
+        Service.__init__(self, name="Kubernetes Dashboard")     
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
 class KubeDashboard(Hunter):
@@ -15,8 +22,11 @@ class KubeDashboard(Hunter):
 
     @property
     def secure(self):
-        # TODO: insert logic for detremining a secure/insecure dashboard is there
+        default = json.loads(requests.get("http://{}:{}/api/v1/service/default".format(self.host, self.port)).text)
+        if "errors" in default and len(default["errors"]) == 0:
+            return False
         return False
 
     def execute(self):
-        self.publish_event(KubeDashboardEvent())
+        if not self.secure:
+            self.publish_event(KubeDashboardEvent())

@@ -3,3 +3,4 @@ netifaces
 enum34
 scapy
 requests
+PrettyTable 

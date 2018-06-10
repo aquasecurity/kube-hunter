@@ -6,11 +6,61 @@ import requests
 import urllib3
 
 from ..events import handler
-from ..events.types import (Vulnerability, Event, ReadOnlyKubeletEvent,
-                            SecureKubeletEvent)
-from ..discovery.kubelet import KubeletOpenHandler
+from ..events.types import (KubernetesCluster, Kubelet, Vulnerability, Information, Event)
+from ..discovery.kubelet import KubeletExposedHandler, ReadOnlyKubeletEvent, SecureKubeletEvent
 from ..types import Hunter
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+
+class ContainerLogsHandler:
+    """Outputs logs from a running container"""
+    name="/containerlogs"
+    remediation="--enable-debugging-handlers=False On Kubelet"
+
+class RunningPodsHandler:
+    """Outputs a list of currently runnning pods, and some of their metadata"""
+    name="/runningpods"
+    remediation="--enable-debugging-handlers=False On Kubelet"    
+
+class ExecHandler:
+    """Opens a websocket that enables running and executing arbitrary commands on a container"""
+    name="/exec"
+    remediation="--enable-debugging-handlers=False On Kubelet"    
+
+class RunHandler:
+    """Allows remote arbitrary execution inside a container"""
+    name="/run"
+    remediation="--enable-debugging-handlers=False On Kubelet"    
+
+class PortForwardHandler:
+    """Setting a port forwaring rule on a pod"""
+    name="/portForward"
+    remediation="--enable-debugging-handlers=False On Kubelet"
+
+class AttachHandler:
+    """Opens a websocket that enables running and executing arbitrary commands on a container"""
+    name="/attach"
+    remediation="--enable-debugging-handlers=False On Kubelet"
+        
+
+""" Vulnerabilities """
+class K8sVersionDisclosure(Vulnerability, Event):
+    """Discloses the kubernetes version, exposed from a log on the /metrics endpoint"""
+    def __init__(self, version):
+        Vulnerability.__init__(self, Kubelet, "Version Disclosure")
+        self.version = version
+    
+    def proof(self):
+        return self.version
+
+class PrivilegedContainers(Vulnerability, Event):
+    """A priviledged container on a node, can expose the node/cluster to unwanted root operations"""
+    def __init__(self, containers):
+        Vulnerability.__init__(self, KubernetesCluster, "Priviledged Container")
+        self.containers = containers
+        
+    def proof(self):
+        return self.containers
 
 
 """ dividing ports for seperate hunters """
@@ -18,9 +68,35 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class ReadOnlyKubeletPortHunter(Hunter):
     def __init__(self, event):
         self.event = event
+        self.path = "http://{}:{}/".format(self.event.host, self.event.port)
+
+    def get_k8s_version(self):
+        metrics = requests.get(self.path + "metrics").text
+        for line in metrics.split("\n"):
+            if line.startswith("kubernetes_build_info"):
+                for info in line[line.find('{') + 1: line.find('}')].split(','):
+                    k, v = info.split("=")
+                    if k == "gitVersion":
+                        return v.strip("\"")
+    
+    # returns list of tuples of priviledged container and their pod. 
+    def find_privileged_containers(self):
+        pods = json.loads(requests.get(self.path + "pods").text)
+        privileged_containers = list()
+        if "items" in pods:
+            for pod in pods["items"]:
+                for container in pod["spec"]["containers"]:
+                    if "securityContext" in container and "privileged" in container["securityContext"] and container["securityContext"]["privileged"]:
+                        privileged_containers.append((pod["metadata"]["name"], container["name"]))
+        return privileged_containers if len(privileged_containers) > 0 else None
 
     def execute(self):
-        pass
+        k8s_version = self.get_k8s_version()
+        privileged_containers = self.find_privileged_containers()
+        if k8s_version:
+            self.publish_event(K8sVersionDisclosure(version=k8s_version))
+        if privileged_containers:
+            self.publish_event(PrivilegedContainers(containers=privileged_containers))
         
 @handler.subscribe(SecureKubeletEvent)        
 class SecureKubeletPortHunter(Hunter):
@@ -53,7 +129,7 @@ class SecureKubeletPortHunter(Hunter):
                 containerName=self.pod.container
             )
             if self.session.get(logs_url, verify=False).status_code == 200:
-                return self.Handlers.CONTAINERLOGS.name
+                return ContainerLogsHandler
         
         # need further investigation on websockets protocol for further implementation
         def test_exec_container(self):
@@ -63,10 +139,10 @@ class SecureKubeletPortHunter(Hunter):
                 podNamespace = self.pod.namespace,
                 podID = self.pod.name,
                 containerName = self.pod.container,
-                cmd = "uname"
+                cmd = "uname -a"
             )
             if "/cri/exec/" in self.session.get(exec_url, headers=headers, allow_redirects=False ,verify=False).text:
-                return self.Handlers.EXEC.name
+                return ExecHandler
 
         # need further investigation on websockets protocol for further implementation
         def test_port_forward(self):
@@ -92,17 +168,17 @@ class SecureKubeletPortHunter(Hunter):
                 podNamespace = self.pod.namespace,
                 podID = self.pod.name,
                 containerName = self.pod.container,
-                cmd = "echo check"
+                cmd = "uname -a"
             )
             output = requests.post(run_url, allow_redirects=False ,verify=False).text        
             if "echo" not in output and "check" in output:
-                return self.Handlers.EXEC.name
+                return RunHandler 
 
         # returns list of currently running pods
         def test_running_pods(self):
             pods_url = self.path + self.Handlers.RUNNINGPODS.value
             if 'items' in json.loads(self.session.get(pods_url, verify=False).text).keys():
-                return self.Handlers.RUNNINGPODS.name
+                return RunningPodsHandler
         
         # need further investigation on the differences between attach and exec
         def test_attach_container(self):
@@ -111,17 +187,17 @@ class SecureKubeletPortHunter(Hunter):
                 podNamespace = self.pod.namespace,
                 podID = self.pod.name,
                 containerName = self.pod.container,
-                cmd = "uname"
+                cmd = "uname -a"
             )
             if "/cri/attach/" in self.session.get(attach_url, allow_redirects=False ,verify=False).text:
-                return self.Handlers.ATTACH.name
+                return AttachHandler
 
     def __init__(self, event):
         self.event = event
         self.session = requests.Session()
         if self.event.secure:
-                self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
-                self.session.cert = self.event.client_cert
+            self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
+            self.session.cert = self.event.client_cert
         self.path = "https://{}:{}/".format(self.event.host, 10250)
 
     def execute(self):
@@ -140,10 +216,14 @@ class SecureKubeletPortHunter(Hunter):
             debug_handlers.test_attach_container
         ]
         for test_handler in test_list:
-            handler_name = test_handler()
-            if handler_name:
-                self.publish_event(KubeletOpenHandler(handler=handler_name.lower()))
-
+            try:
+                handler = test_handler()
+                if handler:
+                    self.publish_event(KubeletExposedHandler(handler=handler))
+            except Exception as ex:
+                logging.debug("Failed getting handler: {}".format(test_handler))
+                pass
+            
     def get_self_pod(self):
         return {"name": "kube-hunter", 
                 "namespace": "default", 
@@ -165,6 +245,26 @@ class SecureKubeletPortHunter(Hunter):
             "container": container_data["name"],
             "namespace": "default"
         }
+
+
+""" Active Hunting Of Handlers"""
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler=="exec" and x.active)
+class ActiveExecHandler(Hunter):
+    def __init__(self, event):
+        self.event = Event
+
+    def execute(self):
+        pass
+
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler=="run" and x.active)
+class ActiveRunHandler(Hunter):
+    def __init__(self, event):
+        self.event = Event
+
+    def execute(self):
+        pass
+
+
 
 # def get_kubesystem_pod_container(self):
 #     pods_data = json.loads(requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text)['items']

@@ -2,7 +2,6 @@ from os.path import dirname, basename, isfile
 import glob
 
 from common import *
-from information import *
 
 # dynamically importing all modules in folder
 files = glob.glob(dirname(__file__)+"/*.py")

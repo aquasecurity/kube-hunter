@@ -5,6 +5,9 @@ from collections import defaultdict
 from Queue import Queue
 from threading import Lock, Thread
 
+working_count = 0
+lock = Lock()
+
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue, object):
     def __init__(self, num_worker=10):
