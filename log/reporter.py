@@ -18,6 +18,7 @@ class VulnerabilityReport(object):
             desc=self.vulnerability.explain(),
         ))
         vulnerabilities.append(self.vulnerability)
+        # TODO: Add ActiveHunter replacement by id, when a vulnerability comes from active hunter, it replaces it's predecessor 
 
 @handler.subscribe(Service)
 class OpenServiceReport(object):
@@ -38,8 +39,8 @@ def print_results(active):
     for service in services:
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
     
-    column_names = ["Location", "From Component", "Vulnerability", "Description"]
-    if active: column_names.append("Proof")
+    column_names = ["Location", "Category", "Vulnerability", "Description"]
+    if active: column_names.append("Evidence")
 
     vuln_table = PrettyTable(column_names)
     for vuln in vulnerabilities:

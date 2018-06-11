@@ -5,10 +5,11 @@ from enum import Enum
 import requests
 import urllib3
 
+from __main__ import config
 from ...core.events import handler
 from ...core.events.types import (KubernetesCluster, Kubelet, Vulnerability, Information, Event)
 from ..discovery.kubelet import KubeletExposedHandler, ReadOnlyKubeletEvent, SecureKubeletEvent
-from ...core.types import Hunter
+from ...core.types import Hunter, ActiveHunter
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -205,7 +206,7 @@ class SecureKubeletPortHunter(Hunter):
 
     def test_debugging_handlers(self):
         # if kube-hunter runs in a pod, we test with kube-hunter's pod        
-        pod = self.get_self_pod() if self.event.pod else self.get_random_pod()
+        pod = self.get_self_pod() if config.pod else self.get_random_pod()
         debug_handlers = self.DebugHandlers(self.path, **pod)
         test_list = [
             debug_handlers.test_container_logs, 
@@ -248,32 +249,32 @@ class SecureKubeletPortHunter(Hunter):
 
 
 """ Active Hunting Of Handlers"""
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ExecHandler.name and x.active)
-class ActiveExecHandler(Hunter):
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ExecHandler.name)
+class ActiveExecHandler(ActiveHunter):
     def __init__(self, event):
         self.event = event
 
     def execute(self):
         pass
         
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==RunHandler.name and x.active)
-class ActiveRunHandler(Hunter):
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==RunHandler.name)
+class ActiveRunHandler(ActiveHunter):
     def __init__(self, event):
         self.event = event
 
     def execute(self):
         pass
 
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ContainerLogsHandler.name and x.active)
-class ActiveContainerLogs(Hunter):
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ContainerLogsHandler.name)
+class ActiveContainerLogs(ActiveHunter):
     def __init__(self, event):
         self.event = event
 
     def execute(self):
         pass
 
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==AttachHandler.name and x.active)
-class ActiveContainerLogs(Hunter):
+@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==AttachHandler.name)
+class ActiveContainerLogs(ActiveHunter):
     def __init__(self, event):
         self.event = event
 

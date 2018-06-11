@@ -1,9 +1,11 @@
-import inspect
 import logging
 from abc import ABCMeta
 from collections import defaultdict
 from Queue import Queue
 from threading import Lock, Thread
+
+from __main__ import config
+from ..types import ActiveHunter
 
 working_count = 0
 lock = Lock()
@@ -14,7 +16,7 @@ class EventQueue(Queue, object):
         super(EventQueue, self).__init__()
         self.hooks = defaultdict(list)
         self.running = True
-
+        
         for i in range(num_worker):
             t = Thread(target=self.worker)
             t.daemon = True
@@ -29,9 +31,11 @@ class EventQueue(Queue, object):
 
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
-        logging.debug('{} subscribed to {}'.format(hook, event))
+        if ActiveHunter in hook.__mro__ and not config.active:
+            return
         if hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
+            logging.debug('{} subscribed to {}'.format(hook, event))
 
     # getting instantiated event object
     def publish_event(self, event, caller=None):

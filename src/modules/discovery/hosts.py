@@ -8,26 +8,26 @@ import requests
 from netaddr import IPNetwork
 from netifaces import AF_INET, ifaddresses, interfaces
 
+from __main__ import config
 from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent
 from ...core.types import Hunter
 
 class HostScanEvent(Event):
     def __init__(self, pod=False, active=False, predefined_hosts=list()):
-        self.pod = pod
         self.active = active # flag to specify whether to get actual data from vulnerabilities
         self.predefined_hosts = predefined_hosts
         self.auth_token = self.get_auth_token()
         self.client_cert = self.get_client_cert()
 
     def get_auth_token(self):
-        if self.pod:
+        if config.pod:
             with open("/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
                 return token_file.read()
         return None
 
     def get_client_cert(self):
-        if self.pod:
+        if config.pod:
             return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
         return None
 
@@ -39,7 +39,7 @@ class HostDiscovery(Hunter):
     def execute(self):
         logging.info("Discovering Open Kubernetes Services...")
         
-        if self.event.pod:
+        if config.pod:
             if self.is_azure_cluster():
                 self.azure_metadata_discovery()
             else:
