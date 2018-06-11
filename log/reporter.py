@@ -1,5 +1,5 @@
 import logging
-from prettytable import PrettyTable
+from prettytable import PrettyTable, ALL
 from src.core.events import handler
 from src.core.events.types import Vulnerability, Information, Service
 
@@ -36,14 +36,19 @@ class OpenServiceReport(object):
         services.append(self.service)
 
 def print_results(active):
-    services_table = PrettyTable(["Service", "Location", "Description"])    
+    services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
+    services_table.align="l"     
+    services_table.max_width=60  
     for service in services:
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
     
     column_names = ["Location", "Category", "Vulnerability", "Description"]
     if active: column_names.append("Evidence")
 
-    vuln_table = PrettyTable(column_names)
+    vuln_table = PrettyTable(column_names, hrules=ALL)
+    vuln_table.align="l"
+    vuln_table.max_width=70 
+    vuln_table.sortby="Category"    
     for vuln in vulnerabilities:
         row = ["{}:{}".format(vuln.host, vuln.port), vuln.component.name, vuln.get_name(), vuln.explain()]
         if active: 

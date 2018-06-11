@@ -10,8 +10,15 @@ from netifaces import AF_INET, ifaddresses, interfaces
 
 from __main__ import config
 from ...core.events import handler
-from ...core.events.types import Event, NewHostEvent
+from ...core.events.types import Event, NewHostEvent, Vulnerability
 from ...core.types import Hunter
+from ..hunting.aks import Azure
+
+class AzureMetadataApi(Vulnerability, Event):
+    def __init__(self, cidr):
+        Vulnerability.__init__(self, Azure, "Azure Metadata Exposure")
+        self.cidr = cidr
+        self.evidence = "cidr: {}".format(cidr)
 
 class HostScanEvent(Event):
     def __init__(self, pod=False, active=False, predefined_hosts=list()):
@@ -41,6 +48,7 @@ class HostDiscovery(Hunter):
         
         if config.pod:
             if self.is_azure_cluster():
+                self.event.azure_cluster = True
                 self.azure_metadata_discovery()
             else:
                 self.traceroute_discovery()
@@ -55,7 +63,7 @@ class HostDiscovery(Hunter):
             if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).status_code == 200:
                 return True
         except Exception as ex:
-            logging.debug("Not azure cluster " + ex.message)
+            logging.debug("Not azure cluster " + str(ex.message))
         return False
 
     # for pod scanning
@@ -70,10 +78,12 @@ class HostDiscovery(Hunter):
     # quering azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
         machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).text)
+        address, subnet= "", ""
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
             for ip in self.generate_subnet(address, sn=subnet):
                 self.publish_event(NewHostEvent(host=ip))
+        self.publish_event(AzureMetadataApi(cidr="{}/{}".format(address, subnet)))
 
     # for normal scanning
     def scan_interfaces(self):

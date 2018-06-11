@@ -197,19 +197,22 @@ class SecureKubeletPortHunter(Hunter):
         pod = self.get_self_pod() if config.pod else self.get_random_pod()
         debug_handlers = self.DebugHandlers(self.path, pod=pod, session=self.session)
         
-        if debug_handlers.test_container_logs():
-            self.publish_event(ExposedContainerLogsHandler())
-        if debug_handlers.test_exec_container():
-            self.publish_event(ExposedExecHandler())            
-        if debug_handlers.test_run_container():
-            self.publish_event(ExposedRunHandler())
-        if debug_handlers.test_running_pods():
-            self.publish_event(ExposedRunningPodsHandler())            
-        if debug_handlers.test_port_forward():
-            self.publish_event(ExposedPortForwardHandler()) # not implemented            
-        if debug_handlers.test_attach_container():
-            self.publish_event(ExposedAttachHandler())
-                        
+        try:
+            if debug_handlers.test_container_logs():
+                self.publish_event(ExposedContainerLogsHandler())
+            if debug_handlers.test_exec_container():
+                self.publish_event(ExposedExecHandler())            
+            if debug_handlers.test_run_container():
+                self.publish_event(ExposedRunHandler())
+            if debug_handlers.test_running_pods():
+                self.publish_event(ExposedRunningPodsHandler())            
+            if debug_handlers.test_port_forward():
+                self.publish_event(ExposedPortForwardHandler()) # not implemented            
+            if debug_handlers.test_attach_container():
+                self.publish_event(ExposedAttachHandler())
+        except Exception as ex:
+            logging.debug(str(ex.message))
+
     def get_self_pod(self):
         return {"name": "kube-hunter", 
                 "namespace": "default", 
