@@ -21,7 +21,6 @@ class Event(object):
             previous = previous.previous
         return history
 
-
 """Kubernetes Components"""
 class KubernetesCluster():
     """Kubernetes Cluster"""
@@ -56,15 +55,13 @@ class Vulnerability(object):
     def __init__(self, component, name):
         self.component = component
         self.name = name
+        self.evidence = ""
 
     def get_name(self):
         return self.name
 
     def explain(self):
         return self.__doc__
-
-    def proof(self):
-        return self.name
 
 class Information(object):
     def __init__(self, name):

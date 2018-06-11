@@ -8,7 +8,7 @@ import urllib3
 from __main__ import config
 from ...core.events import handler
 from ...core.events.types import (KubernetesCluster, Kubelet, Vulnerability, Information, Event)
-from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent
+from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent, ExposedPodsHandler
 from ...core.types import Hunter, ActiveHunter
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -54,20 +54,14 @@ class K8sVersionDisclosure(Vulnerability, Event):
     """Discloses the kubernetes version, exposed from a log on the /metrics endpoint"""
     def __init__(self, version):
         Vulnerability.__init__(self, Kubelet, "Version Disclosure")
-        self.version = version
+        self.evidence = version
     
-    def proof(self):
-        return self.version
-
 class PrivilegedContainers(Vulnerability, Event):
     """A priviledged container on a node, can expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
         Vulnerability.__init__(self, KubernetesCluster, "Priviledged Container")
-        self.containers = containers
+        self.evidence = containers
         
-    def proof(self):
-        return self.containers
-
 
 """ dividing ports for seperate hunters """
 @handler.subscribe(ReadOnlyKubeletEvent)
@@ -207,7 +201,7 @@ class SecureKubeletPortHunter(Hunter):
         if debug_handlers.test_exec_container():
             self.publish_event(ExposedExecHandler())            
         if debug_handlers.test_run_container():
-            self.publish_event(ExposedRunHandler())            
+            self.publish_event(ExposedRunHandler())
         if debug_handlers.test_running_pods():
             self.publish_event(ExposedRunningPodsHandler())            
         if debug_handlers.test_port_forward():
@@ -238,11 +232,70 @@ class SecureKubeletPortHunter(Hunter):
         }
 
 
-""" Active Hunting Of Handlers"""
 @handler.subscribe(ExposedRunHandler)
-class ActiveRunHandler(ActiveHunter):
+class ProveRunHandler(ActiveHunter):
     def __init__(self, event):
         self.event = event
+    
+    def run(self, command, container):
+        run_url = "https://{host}:{port}/run/{podNamespace}/{podID}/{containerName}".format(
+            host=self.event.host,
+            port=self.event.port,            
+            podNamespace=container["namespace"],
+            podID=container["pod"],
+            containerName=container["name"]
+        )
+        return requests.post(run_url, verify=False, params={'cmd': command}).text
 
     def execute(self):
-        logging.debug("run")
+        pods_data = json.loads(requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text)['items']
+        for pod_data in pods_data:
+            container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
+            if container_data:
+                output = self.run("uname -a", container={
+                    "namespace": pod_data["metadata"]["namespace"],
+                    "pod": pod_data["metadata"]["name"],
+                    "name": container_data["name"]                    
+                })
+                if output and "exited with" not in output:
+                    self.event.evidence = "uname: " + output
+                    break
+
+@handler.subscribe(ExposedPodsHandler)
+class ProvePodsHandler(ActiveHunter):
+    def __init__(self, event):
+        self.event = event
+    
+    def execute(self):
+        protocol = "https" if self.event.port == 10250 else "http"
+        pods_data = json.loads(requests.get("{protocol}://{host}:{port}/pods".format(
+            protocol=protocol,
+            host=self.event.host, 
+            port=self.event.port), 
+            verify=False)
+            .text)['items']
+        self.event.evidence = "pods: {}".format(len(pods_data))
+
+@handler.subscribe(ExposedContainerLogsHandler)
+class ProveContainerLogsHandler(ActiveHunter):
+    def __init__(self, event):
+        self.event = event
+        protocol = "https" if self.event.port == 10250 else "http"
+        self.base_url = "{protocol}://{host}:{port}".format(protocol=protocol, host=self.event.host, port=self.event.port)
+
+    def execute(self):
+        pods_data = json.loads(requests.get(self.base_url + "/pods", verify=False).text)['items']
+        for pod_data in pods_data:
+            container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
+            if container_data:
+                output = requests.get(self.base_url + "/containerLogs/{podNamespace}/{podID}/{containerName}".format(
+                    podNamespace=pod_data["metadata"]["namespace"],
+                    podID=pod_data["metadata"]["name"],
+                    containerName=container_data["name"]
+                ), verify=False)
+                if output.status_code == 200 and output.text:
+                    self.event.evidence = "{}: {}".format(
+                        container_data["name"],
+                        output.text
+                    )
+                    break

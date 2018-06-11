@@ -1,22 +1,29 @@
 import logging
 from enum import Enum
 
-from requests import get
+import requests
+import json
 
+from ...core.events import handler
+from ...core.events.types import Event, KubernetesCluster, Vulnerability
+from ...core.types import ActiveHunter, Hunter
 from ..discovery.dashboard import KubeDashboardEvent
 from ..discovery.proxy import KubeProxyEvent
-from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, KubernetesCluster
-from ...core.types import Hunter
 
-
-class Service(Enum):
-    DASHBOARD = "kubernetes-dashboard"
-
+""" Vulnerabilities """
 class KubeProxyExposed(Vulnerability, Event):
     """Exposes all oprations on the cluster"""
     def __init__(self):
         Vulnerability.__init__(self, KubernetesCluster, "Proxy Exposed")
+
+class K8sVersionDisclosure(Vulnerability, Event):
+    """Discloses the kubernetes version, exposed from kube-proxy"""
+    def __init__(self):
+        Vulnerability.__init__(self, KubernetesCluster, "Version Disclosure")
+
+
+class Service(Enum):
+    DASHBOARD = "kubernetes-dashboard"
 
 @handler.subscribe(KubeProxyEvent)
 class KubeProxy(Hunter):
@@ -26,6 +33,7 @@ class KubeProxy(Hunter):
 
     def execute(self):
         self.publish_event(KubeProxyExposed())
+        self.publish_event(K8sVersionDisclosure())
         for namespace, services in self.services.items():
             for service in services:
                 if service == Service.DASHBOARD.value:
@@ -35,7 +43,7 @@ class KubeProxy(Hunter):
 
     @property
     def namespaces(self):
-        resource_json = get(self.api_url + "/namespaces").json()
+        resource_json = requests.get(self.api_url + "/namespaces").json()
         return self.extract_names(resource_json)
 
     @property
@@ -44,7 +52,7 @@ class KubeProxy(Hunter):
         services = dict()
         for namespace in self.namespaces:
             resource_path = "/namespaces/{ns}/services".format(ns=namespace)
-            resource_json = get(self.api_url + resource_path).json()
+            resource_json = requests.get(self.api_url + resource_path).json()
             services[namespace] = self.extract_names(resource_json)
         logging.debug(services)
         return services
@@ -55,3 +63,29 @@ class KubeProxy(Hunter):
         for item in resource_json["items"]:
             names.append(item["metadata"]["name"])
         return names
+
+@handler.subscribe(KubeProxyExposed)
+class ProveProxyExposed(ActiveHunter):
+    def __init__(self, event):
+        self.event = event
+
+    def execute(self):
+        version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
+            host=self.event.host,
+            port=self.event.port,
+        ), verify=False).text)
+        if "buildDate" in version_metadata:
+            self.event.evidence = "build date: {}".format(version_metadata["buildDate"])
+
+@handler.subscribe(K8sVersionDisclosure)
+class ProveK8sVersionDisclosure(ActiveHunter):
+    def __init__(self, event):
+        self.event = event
+
+    def execute(self):
+        version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
+            host=self.event.host,
+            port=self.event.port,
+        ), verify=False).text)
+        if "gitVersion" in version_metadata:
+            self.event.evidence = "version: {}".format(version_metadata["gitVersion"])

@@ -6,6 +6,8 @@ from src.core.events.types import Vulnerability, Information, Service
 services = list()
 vulnerabilities = list()
 
+EVIDENCE_PREVIEW = 40
+
 @handler.subscribe(Vulnerability)
 class VulnerabilityReport(object):
     def __init__(self, event):
@@ -44,7 +46,9 @@ def print_results(active):
     vuln_table = PrettyTable(column_names)
     for vuln in vulnerabilities:
         row = ["{}:{}".format(vuln.host, vuln.port), vuln.component.name, vuln.get_name(), vuln.explain()]
-        if active: row.append(vuln.attrs)
+        if active: 
+            evidence = vuln.evidence[:EVIDENCE_PREVIEW] + "..." if len(vuln.evidence) > EVIDENCE_PREVIEW else vuln.evidence
+            row.append(evidence)
         vuln_table.add_row(row)
         
     print "\nOpen Services:"
