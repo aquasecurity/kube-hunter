@@ -60,7 +60,8 @@ class PrivilegedContainers(Vulnerability, Event):
     """A priviledged container on a node, can expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
         Vulnerability.__init__(self, KubernetesCluster, "Priviledged Container")
-        self.evidence = containers
+        self.containers = containers
+        self.evidence = "pod: {}, container: {}".format(containers[0][0], containers[0][1])
         
 
 """ dividing ports for seperate hunters """

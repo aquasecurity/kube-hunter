@@ -47,7 +47,7 @@ def print_results(active):
     for vuln in vulnerabilities:
         row = ["{}:{}".format(vuln.host, vuln.port), vuln.component.name, vuln.get_name(), vuln.explain()]
         if active: 
-            evidence = vuln.evidence[:EVIDENCE_PREVIEW] + "..." if len(vuln.evidence) > EVIDENCE_PREVIEW else vuln.evidence
+            evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
             row.append(evidence)
         vuln_table.add_row(row)
         
