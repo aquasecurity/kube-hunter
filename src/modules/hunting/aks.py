@@ -14,7 +14,7 @@ class AzureSubscription(KubernetesCluster):
     name = "Azure Metadata"
 
 class AzureSpnExposure(Vulnerability, Event):
-    """By exposing the SPN, the attacker can gain access to azure subscription"""
+    """By exposing the SPN, the attacker can gain access to the azure subscription"""
     def __init__(self, container):
         Vulnerability.__init__(self, AzureSubscription, "Azure SPN Exposure")
         self.container = container
@@ -45,6 +45,7 @@ class AzureSpnHunter(Hunter):
             self.publish_event(AzureSpnExposure(container=container))
 
 """ Active Hunting """
+@handler.subscribe(AzureSpnExposure)
 class ProveAzureSpnExposure(ActiveHunter):
     def __init__(self, event):
         self.event = event
@@ -60,5 +61,11 @@ class ProveAzureSpnExposure(ActiveHunter):
         return requests.post(run_url, verify=False, params={'cmd': command}).text
 
     def execute(self):
-        if self.run("[ -f /etc/kubernetes/azure.json ] && echo Found || echo Not Found", container=self.event.container) == 'Found':
-            self.event.evidence = self.run("cat /etc/kubernetes/azure.json", container=self.event.container)
+        raw_output = self.run("cat /etc/kubernetes/azure.json", container=self.event.container)
+        if "subscriptionId" in raw_output:
+            subscription = json.loads(raw_output)
+            self.event.subscriptionId = subscription["subscriptionId"]
+            self.event.aadClientId = subscription["aadClientId"]
+            self.event.aadClientSecret = subscription["aadClientSecret"]
+            self.event.tenantId = subscription["tenantId"]     
+            self.event.evidence = "id: {}".format(self.event.subscriptionId)
