@@ -8,43 +8,48 @@ import urllib3
 from __main__ import config
 from ...core.events import handler
 from ...core.events.types import (KubernetesCluster, Kubelet, Vulnerability, Information, Event)
-from ..discovery.kubelet import KubeletExposedHandler, ReadOnlyKubeletEvent, SecureKubeletEvent
+from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent
 from ...core.types import Hunter, ActiveHunter
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class ContainerLogsHandler:
-    """Outputs logs from a running container"""
-    name="/containerLogs"
-    remediation="--enable-debugging-handlers=False On Kubelet"
-
-class RunningPodsHandler:
-    """Outputs a list of currently runnning pods, and some of their metadata"""
-    name="/runningpods"
-    remediation="--enable-debugging-handlers=False On Kubelet"    
-
-class ExecHandler:
-    """Opens a websocket that enables running and executing arbitrary commands on a container"""
-    name="/exec"
-    remediation="--enable-debugging-handlers=False On Kubelet"    
-
-class RunHandler:
-    """Allows remote arbitrary execution inside a container"""
-    name="/run"
-    remediation="--enable-debugging-handlers=False On Kubelet"    
-
-class PortForwardHandler:
-    """Setting a port forwaring rule on a pod"""
-    name="/portForward"
-    remediation="--enable-debugging-handlers=False On Kubelet"
-
-class AttachHandler:
-    """Opens a websocket that enables running and executing arbitrary commands on a container"""
-    name="/attach"
-    remediation="--enable-debugging-handlers=False On Kubelet"
-        
-
 """ Vulnerabilities """
+class ExposedContainerLogsHandler(Vulnerability, Event):
+    """Outputs logs from a running container"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /containerLogs")    
+        self.remediation="--enable-debugging-handlers=False On Kubelet"
+    
+class ExposedRunningPodsHandler(Vulnerability, Event):
+    """Outputs a list of currently runnning pods, and some of their metadata"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /runningpods")    
+        self.remediation="--enable-debugging-handlers=False On Kubelet"  
+
+class ExposedExecHandler(Vulnerability, Event):
+    """Opens a websocket that enables running and executing arbitrary commands on a container"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /exec")    
+        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+
+class ExposedRunHandler(Vulnerability, Event):
+    """Allows remote arbitrary execution inside a container"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /run")    
+        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+
+class ExposedPortForwardHandler(Vulnerability, Event):
+    """Setting a port forwaring rule on a pod"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /portForward")    
+        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+
+class ExposedAttachHandler(Vulnerability, Event):
+    """Opens a websocket that enables running and executing arbitrary commands on a container"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /attach")    
+        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+
 class K8sVersionDisclosure(Vulnerability, Event):
     """Discloses the kubernetes version, exposed from a log on the /metrics endpoint"""
     def __init__(self, version):
@@ -111,39 +116,31 @@ class SecureKubeletPortHunter(Hunter):
             PORTFORWARD = "portForward/{podNamespace}/{podID}?port={port}"                                # GET/POST
             ATTACH = "attach/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1" # GET -> WebSocket
 
-        class PodData(object):
-            def __init__(self, **kargs):
-                self.__dict__.update(**kargs)
-            def __str__(self):
-                return str(self.__dict__)
-
-        def __init__(self, path, session=None, **kargs):
+        def __init__(self, path, pod, session=None):
             self.path = path
             self.session = session if session else requests.Session()
-            self.pod = self.PodData(**kargs)
+            self.pod = pod
             
         # outputs logs from a specific container
         def test_container_logs(self):
             logs_url = self.path + self.Handlers.CONTAINERLOGS.value.format(
-                podNamespace=self.pod.namespace,
-                podID=self.pod.name,
-                containerName=self.pod.container
+                podNamespace=self.pod["namespace"],
+                podID=self.pod["name"],
+                containerName=self.pod["container"]
             )
-            if self.session.get(logs_url, verify=False).status_code == 200:
-                return ContainerLogsHandler
+            return self.session.get(logs_url, verify=False).status_code == 200
         
         # need further investigation on websockets protocol for further implementation
         def test_exec_container(self):
             # opens a stream to connect to using a web socket
             headers={"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
             exec_url = self.path + self.Handlers.EXEC.value.format(
-                podNamespace = self.pod.namespace,
-                podID = self.pod.name,
-                containerName = self.pod.container,
+                podNamespace=self.pod["namespace"],
+                podID=self.pod["name"],
+                containerName=self.pod["container"],
                 cmd = "uname -a"
             )
-            if "/cri/exec/" in self.session.get(exec_url, headers=headers, allow_redirects=False ,verify=False).text:
-                return ExecHandler
+            return "/cri/exec/" in self.session.get(exec_url, headers=headers, allow_redirects=False ,verify=False).text
 
         # need further investigation on websockets protocol for further implementation
         def test_port_forward(self):
@@ -156,8 +153,8 @@ class SecureKubeletPortHunter(Hunter):
 
             }
             pf_url = self.path + self.Handlers.PORTFORWARD.value.format(
-                podNamespace=self.pod.namespace,
-                podID=self.pod.name,
+                podNamespace=self.pod["namespace"],
+                podID=self.pod["name"],
                 port=80
             )
             self.session.get(pf_url, headers=headers, verify=False, stream=True).status_code == 200
@@ -166,32 +163,28 @@ class SecureKubeletPortHunter(Hunter):
         # executes one command and returns output
         def test_run_container(self):
             run_url = self.path + self.Handlers.RUN.value.format(
-                podNamespace = self.pod.namespace,
-                podID = self.pod.name,
-                containerName = self.pod.container,
-                cmd = "uname -a"
+                podNamespace=self.pod["namespace"],
+                podID=self.pod["name"],
+                containerName=self.pod["container"],
+                cmd = "echo check"
             )
-            output = requests.post(run_url, allow_redirects=False ,verify=False).text        
-            if "echo" not in output and "check" in output:
-                return RunHandler 
+            return requests.post(run_url, allow_redirects=False ,verify=False).status_code != 404
 
         # returns list of currently running pods
         def test_running_pods(self):
             pods_url = self.path + self.Handlers.RUNNINGPODS.value
-            if 'items' in json.loads(self.session.get(pods_url, verify=False).text).keys():
-                return RunningPodsHandler
-        
+            return 'items' in json.loads(self.session.get(pods_url, verify=False).text).keys()
+
         # need further investigation on the differences between attach and exec
         def test_attach_container(self):
             # headers={"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
             attach_url = self.path + self.Handlers.ATTACH.value.format(
-                podNamespace = self.pod.namespace,
-                podID = self.pod.name,
-                containerName = self.pod.container,
+                podNamespace=self.pod["namespace"],
+                podID=self.pod["name"],
+                containerName=self.pod["container"],
                 cmd = "uname -a"
             )
-            if "/cri/attach/" in self.session.get(attach_url, allow_redirects=False ,verify=False).text:
-                return AttachHandler
+            return "/cri/attach/" in self.session.get(attach_url, allow_redirects=False ,verify=False).text
 
     def __init__(self, event):
         self.event = event
@@ -207,24 +200,21 @@ class SecureKubeletPortHunter(Hunter):
     def test_debugging_handlers(self):
         # if kube-hunter runs in a pod, we test with kube-hunter's pod        
         pod = self.get_self_pod() if config.pod else self.get_random_pod()
-        debug_handlers = self.DebugHandlers(self.path, **pod)
-        test_list = [
-            debug_handlers.test_container_logs, 
-            debug_handlers.test_exec_container,
-            debug_handlers.test_run_container,
-            debug_handlers.test_running_pods,
-            debug_handlers.test_port_forward,
-            debug_handlers.test_attach_container
-        ]
-        for test_handler in test_list:
-            try:
-                handler = test_handler()
-                if handler:
-                    self.publish_event(KubeletExposedHandler(handler=handler))
-            except Exception as ex:
-                logging.debug("Failed getting handler: {}".format(test_handler))
-                pass
-            
+        debug_handlers = self.DebugHandlers(self.path, pod=pod, session=self.session)
+        
+        if debug_handlers.test_container_logs():
+            self.publish_event(ExposedContainerLogsHandler())
+        if debug_handlers.test_exec_container():
+            self.publish_event(ExposedExecHandler())            
+        if debug_handlers.test_run_container():
+            self.publish_event(ExposedRunHandler())            
+        if debug_handlers.test_running_pods():
+            self.publish_event(ExposedRunningPodsHandler())            
+        if debug_handlers.test_port_forward():
+            self.publish_event(ExposedPortForwardHandler()) # not implemented            
+        if debug_handlers.test_attach_container():
+            self.publish_event(ExposedAttachHandler())
+                        
     def get_self_pod(self):
         return {"name": "kube-hunter", 
                 "namespace": "default", 
@@ -244,47 +234,15 @@ class SecureKubeletPortHunter(Hunter):
         return {
             "name": pod_data["metadata"]["name"],
             "container": container_data["name"],
-            "namespace": "default"
+            "namespace": pod_data["metadata"]["namespace"]
         }
 
 
 """ Active Hunting Of Handlers"""
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ExecHandler.name)
-class ActiveExecHandler(ActiveHunter):
-    def __init__(self, event):
-        self.event = event
-
-    def execute(self):
-        pass
-        
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==RunHandler.name)
+@handler.subscribe(ExposedRunHandler)
 class ActiveRunHandler(ActiveHunter):
     def __init__(self, event):
         self.event = event
 
     def execute(self):
-        pass
-
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==ContainerLogsHandler.name)
-class ActiveContainerLogs(ActiveHunter):
-    def __init__(self, event):
-        self.event = event
-
-    def execute(self):
-        pass
-
-@handler.subscribe(KubeletExposedHandler, predicate=lambda x: x.handler.name==AttachHandler.name)
-class ActiveContainerLogs(ActiveHunter):
-    def __init__(self, event):
-        self.event = event
-
-    def execute(self):
-        pass
-# def get_kubesystem_pod_container(self):
-#     pods_data = json.loads(requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text)['items']
-#     # filter running kubesystem pod
-#     kubesystem_pod = lambda pod: pod["metadata"]["namespace"] == "kube-system" and pod["status"]["phase"] == "Running"        
-#     pod_data = (pod_data for pod_data in pods_data if kubesystem_pod(pod_data)).next()
-
-#     container_data = (container_data for container_data in pod_data["spec"]["containers"]).next()
-#     return pod_data["metadata"]["name"], container_data["name"]
+        logging.debug("run")

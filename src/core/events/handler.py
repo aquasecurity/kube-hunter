@@ -28,7 +28,7 @@ class EventQueue(Queue, object):
             self.subscribe_event(event, hook=hook, predicate=predicate)
             return hook
         return wrapper
-
+    
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
         if ActiveHunter in hook.__mro__ and not config.active:

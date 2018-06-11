@@ -2,7 +2,6 @@ import logging
 from prettytable import PrettyTable
 from src.core.events import handler
 from src.core.events.types import Vulnerability, Information, Service
-from src.modules.discovery.kubelet import KubeletExposedHandler
 
 services = list()
 vulnerabilities = list()

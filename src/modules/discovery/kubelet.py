@@ -25,20 +25,10 @@ class SecureKubeletEvent(Service, Event):
 
 
 """ Vulnerabilities """
-class PodsHandler:
+class ExposedPodsHandler(Vulnerability, Event):
     """Exposes sensitive information about pods that are bound to the node"""
-    name="/pods"
-
-class KubeletExposedHandler(Vulnerability, Event):
-    def __init__(self, handler):
-        self.handler = handler
-        Vulnerability.__init__(self, Kubelet, "Handler Exposure")
-
-    def get_name(self):
-        return "{} - {}".format(self.name, self.handler.name)
-
-    def explain(self):
-        return self.handler.__doc__
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /pods")    
 
 class AnonymousAuthEnabled(Vulnerability, Event):
     """Anonymous Auth to the kubelet, exposes secure access to all requests on the kubelet"""
@@ -63,13 +53,13 @@ class KubeletDiscovery(Hunter):
         logging.debug(self.event.host)
         r = requests.get("http://{host}:{port}/pods".format(host=self.event.host, port=self.event.port))
         if r.status_code == 200:
-            self.publish_event(KubeletExposedHandler(handler=PodsHandler))
+            self.publish_event(ExposedPodsHandler())
             self.publish_event(ReadOnlyKubeletEvent())
         
     def get_secure_access(self):
         event = SecureKubeletEvent()
         if self.ping_kubelet(authenticate=False) == 200:
-            self.publish_event(KubeletExposedHandler(handler=PodsHandler))
+            self.publish_event(ExposedPodsHandler())
             self.publish_event(AnonymousAuthEnabled())
             event.anonymous_auth = True
         # anonymous authentication is disabled
