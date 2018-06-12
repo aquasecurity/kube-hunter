@@ -1,18 +1,21 @@
+import json
 import logging
+import socket
 import sys
 import time
-import json
 from enum import Enum
 
 import requests
 from netaddr import IPNetwork
-from netifaces import AF_INET, ifaddresses, interfaces
 
 from __main__ import config
+from netifaces import AF_INET, ifaddresses, interfaces
+
 from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent, Vulnerability
 from ...core.types import Hunter
 from ..hunting.aks import Azure
+
 
 class AzureMetadataApi(Vulnerability, Event):
     def __init__(self, cidr):
@@ -47,8 +50,7 @@ class HostDiscovery(Hunter):
         logging.info("Discovering Open Kubernetes Services...")
         
         if config.pod:
-            if self.is_azure_cluster():
-                self.event.azure_cluster = True
+            if self.is_azure_pod():
                 self.azure_metadata_discovery()
             else:
                 self.traceroute_discovery()
@@ -56,9 +58,14 @@ class HostDiscovery(Hunter):
             self.scan_interfaces()
         else:
             for host in self.event.predefined_hosts:
-                self.publish_event(NewHostEvent(host=host))
+                self.publish_event(NewHostEvent(host=host, cloud=self.get_cloud(host)))
 
-    def is_azure_cluster(self):
+    def get_cloud(self, host):
+        metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text
+        if "cloud" in metadata:
+            return json.loads(metadata)["cloud"]
+
+    def is_azure_pod(self):
         try:
             if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).status_code == 200:
                 return True
@@ -68,12 +75,14 @@ class HostDiscovery(Hunter):
 
     # for pod scanning
     def traceroute_discovery(self):
+        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        cloud = self.get_cloud(external_ip)
         logging.getLogger("scapy.runtime").setLevel(logging.ERROR) # disables scapy's warnings
         from scapy.all import ICMP, IP, Ether, srp1
 
         node_internal_ip = srp1(Ether() / IP(dst="google.com" , ttl=1) / ICMP(), verbose=0)[IP].src
         for ip in self.generate_subnet(ip=node_internal_ip, sn="24"):
-            self.publish_event(NewHostEvent(host=ip))
+            self.publish_event(NewHostEvent(host=ip, cloud=external_ip))
 
     # quering azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
@@ -82,13 +91,15 @@ class HostDiscovery(Hunter):
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
             for ip in self.generate_subnet(address, sn=subnet):
-                self.publish_event(NewHostEvent(host=ip))
+                self.publish_event(NewHostEvent(host=ip, cloud="Azure"))
         self.publish_event(AzureMetadataApi(cidr="{}/{}".format(address, subnet)))
 
     # for normal scanning
     def scan_interfaces(self):
+        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        cloud = self.get_cloud(external_ip)
         for ip in self.generate_interfaces_subnet():
-            handler.publish_event(NewHostEvent(host=ip))
+            handler.publish_event(NewHostEvent(host=ip, cloud=cloud))
 
     # generator, generating a subnet by given a cidr
     def generate_subnet(self, ip, sn="24"):

@@ -19,7 +19,7 @@ class AzureSpnExposure(Vulnerability, Event):
         Vulnerability.__init__(self, Azure, "Azure SPN Exposure")
         self.container = container
 
-@handler.subscribe(ExposedRunHandler)
+@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud=="Azure")
 class AzureSpnHunter(Hunter):
     def __init__(self, event):
         self.event = event

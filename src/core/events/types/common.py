@@ -1,4 +1,6 @@
 import logging
+import requests
+import json
 
 class Event(object):
     def __init__(self):
@@ -80,10 +82,11 @@ class Information(object):
 event_id_count = 0
 """ Discovery/Hunting Events """
 class NewHostEvent(Event):
-    def __init__(self, host):
+    def __init__(self, host, cloud=None):
         global event_id_count
         self.host = host
         self.id = event_id_count
+        self.cloud = cloud
         event_id_count += 1
 
     def __str__(self):
