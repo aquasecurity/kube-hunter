@@ -4,7 +4,7 @@ from prettytable import ALL, PrettyTable
 
 from __main__ import config
 from src.core.events import handler
-from src.core.events.types import Information, Service, Vulnerability
+from src.core.events.types import Service, Vulnerability
 
 services = list()
 vulnerabilities = list()
