@@ -7,6 +7,8 @@ services = list()
 vulnerabilities = list()
 
 EVIDENCE_PREVIEW = 40
+MAX_WIDTH_VULNS = 70
+MAX_WIDTH_SERVICES = 60
 
 @handler.subscribe(Vulnerability)
 class VulnerabilityReport(object):
@@ -38,17 +40,23 @@ class OpenServiceReport(object):
 def print_results(active):
     services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
     services_table.align="l"     
-    services_table.max_width=60  
+    services_table.max_width=MAX_WIDTH_SERVICES  
+    services_table.padding_width=1
+    services_table.sortby="Service"
+    services_table.reversesort=True  
+    services_table.header_style="upper"
     for service in services:
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
     
     column_names = ["Location", "Category", "Vulnerability", "Description"]
     if active: column_names.append("Evidence")
-
     vuln_table = PrettyTable(column_names, hrules=ALL)
     vuln_table.align="l"
-    vuln_table.max_width=70 
+    vuln_table.max_width=MAX_WIDTH_VULNS 
     vuln_table.sortby="Category"    
+    vuln_table.reversesort=True
+    vuln_table.padding_width=1
+    vuln_table.header_style="upper"    
     for vuln in vulnerabilities:
         row = ["{}:{}".format(vuln.host, vuln.port), vuln.component.name, vuln.get_name(), vuln.explain()]
         if active: 
@@ -56,8 +64,10 @@ def print_results(active):
             row.append(evidence)
         vuln_table.add_row(row)
         
-    print "\nOpen Services:"
+    print 
+    print "Open Services:"
     print services_table
-    print "\nVulnerabilities:"
+    print 
+    print "Vulnerabilities:"
     print vuln_table
     
