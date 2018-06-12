@@ -25,13 +25,11 @@ from src.modules.discovery.hosts import HostScanEvent
 def main():
     logging.info("Started")
     try:
-        
         handler.publish_event(HostScanEvent(predefined_hosts=config.remote))
         # Blocking to see discovery output
-        while(True): 
-            time.sleep(100)
+        handler.join()
     except KeyboardInterrupt:
-        logging.info("Kube-Hunter Stopped")        
+        logging.debug("Kube-Hunter stopped by user")        
     finally:
         handler.free()
         logging.debug("Cleaned Queue")        
