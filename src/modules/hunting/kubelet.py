@@ -278,7 +278,20 @@ class ProvePodsHandler(ActiveHunter):
             port=self.event.port), 
             verify=False)
             .text)['items']
-        self.event.evidence = "pods: {}".format(len(pods_data))
+        self.event.evidence = "bound pods: {}".format(len(pods_data))
+
+@handler.subscribe(ExposedRunningPodsHandler)
+class ProveRunningPodsHandler(ActiveHunter):
+    def __init__(self, event):
+        self.event = event
+    
+    def execute(self):
+        pods_data = json.loads(requests.get("https://{host}:{port}/runningpods".format(
+            host=self.event.host, 
+            port=self.event.port), 
+            verify=False)
+            .text)['items']
+        self.event.evidence = "running pods: {}".format(len(pods_data))
 
 @handler.subscribe(ExposedContainerLogsHandler)
 class ProveContainerLogsHandler(ActiveHunter):
