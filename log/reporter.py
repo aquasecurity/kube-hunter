@@ -1,7 +1,10 @@
 import logging
-from prettytable import PrettyTable, ALL
+
+from prettytable import ALL, PrettyTable
+
+from __main__ import config
 from src.core.events import handler
-from src.core.events.types import Vulnerability, Information, Service
+from src.core.events.types import Information, Service, Vulnerability
 
 services = list()
 vulnerabilities = list()
@@ -37,7 +40,7 @@ class OpenServiceReport(object):
         ))
         services.append(self.service)
 
-def print_results(active):
+def print_results():
     services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
     services_table.align="l"     
     services_table.max_width=MAX_WIDTH_SERVICES  
@@ -49,7 +52,7 @@ def print_results(active):
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
     
     column_names = ["Location", "Category", "Vulnerability", "Description"]
-    if active: column_names.append("Evidence")
+    if config.active: column_names.append("Evidence")
     vuln_table = PrettyTable(column_names, hrules=ALL)
     vuln_table.align="l"
     vuln_table.max_width=MAX_WIDTH_VULNS 
@@ -59,7 +62,7 @@ def print_results(active):
     vuln_table.header_style="upper"    
     for vuln in vulnerabilities:
         row = ["{}:{}".format(vuln.host, vuln.port), vuln.component.name, vuln.get_name(), vuln.explain()]
-        if active: 
+        if config.active: 
             evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
             row.append(evidence)
         vuln_table.add_row(row)
@@ -70,4 +73,3 @@ def print_results(active):
     print 
     print "Vulnerabilities:"
     print vuln_table
-    

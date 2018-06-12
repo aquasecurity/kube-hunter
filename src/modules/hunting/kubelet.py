@@ -313,6 +313,6 @@ class ProveContainerLogsHandler(ActiveHunter):
                 if output.status_code == 200 and output.text:
                     self.event.evidence = "{}: {}".format(
                         container_data["name"],
-                        str(output.text)
+                        output.text.encode('utf-8')
                     )
                     break

@@ -33,7 +33,7 @@ def main():
     finally:
         handler.free()
         logging.debug("Cleaned Queue")        
-        log.print_results(config.active)
+        log.print_results()
 
 if __name__ == '__main__':
     main()

@@ -16,11 +16,13 @@ class EventQueue(Queue, object):
         super(EventQueue, self).__init__()
         self.hooks = defaultdict(list)
         self.running = True
-        
+        self.workers = list()
+
         for i in range(num_worker):
             t = Thread(target=self.worker)
             t.daemon = True
             t.start()
+            self.workers.append(t)
 
     # decorator wrapping for easy subscription
     def subscribe(self, event, hook=None, predicate=None):
@@ -63,6 +65,5 @@ class EventQueue(Queue, object):
         self.running = False
         with self.mutex:
             self.queue.clear()
-
-
+        
 handler = EventQueue(800)
