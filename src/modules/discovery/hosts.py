@@ -90,7 +90,7 @@ class HostDiscovery(Hunter):
         address, subnet= "", ""
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
-            for ip in self.generate_subnet(address, sn=subnet):
+            for ip in self.generate_subnet(address, sn=subnet if not config.quick else "24"):
                 self.publish_event(NewHostEvent(host=ip, cloud="Azure"))
         self.publish_event(AzureMetadataApi(cidr="{}/{}".format(address, subnet)))
 

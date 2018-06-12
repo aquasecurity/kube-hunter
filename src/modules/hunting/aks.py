@@ -27,17 +27,19 @@ class AzureSpnHunter(Hunter):
         
     # getting a container that has access to the azure.json file
     def get_key_container(self):
-        pods_data = json.loads(requests.get(self.base_url + "/pods", verify=False).text)["items"]
-        for pod_data in pods_data:
-            for container in pod_data["spec"]["containers"]:
-                for mount in container["volumeMounts"]:
-                    path = mount["mountPath"]
-                    if '/etc/kubernetes/azure.json'.startswith(path):
-                        return {
-                            "name": container["name"],                                                        
-                            "pod": pod_data["metadata"]["name"],
-                            "namespace": pod_data["metadata"]["namespace"]
-                        }
+        raw_pods = requests.get(self.base_url + "/pods", verify=False).text
+        if "items" in raw_pods:
+            pods_data = json.loads(raw_pods)["items"]
+            for pod_data in pods_data:
+                for container in pod_data["spec"]["containers"]:
+                    for mount in container["volumeMounts"]:
+                        path = mount["mountPath"]
+                        if '/etc/kubernetes/azure.json'.startswith(path):
+                            return {
+                                "name": container["name"],                                                        
+                                "pod": pod_data["metadata"]["name"],
+                                "namespace": pod_data["metadata"]["namespace"]
+                            }
 
     def execute(self):
         container = self.get_key_container()

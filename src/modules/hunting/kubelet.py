@@ -7,7 +7,7 @@ import urllib3
 
 from __main__ import config
 from ...core.events import handler
-from ...core.events.types import (KubernetesCluster, Kubelet, Vulnerability, Information, Event)
+from ...core.events.types import (KubernetesCluster, Kubelet, Vulnerability, Event)
 from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent, ExposedPodsHandler
 from ...core.types import Hunter, ActiveHunter
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -252,18 +252,20 @@ class ProveRunHandler(ActiveHunter):
         return requests.post(run_url, verify=False, params={'cmd': command}).text
 
     def execute(self):
-        pods_data = json.loads(requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text)['items']
-        for pod_data in pods_data:
-            container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
-            if container_data:
-                output = self.run("uname -a", container={
-                    "namespace": pod_data["metadata"]["namespace"],
-                    "pod": pod_data["metadata"]["name"],
-                    "name": container_data["name"]                    
-                })
-                if output and "exited with" not in output:
-                    self.event.evidence = "uname: " + output
-                    break
+        pods_raw = requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text
+        if "items" in pods_raw:
+            pods_data = json.loads(pods_raw)['items']
+            for pod_data in pods_data:
+                container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
+                if container_data:
+                    output = self.run("uname -a", container={
+                        "namespace": pod_data["metadata"]["namespace"],
+                        "pod": pod_data["metadata"]["name"],
+                        "name": container_data["name"]                    
+                    })
+                    if output and "exited with" not in output:
+                        self.event.evidence = "uname: " + output
+                        break
 
 @handler.subscribe(ExposedPodsHandler)
 class ProvePodsHandler(ActiveHunter):
@@ -272,13 +274,14 @@ class ProvePodsHandler(ActiveHunter):
     
     def execute(self):
         protocol = "https" if self.event.port == 10250 else "http"
-        pods_data = json.loads(requests.get("{protocol}://{host}:{port}/pods".format(
+        pods_raw = requests.get("{protocol}://{host}:{port}/pods".format(
             protocol=protocol,
             host=self.event.host, 
             port=self.event.port), 
-            verify=False)
-            .text)['items']
-        self.event.evidence = "bound pods: {}".format(len(pods_data))
+            verify=False).text
+        if "items" in pods_raw:
+            pods_data = json.loads(pods_raw)['items']
+            self.event.evidence = "bound pods: {}".format(len(pods_data))
 
 @handler.subscribe(ExposedRunningPodsHandler)
 class ProveRunningPodsHandler(ActiveHunter):
@@ -286,12 +289,13 @@ class ProveRunningPodsHandler(ActiveHunter):
         self.event = event
     
     def execute(self):
-        pods_data = json.loads(requests.get("https://{host}:{port}/runningpods".format(
+        pods_raw = requests.get("https://{host}:{port}/pods".format(
             host=self.event.host, 
             port=self.event.port), 
-            verify=False)
-            .text)['items']
-        self.event.evidence = "running pods: {}".format(len(pods_data))
+            verify=False).text
+        if "items" in pods_raw:
+            pods_data = json.loads(pods_raw)['items']
+            self.event.evidence = "running pods: {}".format(len(pods_data))
 
 @handler.subscribe(ExposedContainerLogsHandler)
 class ProveContainerLogsHandler(ActiveHunter):
@@ -301,18 +305,20 @@ class ProveContainerLogsHandler(ActiveHunter):
         self.base_url = "{protocol}://{host}:{port}".format(protocol=protocol, host=self.event.host, port=self.event.port)
 
     def execute(self):
-        pods_data = json.loads(requests.get(self.base_url + "/pods", verify=False).text)['items']
-        for pod_data in pods_data:
-            container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
-            if container_data:
-                output = requests.get(self.base_url + "/containerLogs/{podNamespace}/{podID}/{containerName}".format(
-                    podNamespace=pod_data["metadata"]["namespace"],
-                    podID=pod_data["metadata"]["name"],
-                    containerName=container_data["name"]
-                ), verify=False)
-                if output.status_code == 200 and output.text:
-                    self.event.evidence = "{}: {}".format(
-                        container_data["name"],
-                        output.text.encode('utf-8')
-                    )
-                    break
+        pods_raw = requests.get(self.base_url + "/pods", verify=False).text
+        if "items" in pods_raw:
+            pods_data = json.loads(pods_raw)['items']
+            for pod_data in pods_data:
+                container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
+                if container_data:
+                    output = requests.get(self.base_url + "/containerLogs/{podNamespace}/{podID}/{containerName}".format(
+                        podNamespace=pod_data["metadata"]["namespace"],
+                        podID=pod_data["metadata"]["name"],
+                        containerName=container_data["name"]
+                    ), verify=False)
+                    if output.status_code == 200 and output.text:
+                        self.event.evidence = "{}: {}".format(
+                            container_data["name"],
+                            output.text.encode('utf-8')
+                        )
+                        return

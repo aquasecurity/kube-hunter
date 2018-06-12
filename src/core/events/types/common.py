@@ -40,6 +40,7 @@ class Service(object):
         self.name = name
         self.secure = secure
         self.path = path
+        self.role = "Node"
 
     def get_name(self):
         return self.name
@@ -58,25 +59,13 @@ class Vulnerability(object):
         self.component = component
         self.name = name
         self.evidence = ""
+        self.role = "Node"
 
     def get_name(self):
         return self.name
 
     def explain(self):
         return self.__doc__
-
-class Information(object):
-    def __init__(self, name):
-        self.name = name
-
-    def get_name(self):
-        return self.name
-
-    def explain(self):
-        return self.__doc__
-        
-    def proof(self):
-        return self.name
 
 
 event_id_count = 0
