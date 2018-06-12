@@ -70,4 +70,4 @@ class ProveAzureSpnExposure(ActiveHunter):
             self.event.aadClientId = subscription["aadClientId"]
             self.event.aadClientSecret = subscription["aadClientSecret"]
             self.event.tenantId = subscription["tenantId"]     
-            self.event.evidence = "id: {}".format(self.event.subscriptionId)
+            self.event.evidence = "subscription: {}".format(self.event.subscriptionId)

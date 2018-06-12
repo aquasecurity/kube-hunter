@@ -4,3 +4,4 @@ enum34
 scapy
 requests
 PrettyTable 
+urllib3

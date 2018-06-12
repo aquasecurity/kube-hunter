@@ -4,6 +4,7 @@ from collections import defaultdict
 from Queue import Queue
 from threading import Lock, Thread
 
+import time
 from __main__ import config
 from ..types import ActiveHunter
 
@@ -23,6 +24,10 @@ class EventQueue(Queue, object):
             t.daemon = True
             t.start()
             self.workers.append(t)
+        t = Thread(target=self.notifier)
+        t.daemon = True
+        t.start()
+
 
     # decorator wrapping for easy subscription
     def subscribe(self, event, hook=None, predicate=None):
@@ -60,6 +65,12 @@ class EventQueue(Queue, object):
             self.task_done()
         logging.debug("closing thread...")
 
+    def notifier(self):
+        time.sleep(2)        
+        while self.unfinished_tasks > 0:
+            logging.debug("{} tasks left".format(self.unfinished_tasks))
+            time.sleep(3)
+            
     # stops execution of all daemons
     def free(self):
         self.running = False

@@ -18,6 +18,7 @@ from ..hunting.aks import Azure
 
 
 class AzureMetadataApi(Vulnerability, Event):
+    """Access to Azure Metadata API exposes sensitive information about the machines associated with the cluster"""
     def __init__(self, cidr):
         Vulnerability.__init__(self, Azure, "Azure Metadata Exposure")
         self.cidr = cidr

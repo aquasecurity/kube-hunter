@@ -61,7 +61,7 @@ def print_results():
     vuln_table.padding_width=1
     vuln_table.header_style="upper"    
     for vuln in vulnerabilities:
-        row = ["{}:{}".format(vuln.host, vuln.port), vuln.component.name, vuln.get_name(), vuln.explain()]
+        row = ["{}:{}".format(vuln.host, vuln.port) if vuln.host else "", vuln.component.name, vuln.get_name(), vuln.explain()]
         if config.active: 
             evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
             row.append(evidence)
