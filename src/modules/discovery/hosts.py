@@ -50,7 +50,15 @@ class HostDiscovery(Hunter):
     def execute(self):
         logging.info("Discovering Open Kubernetes Services...")
         
-        if config.pod:
+        if config.cidr:
+            try:
+                ip, sn = config.cidr.split('/')
+                cloud = self.get_cloud(ip)
+                for ip in self.generate_subnet(ip, sn=sn):
+                    self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
+            except:
+                logging.error("unable to parse cidr")
+        elif config.pod:
             if self.is_azure_pod():
                 self.azure_metadata_discovery()
             else:

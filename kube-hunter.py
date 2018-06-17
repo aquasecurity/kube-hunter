@@ -7,6 +7,7 @@ import time
 
 parser = argparse.ArgumentParser(description='Kube-Hunter, Hunter for weak Kubernetes cluster')
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
+parser.add_argument('--cidr', type=str, help="set manual cidr to scan, example: 192.168.0.0/16")
 parser.add_argument('--quick', action="store_true", help="scanning only known small sections of the subnet")
 parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="one or more remote ip/dns to hunt")
 parser.add_argument('--active', action="store_true", help="enables active hunting")
@@ -35,6 +36,8 @@ def main():
         handler.free()
         logging.debug("Cleaned Queue")        
         log.print_results()
+    if config.pod:
+        while True: time.sleep(5)
 
 if __name__ == '__main__':
     main()
