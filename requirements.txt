@@ -2,6 +2,6 @@ netaddr
 netifaces
 enum34
 scapy
-requests==2.18.4
-PrettyTable 
-urllib3==1.22
+requests
+PrettyTable
+urllib3
