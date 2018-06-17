@@ -60,7 +60,3 @@ spec:
     command: ["python", "kube-hunter.py"]
     args: ["--pod"]
 ~~~
-
-# Other
-To see other options:  
-`./kube-hunter.py -h`
