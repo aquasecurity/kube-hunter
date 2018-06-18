@@ -3,7 +3,7 @@
 Kube Hunter is an open source tool maintained by Aqua Security, which hunts weak kubernetes clusters.  
 The tool was developed to increase awareness and visibility for security issues in Kubernetes environments,  
   
-_Developers, please read [Guidelines For Developing Your First Kube Hunter Module](URL)_  
+_Developers, please read [Guidelines For Developing Your First Kube Hunter Module](src/README.md)_  
 ## Hunting  
 by default, without any special flags, Kube Hunter will scan all of your machine's network interfaces for open kubernetes services.   
 
@@ -14,7 +14,8 @@ To specify remote machines for hunting, you can use the `--remote` option. Examp
 `./kube-hunter.py --remote some.node.com`  
 
 ### Active Hunting
-Active hunting is an option, in which Kube Hunter will exploit vulnerabilities it found, to further findind more   vulnerabilities. The main differences between normal active hunting, is that a normal hunt will never change state of the   cluster. while active hunting can do many harsh operations on the cluster.  
+Active hunting is an option, in which Kube Hunter will exploit vulnerabilities it found, to further findind more vulnerabilities.  
+The main differences between normal active hunting, is that a normal hunt will never change state of the   cluster. while active hunting can do many harsh operations on the cluster.    
 When active, evidences of vulnerabilities will be added to the final report  
 To active hunt a cluster, use the `--active` flag. Example:  
 `./kube-hunter.py --remote some.domain.com --active`  
@@ -23,7 +24,6 @@ To active hunt a cluster, use the `--active` flag. Example:
 To control logging, you can specify a log level, using the `--log` option. Example:  
 `./kube-hunter.py --active --log WARNING`  
 Available log levels are: 
-
 #
 DEBUG  
 INFO (default)  
