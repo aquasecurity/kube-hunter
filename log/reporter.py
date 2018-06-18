@@ -40,7 +40,26 @@ class OpenServiceReport(object):
         ))
         services.append(self.service)
 
-def print_results():
+def print_nodes():
+    nodes_table = PrettyTable(["Type", "Location"], hrules=ALL)
+    nodes_table.align="l"     
+    nodes_table.max_width=MAX_WIDTH_SERVICES  
+    nodes_table.padding_width=1
+    nodes_table.sortby="Type"
+    nodes_table.reversesort=True  
+    nodes_table.header_style="upper"
+    
+    # TODO: replace with sets
+    id_memory = list()
+    for service in services:
+        if service.id not in id_memory:
+            nodes_table.add_row(["Slave/Master", service.host])
+            id_memory.append(service.id)
+    print "Nodes:"
+    print nodes_table
+    print 
+
+def print_services():
     services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
     services_table.align="l"     
     services_table.max_width=MAX_WIDTH_SERVICES  
@@ -50,7 +69,11 @@ def print_results():
     services_table.header_style="upper"
     for service in services:
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-    
+    print "Open Services:"
+    print services_table
+    print 
+
+def print_vulnerabilities():
     column_names = ["Location", "Category", "Vulnerability", "Description"]
     if config.active: column_names.append("Evidence")
     vuln_table = PrettyTable(column_names, hrules=ALL)
@@ -65,11 +88,14 @@ def print_results():
         if config.active: 
             evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
             row.append(evidence)
-        vuln_table.add_row(row)
-        
-    print 
-    print "Open Services:"
-    print services_table
-    print 
+        vuln_table.add_row(row)        
     print "Vulnerabilities:"
     print vuln_table
+    print 
+
+
+def print_results():
+    print_nodes()
+    if not config.mapping:
+        print_services()
+        print_vulnerabilities()

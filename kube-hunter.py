@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(description='Kube-Hunter, Hunter for weak Kuber
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
 parser.add_argument('--cidr', type=str, help="set manual cidr to scan, example: 192.168.0.0/16")
 parser.add_argument('--quick', action="store_true", help="scanning only known small sections of the subnet")
+parser.add_argument('--mapping', action="store_true", help="outputs only mapping of cluster's nodes")
 parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="one or more remote ip/dns to hunt")
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are:\nDEBUG INFO WARNING")
