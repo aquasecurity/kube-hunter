@@ -53,10 +53,12 @@ class ProveSomeVulnerability(ActiveHunter):
   
 -----------------------
 ## Creating The Module    
-The first step, is to create a new file in the hunting or the discovery folders.    
+The first step, is to create a new file in the hunting or the discovery folders.  
+_The file's (module's) content is imported automatically"_  
 `Convention:` Hunters which discovers a new service should be placed under the discovery/ folder    
 `Convention:` Hunters which discovers a new vulnerability, should be placed under the hunting/ folder              
-     
+`Convention:` Hunters which use vulnerabilities, should be placed under the hunting/ folder and should implement the ActiveHunter base class               
+  
 The second step, is to determine what events your Hunter will subscribe to, and from where you can get them.  
 `Convention:` Events should be declared in their corresponding module. for example, an KubeDashboardEvent event is declared in the dashboard discovery module.  
      
@@ -142,7 +144,9 @@ Discovery:
 ```python  
 class NewSslCertificate(Event):  
     def __init__(self, certificate):  
-        self.certificate = certificate  
+        self.certificate = certificate 
+
+@handler.subscribe(KubeProxyEvent) 
 class SslDiscover(Hunter):  
     def __init__(self, event):  
         self.event = event  
