@@ -7,9 +7,9 @@ import urllib3
 
 from __main__ import config
 from ...core.events import handler
-from ...core.events.types import (KubernetesCluster, Kubelet, Vulnerability, Event)
+from ...core.events.types import Vulnerability, Event
 from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent, ExposedPodsHandler
-from ...core.types import Hunter, ActiveHunter
+from ...core.types import Hunter, ActiveHunter, KubernetesCluster, Kubelet
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -57,9 +57,9 @@ class K8sVersionDisclosure(Vulnerability, Event):
         self.evidence = version
     
 class PrivilegedContainers(Vulnerability, Event):
-    """A priviledged container on a node, can expose the node/cluster to unwanted root operations"""
+    """A Privileged container on a node, can expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
-        Vulnerability.__init__(self, KubernetesCluster, "Priviledged Container")
+        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container")
         self.containers = containers
         self.evidence = "pod: {}, container: {}".format(containers[0][0], containers[0][1])
         
@@ -80,7 +80,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
                     if k == "gitVersion":
                         return v.strip("\"")
     
-    # returns list of tuples of priviledged container and their pod. 
+    # returns list of tuples of Privileged container and their pod. 
     def find_privileged_containers(self):
         pods = json.loads(requests.get(self.path + "pods").text)
         privileged_containers = list()

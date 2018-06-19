@@ -1,13 +1,13 @@
 import json
 import logging
 from enum import Enum
-from ...core.types import Hunter
+from ...core.types import Hunter, Kubelet
 
 import requests
 import urllib3
 
 from ...core.events import handler
-from ...core.events.types import OpenPortEvent, Kubelet, Vulnerability, Event, Service
+from ...core.events.types import OpenPortEvent, Vulnerability, Event, Service
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 """ Services """

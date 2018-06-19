@@ -6,8 +6,8 @@ import requests
 from kubelet import ExposedRunHandler
 
 from ...core.events import handler
-from ...core.events.types import Event, Vulnerability, KubernetesCluster
-from ...core.types import Hunter, ActiveHunter
+from ...core.events.types import Event, Vulnerability
+from ...core.types import Hunter, ActiveHunter, KubernetesCluster
    
 class Azure(KubernetesCluster):
     """Azure Cluster"""

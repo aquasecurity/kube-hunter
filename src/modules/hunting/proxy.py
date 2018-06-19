@@ -5,8 +5,8 @@ import requests
 import json
 
 from ...core.events import handler
-from ...core.events.types import Event, KubernetesCluster, Vulnerability
-from ...core.types import ActiveHunter, Hunter
+from ...core.events.types import Event, Vulnerability
+from ...core.types import ActiveHunter, Hunter, KubernetesCluster
 from ..discovery.dashboard import KubeDashboardEvent
 from ..discovery.proxy import KubeProxyEvent
 

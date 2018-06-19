@@ -23,16 +23,6 @@ class Event(object):
             previous = previous.previous
         return history
 
-"""Kubernetes Components"""
-class KubernetesCluster():
-    """Kubernetes Cluster"""
-    name = "Kubernetes Cluster"
-
-class Kubelet(KubernetesCluster):
-    """The kubelet is the primary "node agent" that runs on each node"""
-    name = "Kubelet"
-
-
 """ Event Types """
 # TODO: make proof an abstract method.
 class Service(object):
