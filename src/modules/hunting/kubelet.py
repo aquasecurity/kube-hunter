@@ -8,12 +8,22 @@ import urllib3
 from __main__ import config
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event
-from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent, ExposedPodsHandler
+from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, Kubelet
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 """ Vulnerabilities """
+class ExposedPodsHandler(Vulnerability, Event):
+    """Exposes all complete PodSpecs bound to a node"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed /pods")    
+
+class AnonymousAuthEnabled(Vulnerability, Event):
+    """Anonymous Auth to the kubelet, exposes secure access to all requests on the kubelet"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication")
+
 class ExposedContainerLogsHandler(Vulnerability, Event):
     """Outputs logs from a running container"""
     def __init__(self):
@@ -50,6 +60,11 @@ class ExposedAttachHandler(Vulnerability, Event):
         Vulnerability.__init__(self, Kubelet, "Exposed /attach")    
         self.remediation="--enable-debugging-handlers=False On Kubelet"    
 
+class ExposedHealthzHandler(Vulnerability, Event):
+    """By accessing open /healthz handler, an attacker could get the cluster health state"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure")    
+        
 class K8sVersionDisclosure(Vulnerability, Event):
     """Discloses the kubernetes version, exposed from a log on the /metrics endpoint"""
     def __init__(self, version):
@@ -70,6 +85,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
     def __init__(self, event):
         self.event = event
         self.path = "http://{}:{}/".format(self.event.host, self.event.port)
+        self.pods_endpoint_data = ""
 
     def get_k8s_version(self):
         metrics = requests.get(self.path + "metrics").text
@@ -82,23 +98,35 @@ class ReadOnlyKubeletPortHunter(Hunter):
     
     # returns list of tuples of Privileged container and their pod. 
     def find_privileged_containers(self):
-        pods = json.loads(requests.get(self.path + "pods").text)
         privileged_containers = list()
-        if "items" in pods:
-            for pod in pods["items"]:
+        if self.pods_endpoint_data:
+            for pod in self.pods_endpoint_data["items"]:
                 for container in pod["spec"]["containers"]:
                     if "securityContext" in container and "privileged" in container["securityContext"] and container["securityContext"]["privileged"]:
                         privileged_containers.append((pod["metadata"]["name"], container["name"]))
         return privileged_containers if len(privileged_containers) > 0 else None
+    
+    def get_pods_endpoint(self):
+        response = requests.get(self.path + "pods")
+        if "items" in response.text:
+            return json.loads(response.text)
+
+    def check_healthz_endpoint(self):
+        return requests.get(self.path + "healthz", verify=False).status_code == 200
 
     def execute(self):
+        self.pods_endpoint_data = self.get_pods_endpoint()
         k8s_version = self.get_k8s_version()
         privileged_containers = self.find_privileged_containers()
         if k8s_version:
             self.publish_event(K8sVersionDisclosure(version=k8s_version))
         if privileged_containers:
             self.publish_event(PrivilegedContainers(containers=privileged_containers))
-        
+        if self.pods_endpoint_data:
+            self.publish_event(ExposedPodsHandler())
+        if self.check_healthz_endpoint():
+            self.publish_event(ExposedHealthzHandler())
+
 @handler.subscribe(SecureKubeletEvent)        
 class SecureKubeletPortHunter(Hunter):
     class DebugHandlers(object):    
@@ -186,55 +214,69 @@ class SecureKubeletPortHunter(Hunter):
         self.session = requests.Session()
         if self.event.secure:
             self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
-            self.session.cert = self.event.client_cert
+            # self.session.cert = self.event.client_cert
         self.path = "https://{}:{}/".format(self.event.host, 10250)
+        self.kubehunter_pod = {"name": "kube-hunter", "namespace": "default", "container": "kube-hunter"}
+        self.pods_endpoint_data = ""
+
+    def get_pods_endpoint(self):
+        response = self.session.get(self.path + "pods", verify=False)
+        if "items" in response.text:
+            return json.loads(response.text)
+
+    def check_healthz_endpoint(self):
+        return requests.get(self.path + "healthz", verify=False).status_code == 200
 
     def execute(self):
-        self.test_debugging_handlers()
+        self.pods_endpoint_data = self.get_pods_endpoint()
+        if not self.event.secure:
+            self.publish_event(AnonymousAuthEnabled())
+        if self.pods_endpoint_data:
+            self.publish_event(ExposedPodsHandler())
+        if self.check_healthz_endpoint():
+            self.publish_event(ExposedHealthzHandler()) 
+        self.test_handlers()
 
-    def test_debugging_handlers(self):
+    def test_handlers(self):
         # if kube-hunter runs in a pod, we test with kube-hunter's pod        
-        pod = self.get_self_pod() if config.pod else self.get_random_pod()
-        debug_handlers = self.DebugHandlers(self.path, pod=pod, session=self.session)
-        
-        try:
-            if debug_handlers.test_container_logs():
-                self.publish_event(ExposedContainerLogsHandler())
-            if debug_handlers.test_exec_container():
-                self.publish_event(ExposedExecHandler())            
-            if debug_handlers.test_run_container():
-                self.publish_event(ExposedRunHandler())
-            if debug_handlers.test_running_pods():
-                self.publish_event(ExposedRunningPodsHandler())            
-            if debug_handlers.test_port_forward():
-                self.publish_event(ExposedPortForwardHandler()) # not implemented            
-            if debug_handlers.test_attach_container():
-                self.publish_event(ExposedAttachHandler())
-        except Exception as ex:
-            logging.debug(str(ex.message))
-
-    def get_self_pod(self):
-        return {"name": "kube-hunter", 
-                "namespace": "default", 
-                "container": "kube-hunter"}
+        pod = self.kubehunter_pod if config.pod else self.get_random_pod()
+        if pod:
+            debug_handlers = self.DebugHandlers(self.path, pod=pod, session=self.session)
+            try:
+                if debug_handlers.test_container_logs():
+                    self.publish_event(ExposedContainerLogsHandler())
+                if debug_handlers.test_exec_container():
+                    self.publish_event(ExposedExecHandler())      
+                if debug_handlers.test_run_container():
+                    self.publish_event(ExposedRunHandler())
+                if debug_handlers.test_running_pods():
+                    self.publish_event(ExposedRunningPodsHandler())            
+                if debug_handlers.test_port_forward():
+                    self.publish_event(ExposedPortForwardHandler()) # not implemented            
+                if debug_handlers.test_attach_container():
+                    self.publish_event(ExposedAttachHandler())
+            except Exception as ex:
+                logging.debug(str(ex.message))
+        else:
+            pass # no pod to check on.
 
     # trying to get a pod from default namespace, if doesnt exist, gets a kube-system one
     def get_random_pod(self):
-        pods_data = json.loads(self.session.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text)['items']
-        # filter running kubesystem pod
-        is_default_pod = lambda pod: pod["metadata"]["namespace"] == "default" and pod["status"]["phase"] == "Running"        
-        is_kubesystem_pod = lambda pod: pod["metadata"]["namespace"] == "kube-system" and pod["status"]["phase"] == "Running"
-        pod_data = next((pod_data for pod_data in pods_data if is_default_pod(pod_data)), None)
-        if not pod_data:
-            pod_data = next((pod_data for pod_data in pods_data if is_kubesystem_pod(pod_data)), None)
-        
-        container_data = (container_data for container_data in pod_data["spec"]["containers"]).next()
-        return {
-            "name": pod_data["metadata"]["name"],
-            "container": container_data["name"],
-            "namespace": pod_data["metadata"]["namespace"]
-        }
-
+        if self.pods_endpoint_data: 
+            pods_data = self.pods_endpoint_data["items"]
+            # filter running kubesystem pod
+            is_default_pod = lambda pod: pod["metadata"]["namespace"] == "default" and pod["status"]["phase"] == "Running"        
+            is_kubesystem_pod = lambda pod: pod["metadata"]["namespace"] == "kube-system" and pod["status"]["phase"] == "Running"
+            pod_data = next((pod_data for pod_data in pods_data if is_default_pod(pod_data)), None)
+            if not pod_data:
+                pod_data = next((pod_data for pod_data in pods_data if is_kubesystem_pod(pod_data)), None)
+            
+            container_data = (container_data for container_data in pod_data["spec"]["containers"]).next()
+            return {
+                "name": pod_data["metadata"]["name"],
+                "container": container_data["name"],
+                "namespace": pod_data["metadata"]["namespace"]
+            }
 
 @handler.subscribe(ExposedRunHandler)
 class ProveRunHandler(ActiveHunter):
@@ -266,6 +308,16 @@ class ProveRunHandler(ActiveHunter):
                     if output and "exited with" not in output:
                         self.event.evidence = "uname: " + output
                         break
+
+
+@handler.subscribe(ExposedHealthzHandler)
+class ProvePodsHandler(ActiveHunter):
+    def __init__(self, event):
+        self.event = event
+    
+    def execute(self):
+        protocol = "https" if self.event.port == 10250 else "http"
+        self.event.evidence = requests.get("{protocol}://{host}:{port}/healthz".format(protocol=protocol, host=self.event.host, port=self.event.port), verify=False).text
 
 @handler.subscribe(ExposedPodsHandler)
 class ProvePodsHandler(ActiveHunter):

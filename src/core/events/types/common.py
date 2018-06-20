@@ -41,9 +41,6 @@ class Service(object):
     def explain(self):
         return self.__doc__
 
-    def proof(self):
-        return self.name
-
 class Vulnerability(object):
     def __init__(self, component, name):
         self.component = component
@@ -64,7 +61,7 @@ class NewHostEvent(Event):
     def __init__(self, host, cloud=None):
         global event_id_count
         self.host = host
-        self.id = event_id_count
+        self.event_id = event_id_count
         self.cloud = cloud
         event_id_count += 1
 

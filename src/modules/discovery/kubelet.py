@@ -24,22 +24,6 @@ class SecureKubeletEvent(Service, Event):
         Service.__init__(self, name="Kubelet API") 
 
 
-""" Vulnerabilities """
-class ExposedPodsHandler(Vulnerability, Event):
-    """Exposes sensitive information about pods that are bound to the node"""
-    def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /pods")    
-
-class AnonymousAuthEnabled(Vulnerability, Event):
-    """Anonymous Auth to the kubelet, exposes secure access to all requests on the kubelet"""
-    def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication")
-
-    def proof(self):
-        pass # TODO: decide on an appropriate proof
-
-
-
 class KubeletPorts(Enum):
     SECURED = 10250
     READ_ONLY = 10255
@@ -53,21 +37,18 @@ class KubeletDiscovery(Hunter):
         logging.debug(self.event.host)
         r = requests.get("http://{host}:{port}/pods".format(host=self.event.host, port=self.event.port))
         if r.status_code == 200:
-            self.publish_event(ExposedPodsHandler())
             self.publish_event(ReadOnlyKubeletEvent())
         
     def get_secure_access(self):
         event = SecureKubeletEvent()
         if self.ping_kubelet(authenticate=False) == 200:
-            self.publish_event(ExposedPodsHandler())
-            self.publish_event(AnonymousAuthEnabled())
-            event.anonymous_auth = True
+            event.secure = False
         # anonymous authentication is disabled
         elif self.ping_kubelet(authenticate=True) == 200: 
-            event.anonymous_auth = False
+            event.secure = True
         self.publish_event(event)
 
-    def ping_kubelet(self, authenticate=False):
+    def ping_kubelet(self, authenticate):
         r = requests.Session()
         if authenticate: 
             if self.event.auth_token:

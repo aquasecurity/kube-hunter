@@ -35,12 +35,10 @@ class HostScanEvent(Event):
         if config.pod:
             with open("/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
                 return token_file.read()
-        return None
 
     def get_client_cert(self):
         if config.pod:
             return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
-        return None
 
 @handler.subscribe(HostScanEvent)
 class HostDiscovery(Hunter):
