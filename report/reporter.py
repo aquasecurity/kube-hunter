@@ -21,6 +21,8 @@ EVIDENCE_PREVIEW = 40
 MAX_WIDTH_VULNS = 70
 MAX_WIDTH_SERVICES = 60
 
+AQUA_PUSH_URL = "https://qlyscbqwl7.execute-api.us-east-1.amazonaws.com/Prod?token={}"
+
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
 class Reporter(object):
@@ -52,12 +54,34 @@ class Reporter(object):
 
     def print_tables(self):
         """generates report tables and outputs to stdout"""
-        print_nodes()
-        if not config.mapping:
-            print_services()
-            print_vulnerabilities()
+        if len(services):
+            print_nodes()
+            if not config.mapping:
+                print_services()
+                print_vulnerabilities()
+        else:
+            print "\nKube Hunter couldn't find any clusters"
+            # print "\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else "")
 
     def build_sub_services(self, services_list):
+        # correlation functions
+        def get_insights_by_service(service):
+            """generates list of insights related to a given service"""
+            insights = list()
+            for insight_type, insight in self.insights_by_id[service.event_id]:
+                if service in insight.history:
+                    insights.append((insight_type, insight))
+            return insights
+            
+        def get_services_by_service(parent_service):
+            """generates list of insights related to a given service"""
+            services = list()
+            for service in self.services_by_id[parent_service.event_id]:
+                if service != parent_service and parent_service in service.history:
+                    services.append(service)
+                    self.services_by_id[parent_service.event_id].remove(service)
+            return services
+
         current_list = list()
         for service in services_list:
             current_list.append(
@@ -69,7 +93,7 @@ class Reporter(object):
                 },
                 "description": service.explain()
             })
-            next_services = self.get_services_by_service(service)
+            next_services = get_services_by_service(service)
             if next_services:
                 current_list[-1]["services"] = self.build_sub_services(next_services)
             current_list[-1]["insights"] = [{
@@ -77,58 +101,37 @@ class Reporter(object):
                 "name": insight.get_name(),
                 "description": insight.explain(),
                 "evidence": insight.evidence if insight_type == Vulnerability else ""
-            } for insight_type, insight in self.get_insights_by_service(service)]
-            
+            } for insight_type, insight in get_insights_by_service(service)]
         return current_list
 
-    def generate_report(self):
-        """function generates report structure, for"""
-        for service in services:
-            self.services_by_id[service.event_id].append(service)
-        for insight_type, insight in insights:
-            self.insights_by_id[insight.event_id].append((insight_type, insight))
-
-        report = defaultdict(list)
-        # building first layer of services (nodes)
-        for _, services_list in self.services_by_id.items():
-            service_report = defaultdict(list)
-            service_report["type"] = "Node"
-            service_report["metadata"] = {
-                "host": str(services_list[0].host)
-            }            
-            # building all sub layers. 
-            service_report["services"] = self.build_sub_services(services_list)
-            report["services"].append(service_report)
-        return json.dumps(report, indent=4)
-
     def send_report(self, token):
+        def generate_report():
+            """function generates a report corresponding to specifications of the frontend of kubehunter"""
+            for service in services:
+                self.services_by_id[service.event_id].append(service)
+            for insight_type, insight in insights:
+                self.insights_by_id[insight.event_id].append((insight_type, insight))
+
+            # building first layer of services (nodes)
+            report = defaultdict(list)
+            for _, services_list in self.services_by_id.items():
+                service_report = {
+                    "type": "Node", # on future, determine if slave or master
+                    "metadata": {
+                        "host": str(services_list[0].host)
+                    },
+                    # then constructing their sub services tree
+                    "services": self.build_sub_services(services_list)
+                } 
+                report["services"].append(service_report)
+            return report
         report = {
-            'results': self.generate_report(),
+            'results': generate_report(),
             'metadata': {}
         }
-        r = requests.put("https://pnmhh30s1b.execute-api.us-east-1.amazonaws.com/v02?token={}".format(token), json=report)
-        # if r.status_code == 200:
-            
-        print "{}: {}".format(r.status_code, r.text)
-
-    # correlating 
-    def get_insights_by_service(self, service):
-        """generates list of insights related to a given service"""
-        insights = list()
-        for insight_type, insight in self.insights_by_id[service.event_id]:
-            if service in insight.history:
-                insights.append((insight_type, insight))
-        return insights
+        r = requests.put(AQUA_PUSH_URL.format(token), json=report)
         
-    def get_services_by_service(self, parent_service):
-        """generates list of insights related to a given service"""
-        services = list()
-        for service in self.services_by_id[parent_service.event_id]:
-            if service != parent_service and parent_service in service.history:
-                services.append(service)
-                self.services_by_id[parent_service.event_id].remove(service)
-        return services
-
+        print "{}: {}".format(r.status_code, r.text)
 
 reporter = Reporter()
 
