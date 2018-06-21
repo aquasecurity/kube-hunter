@@ -311,7 +311,7 @@ class ProveRunHandler(ActiveHunter):
 
 
 @handler.subscribe(ExposedHealthzHandler)
-class ProvePodsHandler(ActiveHunter):
+class ProveHealthzHandler(ActiveHunter):
     def __init__(self, event):
         self.event = event
     
