@@ -21,7 +21,8 @@ EVIDENCE_PREVIEW = 40
 MAX_WIDTH_VULNS = 70
 MAX_WIDTH_SERVICES = 60
 
-AQUA_PUSH_URL = "https://qlyscbqwl7.execute-api.us-east-1.amazonaws.com/Prod?token={}"
+AQUA_PUSH_URL = "https://qlyscbqwl7.execute-api.us-east-1.amazonaws.com/Prod/submit?token={token}"
+AQUA_RESULTS_URL = "https://qlyscbqwl7.execute-api.us-east-1.amazonaws.com/Prod/result?token={token}"
 
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
@@ -105,6 +106,7 @@ class Reporter(object):
         return current_list
 
     def send_report(self, token):
+        logging.debug("generating report")
         def generate_report():
             """function generates a report corresponding to specifications of the frontend of kubehunter"""
             for service in services:
@@ -129,9 +131,14 @@ class Reporter(object):
             'results': generate_report(),
             'metadata': {}
         }
-        r = requests.put(AQUA_PUSH_URL.format(token), json=report)
+        logging.debug("uploading report")
+        r = requests.put(AQUA_PUSH_URL.format(token=token), json=report)
         
-        print "{}: {}".format(r.status_code, r.text)
+        if r.status_code == 201: # created status
+            print "\nYour report: \n{}".format(AQUA_RESULTS_URL.format(token=token))
+        else:
+            logging.debug("Failed sending report with:{}, {}".format(r.status_code, r.text))
+            print "\nSomething went wrong.\nPlease try hunting again."
 
 reporter = Reporter()
 
