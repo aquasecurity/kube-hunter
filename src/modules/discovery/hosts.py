@@ -58,18 +58,16 @@ class HostDiscovery(Hunter):
                     self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
             except:
                 logging.error("unable to parse cidr")
+        elif config.internal:
+            self.scan_interfaces()
+        elif len(config.remote) > 0:
+            for host in config.remote:
+                self.publish_event(NewHostEvent(host=host, cloud=self.get_cloud(host)))
         elif config.pod:
             if self.is_azure_pod():
                 self.azure_metadata_discovery()
             else:
                 self.traceroute_discovery()
-        elif config.container:
-            self.traceroute_discovery()            
-        elif len(self.event.predefined_hosts) == 0:
-            self.scan_interfaces()
-        else:
-            for host in self.event.predefined_hosts:
-                self.publish_event(NewHostEvent(host=host, cloud=self.get_cloud(host)))
 
     def get_cloud(self, host):
         metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text

@@ -7,7 +7,7 @@ import time
 
 parser = argparse.ArgumentParser(description='Kube-Hunter, Hunter for weak Kubernetes clusters. By default, with no special arguments, Kube Hunter will scan all network interfaces for existing Kubernetes clusters. At the end of the hunt, a report will be printed to your screen.')
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod in cluster")
-parser.add_argument('--container', action="store_true", help="set hunting from a container")
+parser.add_argument('--internal', action="store_true", help="set hunting of all internal network interfaces")
 parser.add_argument('--cidr', type=str, help="set manual cidr to scan, example: 192.168.0.0/16")
 parser.add_argument('--mapping', action="store_true", help="outputs only a mapping of the cluster's nodes")
 parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="one or more remote ip/dns to hunt")
@@ -28,27 +28,59 @@ from src.core.events import handler
 from src.modules.discovery import HostDiscovery
 from src.modules.discovery.hosts import HostScanEvent
 
+
+def interactive_set_config():
+    """Sets config manually, returns True for success"""
+    options = {
+        "Remote scanning": "scans one or more specific IPs or DNS names",
+        "Internal scanning": "scans all network interfaces",
+        "CIDR scanning": "scans a spesific cidr"
+    } # maps between option and its explanation
+    
+    print "Choose one of the options below:"
+    for i, (option, explanation) in enumerate(options.items()):
+        print "{}. {} ({})".format(i+1, option.ljust(20), explanation)
+    choice = raw_input("Your choice: ")    
+    if choice == '1':
+        config.remote = raw_input("Remotes (seperated by a ','): ").replace(' ', '').split(',')
+    elif choice == '2':
+        config.internal = True
+    elif choice == '3': 
+        config.cidr = raw_input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
+    else: 
+        return False
+    return True
+
 def main():
-    logging.info("Started")
+    scan_options = [
+        config.pod, 
+        config.cidr,
+        config.remote, 
+        config.internal
+    ]
+    hunt_started = False
     try:
-        handler.publish_event(HostScanEvent(predefined_hosts=config.remote))
+        if not any(scan_options):
+            if not interactive_set_config(): return
+        hunt_started = True
+        logging.info("Started")
+        handler.publish_event(HostScanEvent())
+        
         # Blocking to see discovery output
         handler.join()
     except KeyboardInterrupt:
         logging.debug("Kube-Hunter stopped by user")        
     finally:
-        handler.free()
-        logging.debug("Cleaned Queue")        
-        if config.token:
-            reporter.send_report(token=config.token)
-        else:
-            reporter.print_tables()
+        if hunt_started:
+            handler.free()
+            logging.debug("Cleaned Queue")        
+            if config.token:
+                reporter.send_report(token=config.token)
+            else:
+                reporter.print_tables()
         
     if config.pod:
         while True: time.sleep(5)
 
 if __name__ == '__main__':
     main()
-
-
-# Proof -> Evidence
