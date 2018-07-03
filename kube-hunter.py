@@ -5,7 +5,7 @@ import logging
 import sys
 import time
 
-parser = argparse.ArgumentParser(description='Kube-Hunter, Hunter for weak Kubernetes cluster')
+parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
 parser.add_argument('--cidr', type=str, help="set manual cidr to scan, example: 192.168.0.0/16")
 parser.add_argument('--quick', action="store_true", help="scanning only known small sections of the subnet")
