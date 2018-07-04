@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from collections import defaultdict
 
 import requests
@@ -52,6 +53,9 @@ class Reporter(object):
                 name=self.event.get_name(),
                 desc=self.event.explain(),
             ))
+
+        if config.token:
+            self.send_report(token=config.token)
 
     def print_tables(self):
         """generates report tables and outputs to stdout"""
@@ -106,7 +110,6 @@ class Reporter(object):
         return current_list
 
     def send_report(self, token):
-        logging.debug("generating report")
         def generate_report():
             """function generates a report corresponding to specifications of the frontend of kubehunter"""
             for service in services:
@@ -127,22 +130,31 @@ class Reporter(object):
                 } 
                 report["services"].append(service_report)
             return report
+        
+        finished = (not handler.unfinished_tasks)
+        logging.debug("generating report")
         report = {
             'results': generate_report(),
-            'metadata': {}
-        }
+            'metadata': {
+                'finished': finished
+            } 
+        } 
         logging.debug("uploading report")
         r = requests.put(AQUA_PUSH_URL.format(token=token), json=report)
         
         if r.status_code == 201: # created status
-            print "\nYour report: \n{}".format(AQUA_RESULTS_URL.format(token=token))
+            logging.debug("report was uploaded successfully") 
+            if finished:       
+                print "\nYour report: \n{}".format(AQUA_RESULTS_URL.format(token=token))
         else:
             logging.debug("Failed sending report with:{}, {}".format(r.status_code, r.text))
-            print "\nSomething went wrong.\nPlease try hunting again."
+            if finished:
+                print "\nCould not send report.\n{}".format(json.loads(r.text).get("status", ""))
 
 reporter = Reporter()
 
 
+""" Tables Generation """
 def print_nodes():
     nodes_table = PrettyTable(["Type", "Location"], hrules=ALL)
     nodes_table.align="l"     

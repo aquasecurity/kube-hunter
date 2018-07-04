@@ -5,7 +5,7 @@ import logging
 import sys
 import time
 
-parser = argparse.ArgumentParser(description='Kube-Hunter, Hunter for weak Kubernetes clusters. By default, with no special arguments, Kube Hunter will scan all network interfaces for existing Kubernetes clusters. At the end of the hunt, a report will be printed to your screen.')
+parser = argparse.ArgumentParser(description='Kube-Hunter, Hunter for weak Kubernetes clusters. At the end of the hunt, a report will be printed to your screen.')
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod in cluster")
 parser.add_argument('--internal', action="store_true", help="set hunting of all internal network interfaces")
 parser.add_argument('--cidr', type=str, help="set manual cidr to scan, example: 192.168.0.0/16")
