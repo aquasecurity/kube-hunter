@@ -26,7 +26,7 @@ class Event(object):
 """ Event Types """
 # TODO: make proof an abstract method.
 class Service(object):
-    def __init__(self, name, path="", secure=False):
+    def __init__(self, name, path="", secure=True):
         self.name = name
         self.secure = secure
         self.path = path
