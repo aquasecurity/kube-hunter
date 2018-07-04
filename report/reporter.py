@@ -168,7 +168,7 @@ def print_nodes():
     id_memory = list()
     for service in services:
         if service.event_id not in id_memory:
-            nodes_table.add_row(["Slave/Master", service.host])
+            nodes_table.add_row(["Node/Master", service.host])
             id_memory.append(service.event_id)
     print "Nodes:"
     print nodes_table
@@ -184,7 +184,7 @@ def print_services():
     services_table.header_style="upper"
     for service in services:
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-    print "Open Services:"
+    print "Detected Services:"
     print services_table
     print 
 

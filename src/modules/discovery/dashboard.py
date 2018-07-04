@@ -7,7 +7,7 @@ from ...core.events.types import Event, Service, OpenPortEvent
 from ...core.types import Hunter
 
 class KubeDashboardEvent(Service, Event):
-    """Allows multiple arbitrary operations on the cluster from all connections"""
+    """A web-based Kubernetes user interface. allows easy usage with operations on the cluster"""
     def __init__(self, **kargs):
         Service.__init__(self, name="Kubernetes Dashboard", **kargs)     
 

@@ -12,12 +12,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 """ Services """
 class ReadOnlyKubeletEvent(Service, Event):
-    """Exposes specific handlers which disclose sensitive information about the cluster"""
+    """Can expose specific handlers which reveals information about the node/cluster"""
     def __init__(self):
         Service.__init__(self, name="Kubelet API (readonly)")
 
 class SecureKubeletEvent(Service, Event):
-    """Exposes handlers that can perform unwanted operations on pods/containers"""
+    """The kubelet ensures that all containers on the node are running and healthy"""
     def __init__(self, cert=False, token=False):
         self.cert = cert
         self.token = token
