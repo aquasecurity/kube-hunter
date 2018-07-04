@@ -33,14 +33,14 @@ class HostScanEvent(Event):
 
     def get_auth_token(self):
         if config.pod:
-            with open("/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
-                return token_file.read()
-        return None
-
+            try:
+                with open("/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
+                    return token_file.read()
+            except IOError:
+                pass
     def get_client_cert(self):
         if config.pod:
             return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
-        return None
 
 @handler.subscribe(HostScanEvent)
 class HostDiscovery(Hunter):
@@ -58,16 +58,16 @@ class HostDiscovery(Hunter):
                     self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
             except:
                 logging.error("unable to parse cidr")
+        elif config.internal:
+            self.scan_interfaces()
+        elif len(config.remote) > 0:
+            for host in config.remote:
+                self.publish_event(NewHostEvent(host=host, cloud=self.get_cloud(host)))
         elif config.pod:
             if self.is_azure_pod():
                 self.azure_metadata_discovery()
             else:
                 self.traceroute_discovery()
-        elif len(self.event.predefined_hosts) == 0:
-            self.scan_interfaces()
-        else:
-            for host in self.event.predefined_hosts:
-                self.publish_event(NewHostEvent(host=host, cloud=self.get_cloud(host)))
 
     def get_cloud(self, host):
         metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text
@@ -76,11 +76,10 @@ class HostDiscovery(Hunter):
 
     def is_azure_pod(self):
         try:
-            if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).status_code == 200:
+            if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}, timeout=5).status_code == 200:
                 return True
-        except Exception as ex:
-            logging.debug("Not azure cluster " + str(ex.message))
-        return False
+        except requests.exceptions.ConnectionError:
+            return False
 
     # for pod scanning
     def traceroute_discovery(self):
