@@ -1,11 +1,11 @@
 # Kube Hunter
 ---
-Kube Hunter is an open source tool maintained by Aqua Security, which hunts weak kubernetes clusters.  
-The tool was developed to increase awareness and visibility for security issues in Kubernetes environments,  
+Kube Hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments.
   
-_Developers, please read [Guidelines For Developing Your First Kube Hunter Module](src/README.md)_  
-## Hunting  
-by default, without any special flags, Kube Hunter will scan all of your machine's network interfaces for open kubernetes services.   
+_Developers, please read [Guidelines For Developing Your First Kube Hunter Module](src/README.md)_ *TODO*
+
+## Hunting
+by default, without any special flags, Kube Hunter will scan all of your machine's network interfaces for open kubernetes services.
 
 To specify a specific cidr to scan, use the `--cidr` option. Example:  
 `./kube-hunter.py --cidr 192.168.0.0/24`  
