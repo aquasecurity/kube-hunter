@@ -62,6 +62,9 @@ def main():
     try:
         if not any(scan_options):
             if not interactive_set_config(): return
+        if config.token:
+            reporter.print_report_url(token=config.token)
+
         hunt_started = True
         logging.info("Started")
         handler.publish_event(HostScanEvent())
@@ -74,11 +77,10 @@ def main():
         if hunt_started:
             handler.free()
             logging.debug("Cleaned Queue")        
+            reporter.print_tables()
             if config.token:
                 reporter.send_report(token=config.token)
-            else:
-                reporter.print_tables()
-        
+
     if config.pod:
         while True: time.sleep(5)
 

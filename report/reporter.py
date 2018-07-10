@@ -23,7 +23,7 @@ MAX_WIDTH_VULNS = 70
 MAX_WIDTH_SERVICES = 60
 
 AQUA_PUSH_URL = "https://qlyscbqwl7.execute-api.us-east-1.amazonaws.com/Prod/submit?token={token}"
-AQUA_RESULTS_URL = "https://qlyscbqwl7.execute-api.us-east-1.amazonaws.com/Prod/result?token={token}"
+AQUA_RESULTS_URL = "https://kubehunter.aquasec.com/report?token={token}"
 
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
@@ -145,11 +145,14 @@ class Reporter(object):
         if r.status_code == 201: # created status
             logging.debug("report was uploaded successfully") 
             if finished:       
-                print "\nYour report: \n{}".format(AQUA_RESULTS_URL.format(token=token))
+                print "\nSee full report at: \n{}".format(AQUA_RESULTS_URL.format(token=token))
         else:
             logging.debug("Failed sending report with:{}, {}".format(r.status_code, r.text))
             if finished:
                 print "\nCould not send report.\n{}".format(json.loads(r.text).get("status", ""))
+
+    def print_report_url(self, token):
+        print "\nReport will be available at:\n{}\n".format(AQUA_RESULTS_URL.format(token=token))
 
 reporter = Reporter()
 
