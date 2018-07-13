@@ -104,8 +104,11 @@ class HostDiscovery(Hunter):
 
     # for normal scanning
     def scan_interfaces(self):
-        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
-        cloud = self.get_cloud(external_ip)
+        try: 
+            external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+            cloud = self.get_cloud(external_ip)
+        except requests.ConnectionError:
+            logging.info("Unable to contact the internet...")                    
         for ip in self.generate_interfaces_subnet():
             handler.publish_event(NewHostEvent(host=ip, cloud=cloud))
 
