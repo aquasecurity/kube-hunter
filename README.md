@@ -2,7 +2,7 @@
 ---
 Kube Hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments.
   
-_Developers, please read [Guidelines For Developing Your First Kube Hunter Module](src/README.md)_ *TODO*
+We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your own modules please read [Guidelines For Developing Your First Kube Hunter Module](src/README.md).
 
 ## Hunting
 
@@ -26,12 +26,11 @@ To active hunt a cluster, use the `--active` flag. Example:
 To control logging, you can specify a log level, using the `--log` option. Example:  
 `./kube-hunter.py --active --log WARNING`  
 Available log levels are: 
-#
-DEBUG  
-INFO (default)  
-WARNING
+
+* DEBUG  
+* INFO (default)  
+* WARNING
   
---  
 To see only a mapping of your nodes network, run with `--mapping` option. Example:  
 `./kube-hunter.py --cidr 192.168.0.0/24 --mapping`  
 This will output all the Kubernetes nodes Kube Hunter has found.
