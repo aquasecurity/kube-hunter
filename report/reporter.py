@@ -1,6 +1,6 @@
 import json
 import logging
-import time
+from time import time
 from collections import defaultdict
 
 import requests
@@ -23,7 +23,7 @@ MAX_WIDTH_VULNS = 70
 MAX_WIDTH_SERVICES = 60
 
 AQUA_PUSH_URL = "https://qlyscbqwl7.execute-api.us-east-1.amazonaws.com/Prod/submit?token={token}"
-AQUA_RESULTS_URL = "https://kubehunter.aquasec.com/report?token={token}"
+AQUA_RESULTS_URL = "https://kubehunter.aquasec.com/report.html?token={token}"
 
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
@@ -104,6 +104,7 @@ class Reporter(object):
             current_list[-1]["insights"] = [{
                 "type": insight_type.__name__,
                 "name": insight.get_name(),
+                "category": insight.get_category(),
                 "description": insight.explain(),
                 "evidence": insight.evidence if insight_type == Vulnerability else ""
             } for insight_type, insight in get_insights_by_service(service)]
@@ -136,7 +137,7 @@ class Reporter(object):
         report = {
             'results': generate_report(),
             'metadata': {
-                'finished': finished
+                'finished': int(time()*1000) if finished else False
             } 
         } 
         logging.debug("uploading report")
@@ -152,7 +153,8 @@ class Reporter(object):
                 print "\nCould not send report.\n{}".format(json.loads(r.text).get("status", ""))
 
     def print_report_url(self, token):
-        print "\nReport will be available at:\n{}\n".format(AQUA_RESULTS_URL.format(token=token))
+        url_table = PrettyTable(["{}".format(AQUA_RESULTS_URL.format(token=token))], hrules=ALL)
+        print "\nReport will be available at:\n{}\n".format(url_table)
 
 reporter = Reporter()
 
