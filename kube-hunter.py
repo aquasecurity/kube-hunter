@@ -34,7 +34,7 @@ def interactive_set_config():
     options = {
         "Remote scanning": "scans one or more specific IPs or DNS names",
         "Internal scanning": "scans all network interfaces",
-        "CIDR scanning": "scans a spesific cidr"
+        "CIDR scanning": "scans a specific CIDR"
     } # maps between option and its explanation
     
     print "Choose one of the options below:"
@@ -42,7 +42,7 @@ def interactive_set_config():
         print "{}. {} ({})".format(i+1, option.ljust(20), explanation)
     choice = raw_input("Your choice: ")    
     if choice == '1':
-        config.remote = raw_input("Remotes (seperated by a ','): ").replace(' ', '').split(',')
+        config.remote = raw_input("Remotes (separated by a ','): ").replace(' ', '').split(',')
     elif choice == '2':
         config.internal = True
     elif choice == '3': 
