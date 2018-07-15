@@ -53,11 +53,12 @@ class HostDiscovery(Hunter):
         if config.cidr:
             try:
                 ip, sn = config.cidr.split('/')
-                cloud = self.get_cloud(ip)
-                for ip in self.generate_subnet(ip, sn=sn):
-                    self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
-            except:
-                logging.error("unable to parse cidr")
+            except ValueError as e:
+                logging.error("unable to parse cidr: {0}".format(e))
+                return
+            cloud = self.get_cloud(ip)
+            for ip in self.generate_subnet(ip, sn=sn):
+                self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
         elif config.internal:
             self.scan_interfaces()
         elif len(config.remote) > 0:
@@ -70,7 +71,11 @@ class HostDiscovery(Hunter):
                 self.traceroute_discovery()
 
     def get_cloud(self, host):
-        metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text
+        try:
+            metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text
+        except requests.ConnectionError as e:
+            logging.info("unable to check cloud: {0}".format(e))
+            return
         if "cloud" in metadata:
             return json.loads(metadata)["cloud"]
 
@@ -104,7 +109,12 @@ class HostDiscovery(Hunter):
 
     # for normal scanning
     def scan_interfaces(self):
-        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        try: 
+            external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        except requests.ConnectionError as e:
+            logging.debug("unable to determine local IP address: {0}".format(e))
+            logging.info("default to 127.0.0.1")
+            external_ip = "127.0.0.1"
         cloud = self.get_cloud(external_ip)
         for ip in self.generate_interfaces_subnet():
             handler.publish_event(NewHostEvent(host=ip, cloud=cloud))

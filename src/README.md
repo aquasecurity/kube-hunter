@@ -18,11 +18,11 @@ kube-hunter/
 ### Design Pattern   
 Kube Hunter is built with the [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern).    
 With this in mind, every new Service/Vulnerability/Information that has been discovered, will trigger a new event.   
-When you write your module, you can decide on which Event to subscribe to. meaning, when exactly will your module start Hunting.  
+When you write your module, you can decide on which Event to subscribe to, meaning, when exactly will your module start Hunting.  
 
 -----------------------
 ### Hunter Types  
-There are two hunter types which you can implement. a `Hunter` and an `ActiveHunter`.  
+There are two hunter types which you can implement: a `Hunter` and an `ActiveHunter`.  Hunters just probe the state of a cluster, whereas ActiveHunter modules can attempt operations that could change the state of the cluster.
 ##### Hunter  
 Example:  
 ~~~python  
@@ -33,36 +33,38 @@ class KubeDashboardDiscovery(Hunter):
     def execute(self):  
         pass  
 ~~~  
-Kube Hunter's core module is taking care of trigerring your hunter by your demands.    
+Kube Hunter's core module triggers your Hunter when the event you have subscribed it to occurs. 
 in this example, we subscribe the Hunter, `KubeDashboardDiscovery`, to an `OpenPortEvent`, with a predicate that checks the open port (of the event) is 30000.    
    
 ##### ActiveHunter  
-An active hunter will be subscribed only if an active scanning is in place.  
-Implementing an Active Hunter, is the same as implementing a regular Hunter, you just need to inherint from `ActiveHunter`  
+An ActiveHunter will be subscribed to events (and therefore operate) only if KubeHunter is running in active scanning mode.  
+Implementing an Active Hunter is the same as implementing a regular Hunter, you just need to inherit from `ActiveHunter`  
 Example:   
 ```python  
 class ProveSomeVulnerability(ActiveHunter):  
 ...  
 ```  
 #### **Absolutely important to notice:**  
-* every hunter, needs to implement an `execute` method. the core module will execute this method automatically  
-* every hunter, needs to save its given event from the `__init__` in it's attributes.  
-* when subscribing to an event, if a `predicate` is specified, it will be called with the event itself, pre trigger.  
+
+* Every hunter, needs to implement an `execute` method. the core module will execute this method automatically.
+* Every hunter, needs to save its given event from the `__init__` in it's attributes.  
+* When subscribing to an event, if a `predicate` is specified, it will be called with the event itself, pre trigger.  
 * When inheriting from `Hunter` or `ActiveHunter` you can use the `self.publish_event(event)`.  
  `event` is an **initialized** event object  
   
 -----------------------
-## Creating The Module    
-The first step, is to create a new file in the hunting or the discovery folders.  
+
+## Creating The Module
+The first step is to create a new file in the `hunting` or the `discovery` folder.  
 _The file's (module's) content is imported automatically"_  
-`Convention:` Hunters which discovers a new service should be placed under the discovery/ folder    
-`Convention:` Hunters which discovers a new vulnerability, should be placed under the hunting/ folder              
-`Convention:` Hunters which use vulnerabilities, should be placed under the hunting/ folder and should implement the ActiveHunter base class               
+`Convention:` Hunters which discover a new service should be placed under the `discovery` folder.
+`Convention:` Hunters which discover a new vulnerability, should be placed under the `hunting` folder.
+`Convention:` Hunters which use vulnerabilities, should be placed under the `hunting` folder and should implement the ActiveHunter base class.
   
-The second step, is to determine what events your Hunter will subscribe to, and from where you can get them.  
-`Convention:` Events should be declared in their corresponding module. for example, an KubeDashboardEvent event is declared in the dashboard discovery module.  
+The second step is to determine what events your Hunter will subscribe to, and from where you can get them.  
+`Convention:` Events should be declared in their corresponding module. for example, a KubeDashboardEvent event is declared in the dashboard discovery module.  
      
-Following the above example, lets figure out the imports:  
+Following the above example, let's figure out the imports:  
 ```python  
 from ...core.types import Hunter  
 from ...core.events import handler  
@@ -76,7 +78,7 @@ class KubeDashboardDiscovery(Hunter):
     def execute(self):  
         pass  
 ```  
-As you can see, all of the types here comes from the `core` module. let us list them:  
+As you can see, all of the types here come from the `core` module. 
   
 ### Core Imports  
 relative import: `...core.events`  
@@ -124,22 +126,19 @@ class OpenKubeDns(Service, Event):
 `Notice:` Every type of event, should have an explanation in exactly the form shown above, that explanation will eventually be used when the report is made.  
 `Notice:` You can add any attribute to the event you create as needed, the examples shown above is the minimum implementation that needs to be made  
   
------------------------
-
 ----------------------- 
-## Events Magic  
-`Internals Note:` In Kube Hunter, each event that's getting published, gets all the attributes from the previous event that has been used by it's publisher (Hunter). This process is invisible, and happens on the core module, without worrying the developer.    
-According to this note, we can look at events as individual trees that remembers their past attributes, and gives us access to them.    
+## Events 
+`Internals Note:` In KubeHunter, each published event gets all the attributes from the previous event that has been used by its publisher (Hunter). This process is invisible, and happens on the core module, without worrying the developer. 
+Accordingly, we can look at events as individual trees that remember their past attributes, and gives us access to them.    
   
-#### the event chain  
+#### The event chain  
 Example for an event chain:  
 `NewHostEvent -> OpenPortEvent -> KubeProxyEvent -> KubeDashboard -> K8sVersionDisclosure`  
 *The first node of every event tree is the NewHostEvent*  
   
-Let us assume the following imaginary example:    
-We've defined a Hunter for SSL Certificates, which extracts the CN of the certificate, and is doing some magic with it.    
-imagine this was defined on modules of your creating:    
---  
+Let us assume the following imaginary example: 
+We've defined a Hunter for SSL Certificates, which extracts the CN of the certificate, and does some magic with it. The example code would be defined in new `discovery` and `hunter` modules for this SSL Magic example:    
+
 Discovery:  
 ```python  
 class NewSslCertificate(Event):  
@@ -162,19 +161,17 @@ class SslHunter(Hunter):
     def execute(self):  
         do_magic(self.event.certificate)  
 ```  
-lets say we now want to do something with the hostname from which we found the certificate from, from the event tree, we can check if the host attribute was assigned to our event previously, by directly accessing `event.host`.    
-if it has not been specified from some reason, the value is `None`.    
-So a simple:    
+Let's say we now want to do something with the hostname from the certificate from. In the event tree, we can check if the host attribute was assigned to our event previously, by directly accessing `event.host`. If it has not been specified from some reason, the value is `None`. 
+So this is sufficient for our example:
 ```python  
-...  
+...
 def execute(self):  
     do_magic(self.event.certificate)  
     do_something_with_host(self.event.host) # normal access  
 ```  
-will do.    
-For the same reasons, the next hunter that will receive some event that this hunter published, could access the `event.certificate`.    
+
+If another Hunter subscribes to the events that this Hunter publishes, if can  access the `event.certificate`.
   
 ## Proving Vulnerabilities  
 The process of proving vulnerabilities, is the base concept of the Active Hunting.    
 To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vulnerability, and inside of the `execute`, specify the `evidence` attribute of the event.  
-  
