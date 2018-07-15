@@ -61,7 +61,10 @@ class EventQueue(Queue, object):
     def worker(self):
         while self.running:
             hook = self.get()
-            hook.execute()
+            try:
+                hook.execute()
+            except Exception as ex: 
+                logging.debug(ex.message)
             self.task_done()
         logging.debug("closing thread...")
 
