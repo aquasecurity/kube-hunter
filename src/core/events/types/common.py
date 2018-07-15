@@ -42,11 +42,16 @@ class Service(object):
         return self.__doc__
 
 class Vulnerability(object):
-    def __init__(self, component, name):
+    def __init__(self, component, name, category=None):
         self.component = component
+        self.category = category
         self.name = name
         self.evidence = ""
         self.role = "Node"
+
+    def get_category(self):
+        if self.category:
+            return self.category.name
 
     def get_name(self):
         return self.name

@@ -18,4 +18,21 @@ class Kubelet(KubernetesCluster):
     name = "Kubelet"
 
 
+""" Categories """
+class InformationDisclosure(object):
+    name = "Information Disclosure"
+
+class RemoteCodeExec(object):
+    name = "Remote Code Execution"
+
+class IdentityTheft(object):
+    name = "Identity Theft"
+
+class UnauthenticatedAccess(object):
+    name = "Unauthenticated Access"
+
+class AccessRisk(object):
+    name = "Access Risk"
+
+
 from events import handler # import is in the bottom to break import loops
