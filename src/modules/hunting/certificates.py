@@ -1,4 +1,4 @@
-from ...core.types import Hunter, KubernetesCluster
+from ...core.types import Hunter, KubernetesCluster, InformationDisclosure
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
 
@@ -14,7 +14,7 @@ email_pattern = re.compile(r"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
 class CertificateEmail(Vulnerability, Event):
     """Certificate includes an email address"""
     def __init__(self, email):
-        Vulnerability.__init__(self, KubernetesCluster, "Certificate includes email address: {0}".format(email))
+        Vulnerability.__init__(self, KubernetesCluster, "Certificate includes email address: {0}".format(email), category=InformationDisclosure)
 
 
 @handler.subscribe(OpenPortEvent)
