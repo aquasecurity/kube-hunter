@@ -7,16 +7,16 @@ from kubelet import ExposedRunHandler
 
 from ...core.events import handler
 from ...core.events.types import Event, Vulnerability
-from ...core.types import Hunter, ActiveHunter, KubernetesCluster
+from ...core.types import Hunter, ActiveHunter, KubernetesCluster, IdentityTheft
    
 class Azure(KubernetesCluster):
     """Azure Cluster"""
     name = "Azure"
 
 class AzureSpnExposure(Vulnerability, Event):
-    """By exposing the SPN, the attacker can gain access to the azure subscription"""
+    """The SPN is exposed, potentially allowing an attacker to gain access to the Azure subscription"""
     def __init__(self, container):
-        Vulnerability.__init__(self, Azure, "Azure SPN Exposure")
+        Vulnerability.__init__(self, Azure, "Azure SPN Exposure", category=IdentityTheft)
         self.container = container
 
 @handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud=="Azure")

@@ -9,72 +9,66 @@ from __main__ import config
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event
 from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent
-from ...core.types import Hunter, ActiveHunter, KubernetesCluster, Kubelet
+from ...core.types import Hunter, ActiveHunter, KubernetesCluster, Kubelet, InformationDisclosure, RemoteCodeExec, AccessRisk
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 """ Vulnerabilities """
 class ExposedPodsHandler(Vulnerability, Event):
-    """Exposes all complete PodSpecs bound to a node"""
+    """An attacker could view sensitive information about pods that are bound to a Node using the /pods endpoint"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /pods")    
+        Vulnerability.__init__(self, Kubelet, "Exposed Pods", category=InformationDisclosure)    
 
 class AnonymousAuthEnabled(Vulnerability, Event):
-    """Anonymous Auth to the kubelet, exposes secure access to all requests on the kubelet"""
+    """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet, without the need to authenticate"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication")
+        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication", category=RemoteCodeExec)
 
 class ExposedContainerLogsHandler(Vulnerability, Event):
-    """Outputs logs from a running container"""
+    """Output logs from a running container are using the exposed /containerLogs endpoint"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /containerLogs")    
-        self.remediation="--enable-debugging-handlers=False On Kubelet"
+        Vulnerability.__init__(self, Kubelet, "Exposed Container Logs", category=InformationDisclosure)    
     
 class ExposedRunningPodsHandler(Vulnerability, Event):
-    """Outputs a list of currently runnning pods, and some of their metadata"""
+    """Outputs a list of currently running pods, and some of their metadata, which can reveal sensitive information"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /runningpods")    
-        self.remediation="--enable-debugging-handlers=False On Kubelet"  
+        Vulnerability.__init__(self, Kubelet, "Exposed Running Pods", category=InformationDisclosure)    
 
 class ExposedExecHandler(Vulnerability, Event):
-    """Opens a websocket that enables running and executing arbitrary commands on a container"""
+    """An attacker could run arbitrary commands on a container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /exec")    
-        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+        Vulnerability.__init__(self, Kubelet, "Exposed Exec On Container", category=RemoteCodeExec)    
 
 class ExposedRunHandler(Vulnerability, Event):
-    """Allows remote arbitrary execution inside a container"""
+    """An attacker could run an arbitrary command inside a container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /run")    
-        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+        Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec)    
 
 class ExposedPortForwardHandler(Vulnerability, Event):
-    """Setting a port forwaring rule on a pod"""
+    """An attacker could set port forwaring rule on a pod"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /portForward")    
-        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+        Vulnerability.__init__(self, Kubelet, "Exposed Port Forward", category=RemoteCodeExec)    
 
 class ExposedAttachHandler(Vulnerability, Event):
-    """Opens a websocket that enables running and executing arbitrary commands on a container"""
+    """Opens a websocket that could enable an attacker to attach to a running container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed /attach")    
-        self.remediation="--enable-debugging-handlers=False On Kubelet"    
+        Vulnerability.__init__(self, Kubelet, "Exposed Attaching To Container", category=RemoteCodeExec)    
 
 class ExposedHealthzHandler(Vulnerability, Event):
-    """By accessing open /healthz handler, an attacker could get the cluster health state"""
+    """By accessing the open /healthz handler, an attacker could get the cluster health state without authenticating"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure")    
+        Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure", category=InformationDisclosure)    
         
 class K8sVersionDisclosure(Vulnerability, Event):
-    """Discloses the kubernetes version, exposed from a log on the /metrics endpoint"""
+    """The kubernetes version could be obtained from logs in the /metrics endpoint"""
     def __init__(self, version):
-        Vulnerability.__init__(self, Kubelet, "Version Disclosure")
+        Vulnerability.__init__(self, Kubelet, "K8s Version Disclosure", category=InformationDisclosure)
         self.evidence = version
     
 class PrivilegedContainers(Vulnerability, Event):
-    """A Privileged container on a node, can expose the node/cluster to unwanted root operations"""
+    """A Privileged container exist on a node. could expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
-        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container")
+        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=AccessRisk)
         self.containers = containers
         self.evidence = "pod: {}, container: {}".format(containers[0][0], containers[0][1])
         

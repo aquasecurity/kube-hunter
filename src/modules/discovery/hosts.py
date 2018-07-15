@@ -13,14 +13,14 @@ from netifaces import AF_INET, ifaddresses, interfaces
 
 from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent, Vulnerability
-from ...core.types import Hunter
+from ...core.types import Hunter, InformationDisclosure
 from ..hunting.aks import Azure
 
 
 class AzureMetadataApi(Vulnerability, Event):
-    """Access to Azure Metadata API exposes sensitive information about the machines associated with the cluster"""
+    """Access to the Azure Metadata API exposes sensitive information about the machines associated with the cluster"""
     def __init__(self, cidr):
-        Vulnerability.__init__(self, Azure, "Azure Metadata Exposure")
+        Vulnerability.__init__(self, Azure, "Azure Metadata Exposure", category=InformationDisclosure)
         self.cidr = cidr
         self.evidence = "cidr: {}".format(cidr)
 

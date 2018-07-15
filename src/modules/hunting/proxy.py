@@ -6,20 +6,20 @@ import json
 
 from ...core.events import handler
 from ...core.events.types import Event, Vulnerability
-from ...core.types import ActiveHunter, Hunter, KubernetesCluster
+from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure
 from ..discovery.dashboard import KubeDashboardEvent
 from ..discovery.proxy import KubeProxyEvent
 
 """ Vulnerabilities """
 class KubeProxyExposed(Vulnerability, Event):
-    """Exposes all oprations on the cluster"""
+    """All oprations on the cluster are exposed"""
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, "Proxy Exposed")
+        Vulnerability.__init__(self, KubernetesCluster, "Proxy Exposed", category=InformationDisclosure)
 
 class K8sVersionDisclosure(Vulnerability, Event):
-    """Discloses the kubernetes version, exposed from kube-proxy"""
+    """The Kubernetes version is exposed from kube-proxy"""
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, "Version Disclosure")
+        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure)
 
 
 class Service(Enum):
