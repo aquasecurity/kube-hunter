@@ -16,9 +16,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 """ Vulnerabilities """
 class ExposedPodsHandler(Vulnerability, Event):
     """An attacker could view sensitive information about pods that are bound to a Node using the /pods endpoint"""
-    def __init__(self):
+    def __init__(self, count):
         Vulnerability.__init__(self, Kubelet, "Exposed Pods", category=InformationDisclosure)    
-
+        self.evidence = count
+        
 class AnonymousAuthEnabled(Vulnerability, Event):
     """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet, without the need to authenticate"""
     def __init__(self):
@@ -155,7 +156,7 @@ class SecureKubeletPortHunter(Hunter):
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 containerName=self.pod["container"],
-                cmd = "uname -a"
+                cmd = ""
             )
             return "/cri/exec/" in self.session.get(exec_url, headers=headers, allow_redirects=False ,verify=False).text
 
@@ -183,7 +184,7 @@ class SecureKubeletPortHunter(Hunter):
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 containerName=self.pod["container"],
-                cmd = "echo check"
+                cmd = ""
             )
             return requests.post(run_url, allow_redirects=False ,verify=False).status_code != 404
 
@@ -199,7 +200,7 @@ class SecureKubeletPortHunter(Hunter):
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 containerName=self.pod["container"],
-                cmd = "uname -a"
+                cmd = ""
             )
             return "/cri/attach/" in self.session.get(attach_url, allow_redirects=False ,verify=False).text
 
@@ -300,7 +301,7 @@ class ProveRunHandler(ActiveHunter):
                         "name": container_data["name"]                    
                     })
                     if output and "exited with" not in output:
-                        self.event.evidence = "uname: " + output
+                        self.event.evidence = "uname -a: " + output
                         break
 
 
