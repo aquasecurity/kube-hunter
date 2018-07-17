@@ -22,10 +22,33 @@ EVIDENCE_PREVIEW = 40
 MAX_WIDTH_VULNS = 70
 MAX_WIDTH_SERVICES = 60
 
+
+def console_trim(text, prefix=' '):
+    a = text.split(" ")
+    b = a[:]
+    total_length = 0
+    count_of_inserts = 0
+    for index, value in enumerate(a):
+        if (total_length + (len(value) + len(prefix))) >= 80:
+            b.insert(index + count_of_inserts, '\n')
+            count_of_inserts += 1
+            total_length = 0
+        else:
+            total_length += len(value) + len(prefix)
+    return '\n'.join([prefix + line.strip(' ') for line in ' '.join(b).split('\n')])
+
+
+def wrap_last_line(text, prefix='| ', suffix='|_'):
+    lines = text.split('\n')
+    lines[-1] = lines[-1].replace(prefix, suffix, 1)
+    return '\n'.join(lines)
+
+
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
 class DefaultReporter(object):
     """Reportes can be initiated by the event handler, and by regular decaration. for usage on end of runtime"""
+
     def __init__(self, event=None):
         self.event = event
 
@@ -35,19 +58,24 @@ class DefaultReporter(object):
         bases = self.event.__class__.__mro__
         if Service in bases:
             services.append(self.event)
-            logging.info("[OPEN SERVICE - {name}] IP:{host} PORT:{port}".format(
+            import datetime
+            logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  host: {host}:{port}".format(
                 host=self.event.host,
                 port=self.event.port,
-                name=self.event.get_name(), 
-                desc=self.event.explain() 
+                name=self.event.get_name(),
+                time=datetime.time()
             ))
+
         elif Vulnerability in bases:
             insights.append((Vulnerability, self.event))
             vulnerabilities.append(self.event)
-            logging.info("[VULNERABILITY - {name}] {desc}".format(
-                name=self.event.get_name(),
-                desc=self.event.explain(),
-            ))
+            logging.info(
+                "|\n| {name}:\n|   type: vulnerability\n|   host: {host}:{port}\n|   description: \n{desc}".format(
+                    name=self.event.get_name(),
+                    host=self.event.host,
+                    port=self.event.port,
+                    desc=wrap_last_line(console_trim(self.event.explain(), '|     '))
+                ))
 
     def print_tables(self):
         """generates report tables and outputs to stdout"""
@@ -60,7 +88,10 @@ class DefaultReporter(object):
             print "\nKube Hunter couldn't find any clusters"
             # print "\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else "")
 
+
 reporter = DefaultReporter()
+
+
 @handler.subscribe(HuntFinished)
 class SendFullReport(object):
     def __init__(self, event):
@@ -71,7 +102,10 @@ class SendFullReport(object):
 
 
 """ Tables Generation """
+
+
 def print_nodes():
+    return
     nodes_table = PrettyTable(["Type", "Location"], hrules=ALL)
     nodes_table.align="l"     
     nodes_table.max_width=MAX_WIDTH_SERVICES  
@@ -90,7 +124,9 @@ def print_nodes():
     print nodes_table
     print 
 
+
 def print_services():
+    return
     services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
     services_table.align="l"     
     services_table.max_width=MAX_WIDTH_SERVICES  
@@ -104,7 +140,9 @@ def print_services():
     print services_table
     print 
 
+
 def print_vulnerabilities():
+    return
     column_names = ["Location", "Category", "Vulnerability", "Description", "Evidence"]
     vuln_table = PrettyTable(column_names, hrules=ALL)
     vuln_table.align="l"

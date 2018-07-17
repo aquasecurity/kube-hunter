@@ -48,7 +48,7 @@ class HostDiscovery(Hunter):
         self.event = event
 
     def execute(self):
-        logging.info("Discovering Open Kubernetes Services...")
+        logging.info("~ Discovering Open Kubernetes Services...")
         
         if config.cidr:
             try:
@@ -74,7 +74,7 @@ class HostDiscovery(Hunter):
         try:
             metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text
         except requests.ConnectionError as e:
-            logging.info("unable to check cloud: {0}".format(e))
+            logging.info("- unable to check cloud: {0}".format(e))
             return
         if "cloud" in metadata:
             return json.loads(metadata)["cloud"]
@@ -113,7 +113,7 @@ class HostDiscovery(Hunter):
             external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
         except requests.ConnectionError as e:
             logging.debug("unable to determine local IP address: {0}".format(e))
-            logging.info("default to 127.0.0.1")
+            logging.info("~ default to 127.0.0.1")
             external_ip = "127.0.0.1"
         cloud = self.get_cloud(external_ip)
         for ip in self.generate_interfaces_subnet():
