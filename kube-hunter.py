@@ -14,8 +14,8 @@ parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help=
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--token', type=str, metavar="AQUA_TOKEN", help="specify the token retrieved from Aqua, after finished executing, the report will be visible on kube-hunter's site")
-
 config = parser.parse_args()
+
 try:
     loglevel = getattr(logging, config.log.upper())
 except:
@@ -23,8 +23,11 @@ except:
 if config.log.lower() != "none":
     logging.basicConfig(level=loglevel, format='%(asctime)s - [%(levelname)s]: %(message)s')
 
-from report import reporter
+from report import default
+from report import aqua 
+
 from src.core.events import handler
+from src.core.events.types import HuntFinished, HuntStarted
 from src.modules.discovery import HostDiscovery
 from src.modules.discovery.hosts import HostScanEvent
 
@@ -51,22 +54,22 @@ def interactive_set_config():
         return False
     return True
 
+hunt_started = False
 def main():
+    global hunt_started 
     scan_options = [
         config.pod, 
         config.cidr,
         config.remote, 
         config.internal
     ]
-    hunt_started = False
     try:
         if not any(scan_options):
             if not interactive_set_config(): return
-        if config.token:
-            reporter.print_report_url(token=config.token)
-
-        hunt_started = True
+        
         logging.info("Started")
+        hunt_started = True
+        handler.publish_event(HuntStarted())
         handler.publish_event(HostScanEvent())
         
         # Blocking to see discovery output
@@ -75,11 +78,10 @@ def main():
         logging.debug("Kube-Hunter stopped by user")        
     finally:
         if hunt_started:
+            handler.publish_event(HuntFinished())
+            handler.join()
             handler.free()
-            logging.debug("Cleaned Queue")        
-            reporter.print_tables()
-            if config.token:
-                reporter.send_report(token=config.token)
+            logging.debug("Cleaned Queue")
 
     if config.pod:
         while True: time.sleep(5)

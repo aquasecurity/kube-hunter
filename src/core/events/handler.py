@@ -1,12 +1,15 @@
 import logging
+import time
 from abc import ABCMeta
 from collections import defaultdict
 from Queue import Queue
 from threading import Lock, Thread
 
-import time
 from __main__ import config
+
 from ..types import ActiveHunter
+
+from ...core.events.types import HuntFinished
 
 working_count = 0
 lock = Lock()

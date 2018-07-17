@@ -79,3 +79,9 @@ class OpenPortEvent(Event):
     
     def __str__(self):
         return str(self.port)
+
+class HuntFinished(Event):
+    pass
+    
+class HuntStarted(Event):
+    pass
