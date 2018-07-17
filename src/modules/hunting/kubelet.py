@@ -16,9 +16,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 """ Vulnerabilities """
 class ExposedPodsHandler(Vulnerability, Event):
     """An attacker could view sensitive information about pods that are bound to a Node using the /pods endpoint"""
-    def __init__(self, count):
+    def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed Pods", category=InformationDisclosure)    
-        self.evidence = count
         
 class AnonymousAuthEnabled(Vulnerability, Event):
     """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet, without the need to authenticate"""
