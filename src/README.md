@@ -112,8 +112,9 @@ lets see some examples of creating different types of events:
 ```python  
 class ExposedMasterCN(Vulnerability, Event):  
     """Explanation about this vulnerability and what it can do when exploited"""  
-    def __init__(self):  
-        Vulnerability.__init__(self, component=KubernetesCluster, name="Master Exposed From Certificate")  
+    def __init__(self, master_ip):  
+        Vulnerability.__init__(self, component=KubernetesCluster, name="Master Exposed From Certificate", category=InformationDisclosure)
+        self.evidence = master_ip
 ```  
   
 ### Service  
@@ -174,4 +175,5 @@ If another Hunter subscribes to the events that this Hunter publishes, if can  a
   
 ## Proving Vulnerabilities  
 The process of proving vulnerabilities, is the base concept of the Active Hunting.    
-To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vulnerability, and inside of the `execute`, specify the `evidence` attribute of the event.  
+To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vulnerability, and inside of the `execute`, specify the `evidence` attribute of the event.   
+*Note that you can specify the 'evidence' attribute without active hunting*  

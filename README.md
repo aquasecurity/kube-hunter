@@ -18,7 +18,6 @@ To specify remote machines for hunting, you can use the `--remote` option. Examp
 
 Active hunting is an option in which Kube Hunter will exploit vulnerabilities it finds, in order to explore for further vulnerabilities.
 The main difference between normal and active hunting is that a normal hunt will never change state of the cluster, while active hunting can potentially do state-changing and harmful operations on the cluster.
-When active, evidence of vulnerabilities will be added to the final report.
 To active hunt a cluster, use the `--active` flag. Example:  
 `./kube-hunter.py --remote some.domain.com --active`  
 
