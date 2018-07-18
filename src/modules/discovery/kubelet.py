@@ -46,6 +46,8 @@ class KubeletDiscovery(Hunter):
         # anonymous authentication is disabled
         elif self.ping_kubelet(authenticate=True) == 200: 
             event.secure = True
+        else:
+            return
         self.publish_event(event)
 
     def ping_kubelet(self, authenticate):
