@@ -21,7 +21,7 @@ try:
 except:
     pass
 if config.log.lower() != "none":
-    logging.basicConfig(level=loglevel, format='%(asctime)s - [%(levelname)s]: %(message)s')
+    logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
 
 from report import default
 from report import aqua 
@@ -67,7 +67,7 @@ def main():
         if not any(scan_options):
             if not interactive_set_config(): return
         
-        logging.info("Started")
+        logging.info("~ Started")
         hunt_started = True
         handler.publish_event(HuntStarted())
         handler.publish_event(HostScanEvent())
@@ -75,7 +75,7 @@ def main():
         # Blocking to see discovery output
         handler.join()
     except KeyboardInterrupt:
-        logging.debug("Kube-Hunter stopped by user")        
+        logging.debug("Kube-Hunter stopped by user")
     finally:
         if hunt_started:
             handler.publish_event(HuntFinished())
