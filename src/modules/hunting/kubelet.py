@@ -16,8 +16,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 """ Vulnerabilities """
 class ExposedPodsHandler(Vulnerability, Event):
     """An attacker could view sensitive information about pods that are bound to a Node using the /pods endpoint"""
-    def __init__(self):
+    def __init__(self, count):
         Vulnerability.__init__(self, Kubelet, "Exposed Pods", category=InformationDisclosure)    
+        self.count = count
+        self.evidence = "count: {}".format(self.count)
         
 class AnonymousAuthEnabled(Vulnerability, Event):
     """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet, without the need to authenticate"""
@@ -31,8 +33,10 @@ class ExposedContainerLogsHandler(Vulnerability, Event):
     
 class ExposedRunningPodsHandler(Vulnerability, Event):
     """Outputs a list of currently running pods, and some of their metadata, which can reveal sensitive information"""
-    def __init__(self):
+    def __init__(self, count):
         Vulnerability.__init__(self, Kubelet, "Exposed Running Pods", category=InformationDisclosure)    
+        self.count = count
+        self.evidence = "{} running pods".format(self.count)
 
 class ExposedExecHandler(Vulnerability, Event):
     """An attacker could run arbitrary commands on a container"""
@@ -56,9 +60,11 @@ class ExposedAttachHandler(Vulnerability, Event):
 
 class ExposedHealthzHandler(Vulnerability, Event):
     """By accessing the open /healthz handler, an attacker could get the cluster health state without authenticating"""
-    def __init__(self):
+    def __init__(self, status):
         Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure", category=InformationDisclosure)    
-        
+        self.status = status
+        self.evidence = "status: {}".format(self.status)
+
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from logs in the /metrics endpoint"""
     def __init__(self, version):
@@ -106,20 +112,22 @@ class ReadOnlyKubeletPortHunter(Hunter):
             return json.loads(response.text)
 
     def check_healthz_endpoint(self):
-        return requests.get(self.path + "healthz", verify=False).status_code == 200
+        r = requests.get(self.path + "healthz", verify=False)
+        return r.text if r.status_code == 200 else False
 
     def execute(self):
         self.pods_endpoint_data = self.get_pods_endpoint()
         k8s_version = self.get_k8s_version()
         privileged_containers = self.find_privileged_containers()
+        healthz = self.check_healthz_endpoint()
         if k8s_version:
             self.publish_event(K8sVersionDisclosure(version=k8s_version))
         if privileged_containers:
             self.publish_event(PrivilegedContainers(containers=privileged_containers))
+        if healthz:
+            self.publish_event(ExposedHealthzHandler(status=healthz))
         if self.pods_endpoint_data:
-            self.publish_event(ExposedPodsHandler())
-        if self.check_healthz_endpoint():
-            self.publish_event(ExposedHealthzHandler())
+            self.publish_event(ExposedPodsHandler(count=len(self.pods_endpoint_data["items"])))
 
 @handler.subscribe(SecureKubeletEvent)        
 class SecureKubeletPortHunter(Hunter):
@@ -190,7 +198,8 @@ class SecureKubeletPortHunter(Hunter):
         # returns list of currently running pods
         def test_running_pods(self):
             pods_url = self.path + self.Handlers.RUNNINGPODS.value
-            return 'items' in json.loads(self.session.get(pods_url, verify=False).text).keys()
+            r = self.session.get(pods_url, verify=False)
+            return json.loads(r.text) if r.status_code == 200 else False
 
         # need further investigation on the differences between attach and exec
         def test_attach_container(self):
@@ -219,16 +228,18 @@ class SecureKubeletPortHunter(Hunter):
             return json.loads(response.text)
 
     def check_healthz_endpoint(self):
-        return requests.get(self.path + "healthz", verify=False).status_code == 200
+        r = requests.get(self.path + "healthz", verify=False)
+        return r.text if r.status_code == 200 else False
 
     def execute(self):
         self.pods_endpoint_data = self.get_pods_endpoint()
+        healthz = self.check_healthz_endpoint() 
         if not self.event.secure:
             self.publish_event(AnonymousAuthEnabled())
         if self.pods_endpoint_data:
-            self.publish_event(ExposedPodsHandler())
-        if self.check_healthz_endpoint():
-            self.publish_event(ExposedHealthzHandler()) 
+            self.publish_event(ExposedPodsHandler(count=len(self.pods_endpoint_data["items"])))
+        if healthz:
+            self.publish_event(ExposedHealthzHandler(status=healthz)) 
         self.test_handlers()
 
     def test_handlers(self):
@@ -237,14 +248,15 @@ class SecureKubeletPortHunter(Hunter):
         if pod:
             debug_handlers = self.DebugHandlers(self.path, pod=pod, session=self.session)
             try:
+                running_pods = debug_handlers.test_running_pods()
+                if running_pods:
+                    self.publish_event(ExposedRunningPodsHandler(count=len(running_pods["items"])))            
                 if debug_handlers.test_container_logs():
                     self.publish_event(ExposedContainerLogsHandler())
                 if debug_handlers.test_exec_container():
                     self.publish_event(ExposedExecHandler())      
                 if debug_handlers.test_run_container():
                     self.publish_event(ExposedRunHandler())
-                if debug_handlers.test_running_pods():
-                    self.publish_event(ExposedRunningPodsHandler())            
                 if debug_handlers.test_port_forward():
                     self.publish_event(ExposedPortForwardHandler()) # not implemented            
                 if debug_handlers.test_attach_container():
@@ -302,46 +314,6 @@ class ProveRunHandler(ActiveHunter):
                     if output and "exited with" not in output:
                         self.event.evidence = "uname -a: " + output
                         break
-
-
-@handler.subscribe(ExposedHealthzHandler)
-class ProveHealthzHandler(ActiveHunter):
-    def __init__(self, event):
-        self.event = event
-    
-    def execute(self):
-        protocol = "https" if self.event.port == 10250 else "http"
-        self.event.evidence = requests.get("{protocol}://{host}:{port}/healthz".format(protocol=protocol, host=self.event.host, port=self.event.port), verify=False).text
-
-@handler.subscribe(ExposedPodsHandler)
-class ProvePodsHandler(ActiveHunter):
-    def __init__(self, event):
-        self.event = event
-    
-    def execute(self):
-        protocol = "https" if self.event.port == 10250 else "http"
-        pods_raw = requests.get("{protocol}://{host}:{port}/pods".format(
-            protocol=protocol,
-            host=self.event.host, 
-            port=self.event.port), 
-            verify=False).text
-        if "items" in pods_raw:
-            pods_data = json.loads(pods_raw)['items']
-            self.event.evidence = "bound pods: {}".format(len(pods_data))
-
-@handler.subscribe(ExposedRunningPodsHandler)
-class ProveRunningPodsHandler(ActiveHunter):
-    def __init__(self, event):
-        self.event = event
-    
-    def execute(self):
-        pods_raw = requests.get("https://{host}:{port}/pods".format(
-            host=self.event.host, 
-            port=self.event.port), 
-            verify=False).text
-        if "items" in pods_raw:
-            pods_data = json.loads(pods_raw)['items']
-            self.event.evidence = "running pods: {}".format(len(pods_data))
 
 @handler.subscribe(ExposedContainerLogsHandler)
 class ProveContainerLogsHandler(ActiveHunter):
