@@ -6,13 +6,18 @@ We welcome contributions, especially new hunter modules that perform additional 
 
 ## Hunting
 
-By default, without any special flags, Kube Hunter will scan all of your machine's network interfaces for open Kubernetes services.
+By default, without any special flags, Kube Hunter will open an interactive session, in which you will be able to select one of its scan options.   
+If you want to specify the scan option manually, form the command line. these are your options:  
 
 To specify a specific cidr to scan, use the `--cidr` option. Example:  
 `./kube-hunter.py --cidr 192.168.0.0/24`  
   
 To specify remote machines for hunting, you can use the `--remote` option. Example:  
 `./kube-hunter.py --remote some.node.com`  
+
+To specify internal scanning, you can use the `--internal` option. (this will scan all of the machine's network interfaces) Example:  
+`./kube-hunter.py --internal`  
+
 
 ### Active Hunting
 
