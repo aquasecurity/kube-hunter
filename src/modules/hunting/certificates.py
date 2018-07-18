@@ -1,6 +1,6 @@
 from ...core.types import Hunter, KubernetesCluster, InformationDisclosure
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, OpenPortEvent
+from ...core.events.types import Vulnerability, Event, Service
 
 import ssl
 import logging
@@ -14,10 +14,11 @@ email_pattern = re.compile(r"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
 class CertificateEmail(Vulnerability, Event):
     """Certificate includes an email address"""
     def __init__(self, email):
-        Vulnerability.__init__(self, KubernetesCluster, "Certificate includes email address: {0}".format(email), category=InformationDisclosure)
+        Vulnerability.__init__(self, KubernetesCluster, "Certificate Includes Email Address", category=InformationDisclosure)
+        self.email = email
+        self.evidence = "email: {}".format(self.email)
 
-
-@handler.subscribe(OpenPortEvent)
+@handler.subscribe(Service)
 class CertificateDiscovery(Hunter):
     def __init__(self, event):
         self.event = event
@@ -33,4 +34,4 @@ class CertificateDiscovery(Hunter):
         certdata = base64.decodestring(c)
         emails = re.findall(email_pattern, certdata)
         for email in emails:
-            self.publish_event( CertificateEmail(email) )
+            self.publish_event( CertificateEmail(email=email) )
