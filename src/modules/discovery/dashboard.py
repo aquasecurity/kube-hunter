@@ -1,10 +1,12 @@
 import json
+import logging
 
 import requests
 
 from ...core.events import handler
-from ...core.events.types import Event, Service, OpenPortEvent
+from ...core.events.types import Event, OpenPortEvent, Service
 from ...core.types import Hunter
+
 
 class KubeDashboardEvent(Service, Event):
     """A web-based Kubernetes user interface. allows easy usage with operations on the cluster"""
@@ -15,15 +17,13 @@ class KubeDashboardEvent(Service, Event):
 class KubeDashboard(Hunter):
     def __init__(self, event):
         self.event = event
-        self.host = event.host
-        self.port = event.port 
 
     @property
     def secure(self):
-        default = json.loads(requests.get("http://{}:{}/api/v1/service/default".format(self.host, self.port)).text)
-        if "errors" in default and len(default["errors"]) == 0:
+        r = requests.get("http://{}:{}/api/v1/service/default".format(self.event.host, self.event.port))
+        if "listMeta" in r.text and len(json.loads(r.text)["errors"]) == 0:
             return False
-        return False
+        return True
 
     def execute(self):
         if not self.secure:
