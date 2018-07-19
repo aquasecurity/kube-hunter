@@ -22,7 +22,7 @@ except:
 if config.log.lower() != "none":
     logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
 
-from report import default
+import report
 
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
