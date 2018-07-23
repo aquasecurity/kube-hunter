@@ -19,9 +19,7 @@ insights = list()
 vulnerabilities = list()
 
 EVIDENCE_PREVIEW = 40
-MAX_WIDTH_VULNS = 70
-MAX_WIDTH_SERVICES = 60
-
+MAX_TABLE_WIDTH = 20
 
 def console_trim(text, prefix=' '):
     a = text.split(" ")
@@ -98,17 +96,16 @@ class SendFullReport(object):
         self.event = event
 
     def execute(self):
+        print "\nReport:"
+        print "{}\n".format("-" * MAX_TABLE_WIDTH)
         reporter.print_tables()
 
 
 """ Tables Generation """
-
-
 def print_nodes():
-    return
     nodes_table = PrettyTable(["Type", "Location"], hrules=ALL)
     nodes_table.align="l"     
-    nodes_table.max_width=MAX_WIDTH_SERVICES  
+    nodes_table.max_width=MAX_TABLE_WIDTH  
     nodes_table.padding_width=1
     nodes_table.sortby="Type"
     nodes_table.reversesort=True  
@@ -120,33 +117,31 @@ def print_nodes():
         if service.event_id not in id_memory:
             nodes_table.add_row(["Node/Master", service.host])
             id_memory.append(service.event_id)
-    print "Nodes:"
+    print "Nodes"
     print nodes_table
     print 
 
 
 def print_services():
-    return
     services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
     services_table.align="l"     
-    services_table.max_width=MAX_WIDTH_SERVICES  
+    services_table.max_width=MAX_TABLE_WIDTH  
     services_table.padding_width=1
     services_table.sortby="Service"
     services_table.reversesort=True  
     services_table.header_style="upper"
     for service in services:
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-    print "Detected Services:"
+    print "Detected Services"
     print services_table
     print 
 
 
 def print_vulnerabilities():
-    return
     column_names = ["Location", "Category", "Vulnerability", "Description", "Evidence"]
     vuln_table = PrettyTable(column_names, hrules=ALL)
     vuln_table.align="l"
-    vuln_table.max_width=MAX_WIDTH_VULNS 
+    vuln_table.max_width=MAX_TABLE_WIDTH 
     vuln_table.sortby="Category"    
     vuln_table.reversesort=True
     vuln_table.padding_width=1
@@ -156,6 +151,6 @@ def print_vulnerabilities():
         evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
         row.append(evidence)
         vuln_table.add_row(row)        
-    print "Vulnerabilities:"
+    print "Vulnerabilities"
     print vuln_table
     print 
