@@ -8,7 +8,7 @@ from prettytable import ALL, PrettyTable
 
 from __main__ import config
 from src.core.events import handler
-from src.core.events.types import Service, Vulnerability, HuntFinished
+from src.core.events.types import Service, Vulnerability, HuntFinished, HuntStarted
 
 # [event, ...]
 services = list()
@@ -97,7 +97,17 @@ class SendFullReport(object):
         self.event = event
 
     def execute(self):
-        logging.info("\nReport:\n{div}\n{tables}".format(div="-" * MAX_TABLE_WIDTH, tables=reporter.get_tables()))
+        logging.info("\n{div}\n{tables}".format(div="-" * 10, tables=reporter.get_tables()))
+
+
+@handler.subscribe(HuntStarted)
+class StartedInfo(object):
+    def __init__(self, event):
+        self.event = event
+
+    def execute(self):
+        logging.info("~ Started")
+        logging.info("~ Discovering Open Kubernetes Services...")
 
 
 """ Tables Generation """

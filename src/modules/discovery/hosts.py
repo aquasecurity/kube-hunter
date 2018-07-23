@@ -47,9 +47,7 @@ class HostDiscovery(Hunter):
     def __init__(self, event):
         self.event = event
 
-    def execute(self):
-        logging.info("~ Discovering Open Kubernetes Services...")
-        
+    def execute(self):        
         if config.cidr:
             try:
                 ip, sn = config.cidr.split('/')

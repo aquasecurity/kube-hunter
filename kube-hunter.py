@@ -65,7 +65,6 @@ def main():
         if not any(scan_options):
             if not interactive_set_config(): return
         
-        logging.info("~ Started")
         hunt_started = True
         handler.publish_event(HuntStarted())
         handler.publish_event(HostScanEvent())
