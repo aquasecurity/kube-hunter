@@ -18,10 +18,11 @@ class ReadOnlyKubeletEvent(Service, Event):
 
 class SecureKubeletEvent(Service, Event):
     """Could expose endpoints which allow the attacker to access the node"""
-    def __init__(self, cert=False, token=False):
+    def __init__(self, cert=False, token=False, anonymous_auth=True, **kwargs):
         self.cert = cert
         self.token = token
-        Service.__init__(self, name="Kubelet API") 
+        self.anonymous_auth = anonymous_auth
+        Service.__init__(self, name="Kubelet API", **kwargs) 
 
 
 class KubeletPorts(Enum):
@@ -38,32 +39,21 @@ class KubeletDiscovery(Hunter):
         r = requests.get("http://{host}:{port}/pods".format(host=self.event.host, port=self.event.port))
         if r.status_code == 200:
             self.publish_event(ReadOnlyKubeletEvent())
-        
-    def get_secure_access(self):
-        event = SecureKubeletEvent()
-        if self.ping_kubelet(authenticate=False) == 200:
-            event.secure = False
-        # anonymous authentication is disabled
-        elif self.ping_kubelet(authenticate=True) == 200: 
-            event.secure = True
-        else:
-            return
-        self.publish_event(event)
 
-    def ping_kubelet(self, authenticate):
-        r = requests.Session()
-        if authenticate: 
-            if self.event.auth_token:
-                r.headers.update({
-                    "Authorization": "Bearer {}".format(self.event.auth_token)
-                })
-            if self.event.client_cert:
-                r.cert = self.event.client_cert
-        r.verify = False
+    def get_secure_access(self):
+        ping_status = self.ping_kubelet()
+        if ping_status == 200:
+            self.publish_event(SecureKubeletEvent(secure=False))
+        elif ping_status == 403: 
+            self.publish_event(SecureKubeletEvent(secure=True))
+        elif ping_status == 401:
+            self.publish_event(SecureKubeletEvent(secure=True, anonymous_auth=False))
+
+    def ping_kubelet(self):
         try:
-            return r.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port)).status_code
+            return requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).status_code
         except Exception as ex:
-            logging.debug("Failed pinging secured kubelet {} : {}".format(self.event.host, ex.message))
+            logging.debug("Failed pinging https port 10250 on {} : {}".format(self.event.host, ex.message))
 
     def execute(self):
         if self.event.port == KubeletPorts.SECURED.value:
