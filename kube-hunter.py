@@ -6,13 +6,15 @@ import sys
 import time
 
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
-parser.add_argument('--internal', action="store_true", help="set hunting of all internal network interfaces")
+parser.add_argument('--internal', action="store_true", help="set hunting of allinternal network interfaces")
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
 parser.add_argument('--cidr', type=str, help="set manual cidr to scan, example: 192.168.0.0/16")
 parser.add_argument('--mapping', action="store_true", help="outputs only a mapping of the cluster's nodes")
 parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="one or more remote ip/dns to hunt")
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
+import plugins
+
 config = parser.parse_args()
 
 try:
@@ -22,12 +24,11 @@ except:
 if config.log.lower() != "none":
     logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
 
-import report
-
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
 from src.modules.discovery import HostDiscovery
 from src.modules.discovery.hosts import HostScanEvent
+import src
 
 
 def interactive_set_config():
