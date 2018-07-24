@@ -8,7 +8,7 @@ import time
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
 parser.add_argument('--internal', action="store_true", help="set hunting of allinternal network interfaces")
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
-parser.add_argument('--cidr', type=str, help="set manual cidr to scan, example: 192.168.0.0/16")
+parser.add_argument('--cidr', type=str, help="set an ip range to scan, example: 192.168.0.0/16")
 parser.add_argument('--mapping', action="store_true", help="outputs only a mapping of the cluster's nodes")
 parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="one or more remote ip/dns to hunt")
 parser.add_argument('--active', action="store_true", help="enables active hunting")
@@ -36,7 +36,7 @@ def interactive_set_config():
     options = {
         "Remote scanning": "scans one or more specific IPs or DNS names",
         "Internal scanning": "scans all network interfaces",
-        "CIDR scanning": "scans a specific CIDR"
+        "Network scanning": "scans a given IP range"
     } # maps between option and its explanation
     
     print "Choose one of the options below:"
