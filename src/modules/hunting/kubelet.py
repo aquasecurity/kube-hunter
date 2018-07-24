@@ -232,10 +232,11 @@ class SecureKubeletPortHunter(Hunter):
         return r.text if r.status_code == 200 else False
 
     def execute(self):
+        if self.event.anonymous_auth:
+            self.publish_event(AnonymousAuthEnabled())
+
         self.pods_endpoint_data = self.get_pods_endpoint()
         healthz = self.check_healthz_endpoint() 
-        if not self.event.secure:
-            self.publish_event(AnonymousAuthEnabled())
         if self.pods_endpoint_data:
             self.publish_event(ExposedPodsHandler(count=len(self.pods_endpoint_data["items"])))
         if healthz:
