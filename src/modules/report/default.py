@@ -13,8 +13,6 @@ from src.core.events.types import Service, Vulnerability, HuntFinished, HuntStar
 # [event, ...]
 services = list()
 
-# [(TypeClass, event), ...]
-insights = list()
 
 vulnerabilities = list()
 
@@ -52,7 +50,7 @@ class DefaultReporter(object):
 
     def execute(self):
         """function is called only when collecting data"""
-        global services, insights
+        global services, vulnerabilities
         bases = self.event.__class__.__mro__
         if Service in bases:
             services.append(self.event)
@@ -65,7 +63,6 @@ class DefaultReporter(object):
             ))
 
         elif Vulnerability in bases:
-            insights.append((Vulnerability, self.event))
             vulnerabilities.append(self.event)
             logging.info(
                 "|\n| {name}:\n|   type: vulnerability\n|   host: {host}:{port}\n|   description: \n{desc}".format(
@@ -82,7 +79,10 @@ class DefaultReporter(object):
             output += nodes_table()
             if not config.mapping:
                 output += services_table()
-                output += vulns_table()
+                if len(vulnerabilities):
+                    output += vulns_table()
+                else:
+                    output += "\nNo vulnerabilities were found"
         else:
             print "\nKube Hunter couldn't find any clusters"
             # print "\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else "")
