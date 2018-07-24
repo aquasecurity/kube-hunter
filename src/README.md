@@ -5,14 +5,17 @@ First, lets go through Kube Hunter's basic architecture.
 ### Directory Structure  
 ~~~  
 kube-hunter/  
-        log/  
+        plugins/  
+           # your plugin
         src/  
             core/  
             modules/  
                 discovery/  
                     # your module  
                 hunting/  
-                    # your module  
+                    # your module
+                report/
+                    # your module
         kube-hunter.py  
 ~~~  
 ### Design Pattern   
