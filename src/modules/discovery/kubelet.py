@@ -12,12 +12,12 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 """ Services """
 class ReadOnlyKubeletEvent(Service, Event):
-    """Could expose endpoints which reveal information about the node/cluster"""
+    """The read-only port on the kubelet serves health probing endpoints, and is relied upon by many kubernetes componenets"""
     def __init__(self):
         Service.__init__(self, name="Kubelet API (readonly)")
 
 class SecureKubeletEvent(Service, Event):
-    """Could expose endpoints which allow the attacker to access the node"""
+    """The Kubelet is the main component in every Node, all pod operations goes through the kubelet"""
     def __init__(self, cert=False, token=False, anonymous_auth=True, **kwargs):
         self.cert = cert
         self.token = token
