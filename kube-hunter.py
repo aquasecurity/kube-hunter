@@ -55,23 +55,25 @@ def interactive_set_config():
         return False
     return True
 
-def parse_docs(docs):
+def parse_docs(hunter, docs):
     """returns tuple of (name, docs)"""
+    if not docs:
+        return hunter.__name__, "<no documentation>" 
     docs = docs.strip().split('\n')
     for i, line in enumerate(docs):
         docs[i] = line.strip()
-    return docs[0], ' '.join(docs[1:])
+    return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
     
 def list_hunters():
     print "\nPassive Hunters:\n----------------"
-    for i, (_, docs) in enumerate([item for item in handler.passive_hunters.items() if item[1]]):
-        name, docs = parse_docs(docs)
+    for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
+        name, docs = parse_docs(hunter, docs)
         print "* {}\n  {}\n".format( name, docs)
 
     if config.active:
         print "\n\nActive Hunters:\n---------------"
-        for i, (_, docs) in enumerate([item for item in handler.active_hunters.items() if item[1]]):
-            name, docs = parse_docs(docs)
+        for i, (hunter, docs) in enumerate(handler.active_hunters.items()):
+            name, docs = parse_docs(hunter, docs)
             print "* {}\n  {}\n".format( name, docs)
         
 
