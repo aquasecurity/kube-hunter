@@ -9,6 +9,9 @@ default_ports = [8001, 10250, 10255, 30000]
 
 @handler.subscribe(NewHostEvent)
 class PortDiscovery(Hunter):
+    """Port Scanning
+    Scans Kubernetes known ports to determine open endpoints for discovery
+    """
     def __init__(self, event):
         self.event = event
         self.host = event.host
