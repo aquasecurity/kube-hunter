@@ -21,6 +21,9 @@ class AzureSpnExposure(Vulnerability, Event):
 
 @handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud=="Azure")
 class AzureSpnHunter(Hunter):
+    """AKS Hunting
+    Hunting Azure cluster deployments using specific known configurations
+    """
     def __init__(self, event):
         self.event = event
         self.base_url = "https://{}:{}".format(self.event.host, self.event.port)
@@ -49,6 +52,9 @@ class AzureSpnHunter(Hunter):
 """ Active Hunting """
 @handler.subscribe(AzureSpnExposure)
 class ProveAzureSpnExposure(ActiveHunter):
+    """Azure SPN Hunter
+    Gets the azure subscription file on the host by executing inside a container 
+    """
     def __init__(self, event):
         self.event = event
         self.base_url = "https://{}:{}".format(self.event.host, self.event.port)

@@ -6,6 +6,9 @@ from ...core.events.types import OpenPortEvent
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port==443)
 class ApiServerDiscovery(Hunter):
+    """Api Server Discovery
+    Checks for the existence of a an Api Server
+    """
     def __init__(self, event):
         self.event = event
 

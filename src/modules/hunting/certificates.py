@@ -20,6 +20,9 @@ class CertificateEmail(Vulnerability, Event):
 
 @handler.subscribe(Service)
 class CertificateDiscovery(Hunter):
+    """Certificate Email Hunting
+    Checks for email addresses in kuberntes ssl certificates
+    """
     def __init__(self, event):
         self.event = event
 

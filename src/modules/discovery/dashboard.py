@@ -15,6 +15,9 @@ class KubeDashboardEvent(Service, Event):
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
 class KubeDashboard(Hunter):
+    """K8s Dashboard Discovery
+    Checks for the existence of a Dashboard
+    """
     def __init__(self, event):
         self.event = event
 

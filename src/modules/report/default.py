@@ -43,8 +43,6 @@ def wrap_last_line(text, prefix='| ', suffix='|_'):
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
 class DefaultReporter(object):
-    """Reportes can be initiated by the event handler, and by regular decaration. for usage on end of runtime"""
-
     def __init__(self, event=None):
         self.event = event
 

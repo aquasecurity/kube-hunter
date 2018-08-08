@@ -31,6 +31,9 @@ class KubeletPorts(Enum):
 
 @handler.subscribe(OpenPortEvent, predicate= lambda x: x.port == 10255 or x.port == 10250)
 class KubeletDiscovery(Hunter):
+    """Kubelet Discovery
+    Checks for the existence of a Kubelet service, and its open ports
+    """
     def __init__(self, event):
         self.event = event
 
