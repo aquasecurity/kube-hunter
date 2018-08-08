@@ -31,6 +31,9 @@ Example:
 ~~~python  
 @handler.subscribe(OpenPortEvent, predicate=lambda event: event.port == 30000)  
 class KubeDashboardDiscovery(Hunter):  
+    """Dashboard Discovery
+    Explanation about what the hunter does
+    """
     def __init__(self, event):  
         self.event = event  
     def execute(self):  
@@ -38,6 +41,8 @@ class KubeDashboardDiscovery(Hunter):
 ~~~  
 Kube Hunter's core module triggers your Hunter when the event you have subscribed it to occurs. 
 in this example, we subscribe the Hunter, `KubeDashboardDiscovery`, to an `OpenPortEvent`, with a predicate that checks the open port (of the event) is 30000.    
+`Convention:` The first line of the comment describing the hunter is the visible name, the other lines are the explanation.
+
    
 ##### ActiveHunter  
 An ActiveHunter will be subscribed to events (and therefore operate) only if KubeHunter is running in active scanning mode.  
