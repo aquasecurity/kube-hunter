@@ -38,6 +38,13 @@ The main difference between normal and active hunting is that a normal hunt will
 By default, Kube Hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:  
 `./kube-hunter.py --remote some.domain.com --active`  
 
+### List of tests
+You can see the list of tests with the `--list` option: Example:
+`./kube-hunter.py --list`
+
+To see active hunting tests as well as passive:
+`./kube-hunter.py --list --active`
+  
 ### Output
 To control logging, you can specify a log level, using the `--log` option. Example:  
 `./kube-hunter.py --active --log WARNING`  
