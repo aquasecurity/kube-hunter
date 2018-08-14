@@ -16,6 +16,9 @@ class DashboardExposed(Vulnerability, Event):
 
 @handler.subscribe(KubeDashboardEvent)
 class KubeDashboard(Hunter):
+    """Dashboard Hunting
+    Hunts open Dashboards, gets the type of nodes in the cluster
+    """
     def __init__(self, event):
         self.event = event
 

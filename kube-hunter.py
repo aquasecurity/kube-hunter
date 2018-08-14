@@ -6,6 +6,7 @@ import sys
 import time
 
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
+parser.add_argument('--list', action="store_true", help="displays all tests in kubehunter (add --active flag to see active tests)")
 parser.add_argument('--internal', action="store_true", help="set hunting of all internal network interfaces")
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
 parser.add_argument('--cidr', type=str, help="set an ip range to scan, example: 192.168.0.0/16")
@@ -13,6 +14,7 @@ parser.add_argument('--mapping', action="store_true", help="outputs only a mappi
 parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="one or more remote ip/dns to hunt")
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
+
 import plugins
 
 config = parser.parse_args()
@@ -53,6 +55,28 @@ def interactive_set_config():
         return False
     return True
 
+def parse_docs(hunter, docs):
+    """returns tuple of (name, docs)"""
+    if not docs:
+        return hunter.__name__, "<no documentation>" 
+    docs = docs.strip().split('\n')
+    for i, line in enumerate(docs):
+        docs[i] = line.strip()
+    return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
+    
+def list_hunters():
+    print "\nPassive Hunters:\n----------------"
+    for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
+        name, docs = parse_docs(hunter, docs)
+        print "* {}\n  {}\n".format( name, docs)
+
+    if config.active:
+        print "\n\nActive Hunters:\n---------------"
+        for i, (hunter, docs) in enumerate(handler.active_hunters.items()):
+            name, docs = parse_docs(hunter, docs)
+            print "* {}\n  {}\n".format( name, docs)
+        
+
 hunt_started = False
 def main():
     global hunt_started 
@@ -63,6 +87,10 @@ def main():
         config.internal
     ]
     try:
+        if config.list:
+            list_hunters()
+            return
+
         if not any(scan_options):
             if not interactive_set_config(): return
         

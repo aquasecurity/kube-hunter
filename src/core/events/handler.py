@@ -7,7 +7,7 @@ from threading import Lock, Thread
 
 from __main__ import config
 
-from ..types import ActiveHunter
+from ..types import ActiveHunter, Hunter
 
 from ...core.events.types import HuntFinished
 
@@ -18,6 +18,9 @@ lock = Lock()
 class EventQueue(Queue, object):
     def __init__(self, num_worker=10):
         super(EventQueue, self).__init__()
+        self.passive_hunters = dict()
+        self.active_hunters = dict()
+
         self.hooks = defaultdict(list)
         self.running = True
         self.workers = list()
@@ -41,8 +44,14 @@ class EventQueue(Queue, object):
     
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
-        if ActiveHunter in hook.__mro__ and not config.active:
-            return
+        if ActiveHunter in hook.__mro__:
+            if not config.active:
+                return
+            else:
+                self.active_hunters[hook] = hook.__doc__
+        elif Hunter in hook.__mro__:
+            self.passive_hunters[hook] = hook.__doc__
+
         if hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
             logging.debug('{} subscribed to {}'.format(hook, event))
@@ -76,7 +85,7 @@ class EventQueue(Queue, object):
         while self.unfinished_tasks > 0:
             logging.debug("{} tasks left".format(self.unfinished_tasks))
             time.sleep(3)
-            
+
     # stops execution of all daemons
     def free(self):
         self.running = False

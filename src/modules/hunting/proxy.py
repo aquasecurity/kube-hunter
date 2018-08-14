@@ -27,6 +27,9 @@ class Service(Enum):
 
 @handler.subscribe(KubeProxyEvent)
 class KubeProxy(Hunter):
+    """Proxy Hunting
+    Hunts for a dashboard behind the proxy 
+    """
     def __init__(self, event):
         self.event = event
         self.api_url = "http://{host}:{port}/api/v1".format(host=self.event.host, port=self.event.port)
@@ -66,6 +69,9 @@ class KubeProxy(Hunter):
 
 @handler.subscribe(KubeProxyExposed)
 class ProveProxyExposed(ActiveHunter):
+    """Build Date Hunter
+    Hunts when proxy is exposed, extracts the build date of kubernetes
+    """
     def __init__(self, event):
         self.event = event
 
@@ -79,6 +85,9 @@ class ProveProxyExposed(ActiveHunter):
 
 @handler.subscribe(K8sVersionDisclosure)
 class ProveK8sVersionDisclosure(ActiveHunter):
+    """K8s Version Hunter
+    Hunts Proxy when exposed, extracts the version
+    """
     def __init__(self, event):
         self.event = event
 

@@ -82,6 +82,9 @@ class PrivilegedContainers(Vulnerability, Event):
 """ dividing ports for seperate hunters """
 @handler.subscribe(ReadOnlyKubeletEvent)
 class ReadOnlyKubeletPortHunter(Hunter):
+    """Kubelet Readonly Ports Hunter
+    Hunts specific endpoints on open ports in the readonly Kubelet server
+    """
     def __init__(self, event):
         self.event = event
         self.path = "http://{}:{}/".format(self.event.host, self.event.port)
@@ -131,6 +134,9 @@ class ReadOnlyKubeletPortHunter(Hunter):
 
 @handler.subscribe(SecureKubeletEvent)        
 class SecureKubeletPortHunter(Hunter):
+    """Kubelet Secure Ports Hunter
+    Hunts specific endpoints on an open secured Kubelet
+    """
     class DebugHandlers(object):    
         """ all methods will return the handler name if successfull """
         class Handlers(Enum):
@@ -287,6 +293,9 @@ class SecureKubeletPortHunter(Hunter):
 
 @handler.subscribe(ExposedRunHandler)
 class ProveRunHandler(ActiveHunter):
+    """Kubelet Run Hunter
+    Executes uname inside of a random container
+    """
     def __init__(self, event):
         self.event = event
     
@@ -318,6 +327,9 @@ class ProveRunHandler(ActiveHunter):
 
 @handler.subscribe(ExposedContainerLogsHandler)
 class ProveContainerLogsHandler(ActiveHunter):
+    """Kubelet Container Logs Hunter
+    Retrieves logs from a random container 
+    """
     def __init__(self, event):
         self.event = event
         protocol = "https" if self.event.port == 10250 else "http"

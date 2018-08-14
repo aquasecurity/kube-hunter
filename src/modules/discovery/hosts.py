@@ -44,6 +44,9 @@ class HostScanEvent(Event):
 
 @handler.subscribe(HostScanEvent)
 class HostDiscovery(Hunter):
+    """Host Discovery
+    Generates ip adresses to scan, based on cluster/scan type
+    """
     def __init__(self, event):
         self.event = event
 
