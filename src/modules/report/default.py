@@ -8,11 +8,13 @@ from prettytable import ALL, PrettyTable
 
 from __main__ import config
 from src.core.events import handler
-from src.core.events.types import Service, Vulnerability, HuntFinished, HuntStarted
+from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted
 
 # [event, ...]
 services = list()
 
+class TablesPrinted(Event):
+    pass
 
 vulnerabilities = list()
 
@@ -98,6 +100,7 @@ class SendFullReport(object):
 
     def execute(self):
         logging.info("\n{div}\n{tables}".format(div="-" * 10, tables=reporter.get_tables()))
+        handler.publish_event(TablesPrinted())
 
 
 @handler.subscribe(HuntStarted)
