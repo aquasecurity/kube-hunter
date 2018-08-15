@@ -5,7 +5,7 @@ from ...core.events import handler
 from ...core.events.types import NewHostEvent, OpenPortEvent
 
 
-default_ports = [8001, 10250, 10255, 30000]
+default_ports = [8001, 10250, 10255, 30000, 443]
 
 @handler.subscribe(NewHostEvent)
 class PortDiscovery(Hunter):
