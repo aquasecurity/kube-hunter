@@ -2,7 +2,7 @@
 ---
 Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster you don't own!**
 
-**Run Kube Hunter**: The easiest way to run kube-hunter is through our web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). You can register online to receive a token allowing you to run Kube Hunter as a container, and see the results online.  It can run in several modes, but we recommend starting by running Kube Hunter as a container on your laptop, supplying the address of your remote Kubernetes cluster that you'd like to test. 
+**Run Kube Hunter**: Kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you see and share the results online. You can also run the Python code yourself as described below.  
   
 **Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your own modules please read [Guidelines For Developing Your First Kube-hunter Module](src/README.md).
 
@@ -11,9 +11,9 @@ Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 ### Where should I run kube-hunter?
 Run kube-hunter on any machine (including your laptop), select Remote scanning and give the IP address or domain name of your Kubernetes cluster. This will give you an attackers-eye-view of your Kubernetes setup. 
 
-You can run it on a machine in the cluster, and select the option to probe all the local network interfaces. 
+You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces. 
 
-You can also run KubeHunter as a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example). 
+You can also run kube-hunter as a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example). 
 
 ### Scanning options
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:  
@@ -35,7 +35,7 @@ To specify a specific CIDR to scan, use the `--cidr` option. Example:
 Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, in order to explore for further vulnerabilities.
 The main difference between normal and active hunting is that a normal hunt will never change state of the cluster, while active hunting can potentially do state-changing operations on the cluster, **which could be harmful**. 
 
-By default, Kube Hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:  
+By default, kube-hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:  
 `./kube-hunter.py --remote some.domain.com --active`  
 
 ### List of tests
@@ -84,15 +84,14 @@ Run:
 `./kube-hunter.py`
 
 ### Container
-Aqua Security maintains a containerised version of kube-hunter at `aquasec/kube-hunter`. This containerised version includes some additional code for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com), and requires you to register there for a token. 
+Aqua Security maintains a containerised version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus some additional code for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). 
 
 If you run the kube-hunter container with the host network it will be able to probe all the interfaces on the host: 
 
 `docker run --rm --network host aquasec/kube-hunter`  
 
 _Note for Docker for Mac/Windows:_ Be aware that the "host" for Docker for Mac or Windows is the VM which Docker runs containers within. Therefore specifying `--network host` allows kube-hunter access to the network interfaces of that VM, rather than those of your laptop.  
-
-By default this will start kube-hunter in interactive mode. You can also specify the scanning mode e.g. 
+By default kube-hunter runs in interactive mode. You can also specify the scanning option with the parameters described above e.g. 
 
 `docker run --rm aquasec/kube-hunter --cidr 192.168.0.0/24`  
 
