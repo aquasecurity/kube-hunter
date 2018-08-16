@@ -102,6 +102,7 @@ def main():
         handler.join()
     except KeyboardInterrupt:
         logging.debug("Kube-Hunter stopped by user")
+    # happens when running a container without interactive option
     except EOFError:
         logging.error("\033[0;31mPlease run again with -it\033[0m")
     finally:
