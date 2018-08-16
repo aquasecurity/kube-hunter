@@ -88,7 +88,7 @@ Aqua Security maintains a containerised version of kube-hunter at `aquasec/kube-
 
 If you run the kube-hunter container with the host network it will be able to probe all the interfaces on the host: 
 
-`docker run --rm --network host aquasec/kube-hunter`  
+`docker run -it --rm --network host aquasec/kube-hunter`  
 
 _Note for Docker for Mac/Windows:_ Be aware that the "host" for Docker for Mac or Windows is the VM which Docker runs containers within. Therefore specifying `--network host` allows kube-hunter access to the network interfaces of that VM, rather than those of your laptop.  
 By default kube-hunter runs in interactive mode. You can also specify the scanning option with the parameters described above e.g. 
