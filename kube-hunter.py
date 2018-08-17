@@ -43,8 +43,8 @@ def interactive_set_config():
     """Sets config manually, returns True for success"""
     options = {
         "Remote scanning": "scans one or more specific IPs or DNS names",
-        "Internal scanning": "scans all network interfaces",
-        "Network scanning": "scans a given IP range"
+        "Subnet scanning": "scans subnets on all local network interfaces",
+        "IP range scanning ": "scans a given IP range"
     } # maps between option and its explanation
     
     print("Choose one of the options below:")
