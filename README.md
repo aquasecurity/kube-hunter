@@ -13,7 +13,7 @@ Run kube-hunter on any machine (including your laptop), select Remote scanning a
 
 You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces. 
 
-You can also run kube-hunter as a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example). 
+You can also run kube-hunter in a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example). 
 
 ### Scanning options
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:  
@@ -96,21 +96,9 @@ By default kube-hunter runs in interactive mode. You can also specify the scanni
 `docker run --rm aquasec/kube-hunter --cidr 192.168.0.0/24`  
 
 ### Pod
-This option lets you discover what running a malicious container can do/discover on your cluster. This gives a perspective on what an attacker could do if they were able to compromise a pod, perhaps through a software vulnerability. 
+This option lets you discover what running a malicious container can do/discover on your cluster. This gives a perspective on what an attacker could do if they were able to compromise a pod, perhaps through a software vulnerability. This may reveal significantly more vulnerabilities. 
 
-Kube-hunter will scan your cluster from the inside, using default Kubernetes pod access settings. This may reveal significantly more vulnerabilities. 
-To run kube-hunter as a pod, `kubectl create` the following yaml file.  
-~~~
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: kube-hunter
-spec:
-  containers:
-  - name: kube-hunter
-    image: aquasec/kube-hunter
-    command: ["python", "kube-hunter.py"]
-    args: ["--pod"]
-  restartPolicy: Never   # for kube-hunter to hunt once
-~~~
+The `job.yaml` file defines a Job that will run kube-hunter in a pod, using default Kubernetes pod access settings. 
+* Run the job with `kubectl create` with that yaml file.  
+* Find the pod name with `kubectl describe job kube-hunter`
+* View the test results with `kubectl logs <pod name>`
