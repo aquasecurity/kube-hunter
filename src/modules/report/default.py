@@ -1,9 +1,5 @@
-import json
 import logging
-from time import time
-from collections import defaultdict
 
-import requests
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
@@ -84,8 +80,8 @@ class DefaultReporter(object):
                 else:
                     output += "\nNo vulnerabilities were found"
         else:
-            print "\nKube Hunter couldn't find any clusters"
-            # print "\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else "")
+            print("\nKube Hunter couldn't find any clusters")
+            # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output
 
 reporter = DefaultReporter()
@@ -114,13 +110,13 @@ class StartedInfo(object):
 """ Tables Generation """
 def nodes_table():
     nodes_table = PrettyTable(["Type", "Location"], hrules=ALL)
-    nodes_table.align="l"     
-    nodes_table.max_width=MAX_TABLE_WIDTH  
+    nodes_table.align="l"
+    nodes_table.max_width=MAX_TABLE_WIDTH
     nodes_table.padding_width=1
     nodes_table.sortby="Type"
-    nodes_table.reversesort=True  
+    nodes_table.reversesort=True
     nodes_table.header_style="upper"
-    
+
     # TODO: replace with sets
     id_memory = list()
     for service in services:
@@ -132,15 +128,15 @@ def nodes_table():
 
 def services_table():
     services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
-    services_table.align="l"     
-    services_table.max_width=MAX_TABLE_WIDTH  
+    services_table.align="l"
+    services_table.max_width=MAX_TABLE_WIDTH
     services_table.padding_width=1
     services_table.sortby="Service"
-    services_table.reversesort=True  
+    services_table.reversesort=True
     services_table.header_style="upper"
     for service in services:
         services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-    
+
     return "\nDetected Services\n{}\n".format(services_table)
 
 
@@ -148,11 +144,11 @@ def vulns_table():
     column_names = ["Location", "Category", "Vulnerability", "Description", "Evidence"]
     vuln_table = PrettyTable(column_names, hrules=ALL)
     vuln_table.align="l"
-    vuln_table.max_width=MAX_TABLE_WIDTH 
-    vuln_table.sortby="Category"    
+    vuln_table.max_width=MAX_TABLE_WIDTH
+    vuln_table.sortby="Category"
     vuln_table.reversesort=True
     vuln_table.padding_width=1
-    vuln_table.header_style="upper"    
+    vuln_table.header_style="upper"
     for vuln in vulnerabilities:
         row = ["{}:{}".format(vuln.host, vuln.port) if vuln.host else "", vuln.category.name, vuln.get_name(), vuln.explain()]
         evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
