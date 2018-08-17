@@ -1,9 +1,15 @@
 #!/bin/env python
+from __future__ import print_function
+
 import argparse
 import logging
-
 import sys
 import time
+
+try:
+    raw_input          # Python 2
+except NameError:
+    raw_input = input  # Python 3
 
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
 parser.add_argument('--list', action="store_true", help="displays all tests in kubehunter (add --active flag to see active tests)")
@@ -41,9 +47,9 @@ def interactive_set_config():
         "Network scanning": "scans a given IP range"
     } # maps between option and its explanation
     
-    print "Choose one of the options below:"
+    print("Choose one of the options below:")
     for i, (option, explanation) in enumerate(options.items()):
-        print "{}. {} ({})".format(i+1, option.ljust(20), explanation)
+        print("{}. {} ({})".format(i+1, option.ljust(20), explanation))
     choice = raw_input("Your choice: ")    
     if choice == '1':
         config.remote = raw_input("Remotes (separated by a ','): ").replace(' ', '').split(',')
@@ -65,16 +71,16 @@ def parse_docs(hunter, docs):
     return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
     
 def list_hunters():
-    print "\nPassive Hunters:\n----------------"
+    print("\nPassive Hunters:\n----------------")
     for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
         name, docs = parse_docs(hunter, docs)
-        print "* {}\n  {}\n".format( name, docs)
+        print("* {}\n  {}\n".format( name, docs))
 
     if config.active:
-        print "\n\nActive Hunters:\n---------------"
+        print("\n\nActive Hunters:\n---------------")
         for i, (hunter, docs) in enumerate(handler.active_hunters.items()):
             name, docs = parse_docs(hunter, docs)
-            print "* {}\n  {}\n".format( name, docs)
+            print("* {}\n  {}\n".format( name, docs))
         
 
 hunt_started = False
@@ -113,7 +119,8 @@ def main():
             logging.debug("Cleaned Queue")
 
     if config.pod:
-        while True: time.sleep(5)
+        while True:
+            time.sleep(5)
 
 if __name__ == '__main__':
     main()
