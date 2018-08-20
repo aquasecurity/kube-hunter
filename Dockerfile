@@ -2,7 +2,9 @@ FROM python:2.7.15-alpine3.7
 
 RUN apk add --update \
     linux-headers \
-    build-base
+    build-base \
+    tcpdump \
+    wireshark
 
 RUN mkdir -p /kube-hunter 
 COPY . /kube-hunter
