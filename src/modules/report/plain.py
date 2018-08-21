@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
@@ -21,8 +23,8 @@ class PlainReporter(object):
                 else:
                     output += "\nNo vulnerabilities were found"
         else:
-            print "\nKube Hunter couldn't find any clusters"
-            # print "\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else "")
+            print("\nKube Hunter couldn't find any clusters")
+            # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output
 
     def nodes_table(self):
