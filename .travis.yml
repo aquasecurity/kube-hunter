@@ -1,9 +1,6 @@
 group: travis_latest
 language: python
 cache: pip
-python:
-  - 2.7
-  - 3.7
 matrix:
   allow_failures:
     - python: 2.7
@@ -11,10 +8,10 @@ matrix:
     - python: 2.7
     #- python: 3.4
     #- python: 3.5
-    #- python: 3.6
-    - python: 3.7
-      dist: xenial    # required for Python 3.7 (travis-ci/travis-ci#9069)
-      sudo: true  # required for Python 3.7 (travis-ci/travis-ci#9069)
+    - python: 3.6
+    #- python: 3.7
+    #  dist: xenial    # required for Python 3.7 (travis-ci/travis-ci#9069)
+    #  sudo: required  # required for Python 3.7 (travis-ci/travis-ci#9069)
 install:
   - pip install -r requirements.txt
   - pip install flake8
