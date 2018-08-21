@@ -48,14 +48,12 @@ import src
 
 def interactive_set_config():
     """Sets config manually, returns True for success"""
-    options = {
-        "Remote scanning": "scans one or more specific IPs or DNS names",
-        "Subnet scanning": "scans subnets on all local network interfaces",
-        "IP range scanning": "scans a given IP range"
-    } # maps between option and its explanation
+    options = [("Remote scanning", "scans one or more specific IPs or DNS names"),
+    ("Subnet scanning","scans subnets on all local network interfaces"),
+    ("IP range scanning","scans a given IP range")]
     
     print("Choose one of the options below:")
-    for i, (option, explanation) in enumerate(options.items()):
+    for i, (option, explanation) in enumerate(options):
         print("{}. {} ({})".format(i+1, option.ljust(20), explanation))
     choice = raw_input("Your choice: ")    
     if choice == '1':
