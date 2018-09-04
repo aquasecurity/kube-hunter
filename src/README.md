@@ -1,7 +1,7 @@
-# Guidelines for developing Kube Hunter  
+# Guidelines for developing kube-hunter  
 ---  
 This document is intended for developers, if you are not a developer, please refer back to the [Deployment README](/README.md)    
-First, lets go through Kube Hunter's basic architecture.    
+First, lets go through kube-hunter's basic architecture.    
 ### Directory Structure  
 ~~~  
 kube-hunter/  
@@ -19,7 +19,7 @@ kube-hunter/
         kube-hunter.py  
 ~~~  
 ### Design Pattern   
-Kube Hunter is built with the [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern).    
+Kube-hunter is built with the [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern).    
 With this in mind, every new Service/Vulnerability/Information that has been discovered, will trigger a new event.   
 When you write your module, you can decide on which Event to subscribe to, meaning, when exactly will your module start Hunting.  
 
@@ -39,13 +39,13 @@ class KubeDashboardDiscovery(Hunter):
     def execute(self):  
         pass  
 ~~~  
-Kube Hunter's core module triggers your Hunter when the event you have subscribed it to occurs. 
+Kube-hunter's core module triggers your Hunter when the event you have subscribed it to occurs. 
 in this example, we subscribe the Hunter, `KubeDashboardDiscovery`, to an `OpenPortEvent`, with a predicate that checks the open port (of the event) is 30000.    
 `Convention:` The first line of the comment describing the hunter is the visible name, the other lines are the explanation.
 
    
 ##### ActiveHunter  
-An ActiveHunter will be subscribed to events (and therefore operate) only if KubeHunter is running in active scanning mode.  
+An ActiveHunter will be subscribed to events (and therefore operate) only if kube-hunter is running in active scanning mode.  
 Implementing an Active Hunter is the same as implementing a regular Hunter, you just need to inherit from `ActiveHunter`  
 Example:   
 ```python  
@@ -137,7 +137,7 @@ class OpenKubeDns(Service, Event):
   
 ----------------------- 
 ## Events 
-`Internals Note:` In KubeHunter, each published event gets all the attributes from the previous event that has been used by its publisher (Hunter). This process is invisible, and happens on the core module, without worrying the developer. 
+`Internals Note:` In kube-hunter, each published event gets all the attributes from the previous event that has been used by its publisher (Hunter). This process is invisible, and happens on the core module, without worrying the developer. 
 Accordingly, we can look at events as individual trees that remember their past attributes, and gives us access to them.    
   
 #### The event chain  
