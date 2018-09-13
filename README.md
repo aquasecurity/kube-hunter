@@ -6,6 +6,8 @@ Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 
 **Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your own modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
 
+[![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
+
 ## Hunting
 
 ### Where should I run kube-hunter?
