@@ -21,45 +21,55 @@ class etcdRemoteReadAccessEvent(Service, Event):
         Service.__init__(self, name="Etcd Remote Read Access Event")
 
 "event handlers"
-@handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379 or p.port == 2370 or p.port == 2380)
+@handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
 class etcdRemoteAccess(Hunter):
-    """etcd Remote Access
-    Checks for availability of etcd, version, read access, write access
+    """Etcd Remote Access
+    Checks for remote availability of etcd, version, read access, write access
     """
     #TODO:
-    #db_keys_write_access: Convert that curl command to a uri: curl http://127.0.0.1:2379/v2/keys/message -XPUT -d value="Hello world"
-    #If we've got a read access-> check if data is encryption.
+    #If we've got a read access-> check if data is encrypted.
     #Read Liz's book & etcd's rest api and check if I've missed important commands to check
     #Do we need to add a auth check and remote connection?->>>
     #->>>if we are able to get the version remotely it means there was no auth check and we were able to connect remotely but maybe we should display it?
     #Add proper logs
+    #Check why the execute() isn't being called
     def __init__(self, event):
         self.event = event
 
     def db_keys_disclosure(self):
         logging.debug(self.event.host)
-        r = requests.get("https://{host}:{port}/v2/keys".format(host=self.event.host, port=2379))#decide which port to choose (maybe the host's port?)
-        if r.status_code == 200:
+        r_secure = requests.get("https://{host}:{port}/v2/keys".format(host=self.event.host, port=2379))#decide which port to choose (maybe the host's port?)
+        r_not_secure = requests.get("http://{host}:{port}/v2/keys".format(host=self.event.host, port=2379))#decide which port to choose (maybe the host's port?)
+        has_remote_access_gained = (r_secure.status_code == 200 and r_secure.content != "") or (r_not_secure.status_code == 200 and r_not_secure.content != "")
+        if has_remote_access_gained:
             self.publish_event(etcdRemoteReadAccessEvent(secure=False))
             return True
         return False
 
     def db_keys_write_access(self):
         logging.debug(self.event.host)
-        r = requests.get("https://{host}:{port}/v2/keys".format(host=self.event.host, port=2379))#decide which port to choose (maybe the host's port?)
-        if r.status_code == 200:
+        data = {
+            'value': 'remote write access penetration'
+        }
+        r_secure = requests.put("https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379), data=data)#decide which port to choose (maybe the host's port?)
+        r_not_secure = requests.put("https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379), data=data)#decide which port to choose (maybe the host's port?)
+
+        has_remote_access_gained = (r_secure.status_code == 200 and r_secure.content != "") or (r_not_secure.status_code == 200 and r_not_secure.content != "")
+        if has_remote_access_gained:
             self.publish_event(etcdRemoteWriteAccessEvent(secure=False))
             return True
         return False
 
     def version_disclosure(self):
         logging.debug(self.event.host)
-        r = requests.get("https://{host}:{port}/version".format(host=self.event.host, port=2379))  # decide which port to choose (maybe the host's port?)
-        if r.status_code == 200:
+        r_secure = requests.get("https://{host}:{port}/version".format(host=self.event.host, port=2379))  # decide which port to choose (maybe the host's port?)
+        r_not_secure = requests.get("http://{host}:{port}/version".format(host=self.event.host, port=2379))  # decide which port to choose (maybe the host's port?)
+
+        has_remote_access_gained = (r_secure.status_code == 200 and r_secure.content != "") or (r_not_secure.status_code == 200 and r_not_secure.content != "")
+        if has_remote_access_gained:
             self.publish_event(etcdRemoteReadAccessEvent(secure=False))
             return True
         return False
-
 
     def execute(self):
        if (self.version_disclosure()):
