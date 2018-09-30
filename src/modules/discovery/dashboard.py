@@ -23,6 +23,7 @@ class KubeDashboard(Hunter):
 
     @property
     def secure(self):
+        logging.debug("Passive hunter is attempting to find an Api server to access dashboard")
         r = requests.get("http://{}:{}/api/v1/service/default".format(self.event.host, self.event.port))
         if "listMeta" in r.text and len(json.loads(r.text)["errors"]) == 0:
             return False

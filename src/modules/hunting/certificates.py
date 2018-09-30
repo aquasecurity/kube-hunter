@@ -21,13 +21,14 @@ class CertificateEmail(Vulnerability, Event):
 @handler.subscribe(Service)
 class CertificateDiscovery(Hunter):
     """Certificate Email Hunting
-    Checks for email addresses in kuberntes ssl certificates
+    Checks for email addresses in kubernetes ssl certificates
     """
     def __init__(self, event):
         self.event = event
 
     def execute(self):
         try:
+            logging.debug("Active hunter is attempting to get server certificate")
             addr = (str(self.event.host), self.event.port)
             cert = ssl.get_server_certificate(addr)
         except ssl.SSLError as e:
