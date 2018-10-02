@@ -12,15 +12,19 @@ from ...core.types import Hunter
 #services:
 
 class etcdRemoteWriteAccessEvent(Service, Event):
-    """Remote write from anonymous user can give him full control over the kubernetes cluster"""
+    """Remote write access might grant an attacker full control over the kubernetes cluster"""
     def __init__(self):
         Service.__init__(self, name="Etcd Remote Write Access Event")
 class etcdRemoteReadAccessEvent(Service, Event):
-    """Remote read access from anonymous user might expose cluster exploits and secrets, more."""
+    """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
     def __init__(self):
         Service.__init__(self, name="Etcd Remote Read Access Event")
+class etcdRemoteVersionDisclosureEvent(Service, Event):
+    """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
+    def __init__(self):
+        Service.__init__(self, name="Etcd Remote version disclosure")
 
-"event handlers"
+
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
 class etcdRemoteAccess(Hunter):
     """Etcd Remote Access
@@ -38,11 +42,11 @@ class etcdRemoteAccess(Hunter):
     def db_keys_disclosure(self):
         logging.debug(self.event.host)
         logging.debug("Passive hunter is attempting to read etcd keys remotely")
-        r_secure = requests.get("https://{host}:{port}/v2/keys".format(host=self.event.host, port=2379), timeout=5)#decide which port to choose (maybe the host's port?)
-        r_not_secure = requests.get("http://{host}:{port}/v2/keys".format(host=self.event.host, port=2379), timeout=5)#decide which port to choose (maybe the host's port?)
-        has_remote_access_gained = (r_secure.status_code == 200 and r_secure.content != "") or (r_not_secure.status_code == 200 and r_not_secure.content != "")
-        if has_remote_access_gained:
-            self.publish_event(etcdRemoteReadAccessEvent(secure=False))
+        r_secure = "https://{host}:{port}/v2/keys".format(host=self.event.host, port=2379)
+        r_not_secure = "http://{host}:{port}/v2/keys".format(host=self.event.host, port=2379)
+
+        if self.helperFuncDo2Requests(r_secure, r_not_secure):
+            self.publish_event(etcdRemoteReadAccessEvent())
             return True
         return False
 
@@ -52,28 +56,49 @@ class etcdRemoteAccess(Hunter):
         data = {
             'value': 'remote write access penetration'
         }
-        r_secure = requests.put("https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379), data=data, timeout=5)#decide which port to choose (maybe the host's port?)
-        r_not_secure = requests.put("https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379), data=data, timeout=5)#decide which port to choose (maybe the host's port?)
+        r_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
+        r_not_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
 
-        has_remote_access_gained = (r_secure.status_code == 200 and r_secure.content != "") or (r_not_secure.status_code == 200 and r_not_secure.content != "")
-        if has_remote_access_gained:
-            self.publish_event(etcdRemoteWriteAccessEvent(secure=False))
+        if self.helperFuncDo2Requests(r_secure, r_not_secure, data=data, reqType="put"):
+            self.publish_event(etcdRemoteWriteAccessEvent())
             return True
         return False
 
     def version_disclosure(self):
         logging.debug(self.event.host)
         logging.debug("Passive hunter is attempting to check etcd version remotely")
-        r_secure = requests.get("https://{host}:{port}/version".format(host=self.event.host, port=2379), timeout=5)  # decide which port to choose (maybe the host's port?)
-        r_not_secure = requests.get("http://{host}:{port}/version".format(host=self.event.host, port=2379), timeout=5)  # decide which port to choose (maybe the host's port?)
-
-        has_remote_access_gained = (r_secure.status_code == 200 and r_secure.content != "") or (r_not_secure.status_code == 200 and r_not_secure.content != "")
-        if has_remote_access_gained:
-            self.publish_event(etcdRemoteReadAccessEvent(secure=False))
+        r_secure = "https://{host}:{port}/version".format(host=self.event.host, port=2379)
+        r_not_secure = "http://{host}:{port}/version".format(host=self.event.host, port=2379)
+        if self.helperFuncDo2Requests( r_secure, r_not_secure ):
+            self.publish_event(etcdRemoteVersionDisclosureEvent())
             return True
         return False
 
     def execute(self):
-       if (self.version_disclosure()):
+        if (self.version_disclosure()):
            self.db_keys_disclosure()
            self.db_keys_write_access()
+
+    def helperFuncDo2Requests(self, req1, req2, isVerify=False, data=None, reqType="get"):
+        try:
+            r = self.helperDoRequest(req1, isVerify, data, reqType)
+            has_remote_access_gained = (r.status_code == 200 and r.content != "")
+            if has_remote_access_gained:
+                return True
+        except Exception:
+            try:
+                r = self.helperDoRequest(req2, isVerify, data, reqType)
+                has_remote_access_gained = (r.status_code == 200 and r.content != "")
+                if has_remote_access_gained:
+                    return True
+            except Exception:
+                return False #None of the requests succeded..
+        return False
+
+    def helperDoRequest(self, req, isVerify, data=None, reqType="get"):
+        if reqType == "put":
+            r = requests.put(req, verify=isVerify, timeout=3, data=data)
+            return r
+        elif reqType == "get":
+            r = requests.get(req, verify=isVerify, timeout=3, data=data)
+            return r
