@@ -24,7 +24,7 @@ class etcdRemoteVersionDisclosureEvent(Service, Event):
     def __init__(self):
         Service.__init__(self, name="Etcd Remote version disclosure")
 class etcdAccessEnabledWithoutAuthEvent(Service, Event):
-    """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
+    """Etcd is accessible without authorization, it would allow a potential attacker to gain access to the etcd"""
     def __init__(self):
         Service.__init__(self, name="Etcd is accessible without authorization")
 
@@ -55,20 +55,6 @@ class etcdRemoteAccess(Hunter):
             return True
         return False
 
-    def db_keys_write_access(self):
-        logging.debug(self.event.host)
-        logging.debug("Active hunter* is attempting to write keys remotely")
-        data = {
-            'value': 'remote write access penetration'
-        }
-        r_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
-        r_not_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
-
-        if self.helperFuncDo2Requests(r_secure, r_not_secure, data=data, reqType="put"):
-            self.publish_event(etcdRemoteWriteAccessEvent())
-            return True
-        return False
-
     def version_disclosure(self):
         logging.debug(self.event.host)
         logging.debug("Passive hunter is attempting to check etcd version remotely")
@@ -85,15 +71,18 @@ class etcdRemoteAccess(Hunter):
            self.db_keys_disclosure()
            self.db_keys_write_access()
 
-    def helperFuncDo2Requests(self, req1, req2, isVerify=False, data=None, reqType="get"):
+    # Will attempt to do request "req1" with the optional parameters.
+    # If fails it will attempt to do "req2" with the optional parameters.
+    # If once of the request success this method will return True, if both fail- False.
+    def helperFuncDo2Requests(self, req1, req2, is_verify=False, data=None, req_type="get"):
         try:
-            r = self.helperDoRequest(req1, isVerify, data, reqType)
+            r = self.helperDoRequest(req1, is_verify, data, req_type)
             has_remote_access_gained = (r.status_code == 200 and r.content != "")
             if has_remote_access_gained:
                 return True
         except Exception:
             try:
-                r = self.helperDoRequest(req2, isVerify, data, reqType)
+                r = self.helperDoRequest(req2, is_verify, data, req_type)
                 has_remote_access_gained = (r.status_code == 200 and r.content != "")
                 if has_remote_access_gained:
                     return True
@@ -101,10 +90,10 @@ class etcdRemoteAccess(Hunter):
                 return False #None of the requests succeded..
         return False
 
-    def helperDoRequest(self, req, isVerify, data=None, reqType="get"):
-        if reqType == "put":
-            r = requests.put(req, verify=isVerify, timeout=3, data=data)
+    def helperDoRequest(self, req, is_verify, data=None, req_type="get"):
+        if req_type == "put":
+            r = requests.put(req, verify=is_verify, timeout=3, data=data)
             return r
-        elif reqType == "get":
-            r = requests.get(req, verify=isVerify, timeout=3, data=data)
+        elif req_type == "get":
+            r = requests.get(req, verify=is_verify, timeout=3, data=data)
             return r
