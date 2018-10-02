@@ -23,6 +23,11 @@ class etcdRemoteVersionDisclosureEvent(Service, Event):
     """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
     def __init__(self):
         Service.__init__(self, name="Etcd Remote version disclosure")
+class etcdAccessEnabledWithoutAuthEvent(Service, Event):
+    """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
+    def __init__(self):
+        Service.__init__(self, name="Etcd is accessible without authorization")
+
 
 
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
@@ -76,6 +81,7 @@ class etcdRemoteAccess(Hunter):
 
     def execute(self):
         if (self.version_disclosure()):
+           self.publish_event(etcdAccessEnabledWithoutAuthEvent())#if version is accessible we can publish "no auth event".
            self.db_keys_disclosure()
            self.db_keys_write_access()
 
