@@ -41,7 +41,7 @@ class EventQueue(Queue, object):
             self.subscribe_event(event, hook=hook, predicate=predicate)
             return hook
         return wrapper
-    
+
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
         if ActiveHunter in hook.__mro__:
@@ -50,7 +50,7 @@ class EventQueue(Queue, object):
             else:
                 self.active_hunters[hook] = hook.__doc__
         elif Hunter in hook.__mro__:
-            self.passive_hunters[hook] = hook.__doc__
+             self.passive_hunters[hook] = hook.__doc__
 
         if hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
@@ -75,13 +75,13 @@ class EventQueue(Queue, object):
             hook = self.get()
             try:
                 hook.execute()
-            except Exception as ex: 
+            except Exception as ex:
                 logging.debug(ex.message)
             self.task_done()
         logging.debug("closing thread...")
 
     def notifier(self):
-        time.sleep(2)        
+        time.sleep(2)
         while self.unfinished_tasks > 0:
             logging.debug("{} tasks left".format(self.unfinished_tasks))
             time.sleep(3)
@@ -91,5 +91,5 @@ class EventQueue(Queue, object):
         self.running = False
         with self.mutex:
             self.queue.clear()
-        
+
 handler = EventQueue(800)
