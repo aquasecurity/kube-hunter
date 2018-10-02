@@ -4,7 +4,7 @@ import logging
 import requests
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, Service, OpenPortEvent
+from ...core.events.types import Vulnerability, Event, OpenPortEvent
 from ...core.types import ActiveHunter
 
 """Etcd is a DB that stores cluster's data,
@@ -16,10 +16,14 @@ class etcdRemoteWriteAccessEvent(Vulnerability, Event):
         Vulnerability.__init__(self, name="Etcd Remote Write Access Event")
 
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
-class etcdRemoteAccess(ActiveHunter):
+class etcdRemoteAccessActive(ActiveHunter):
     """Etcd Remote Access
     Checks for remote write access to etcd
     """
+
+    def __init__(self, event):
+        self.event = event
+
     def db_keys_write_access(self):
         logging.debug(self.event.host)
         logging.debug("Active hunter is attempting to write keys remotely")
