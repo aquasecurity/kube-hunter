@@ -30,7 +30,7 @@ class AzureSpnHunter(Hunter):
         
     # getting a container that has access to the azure.json file
     def get_key_container(self):
-        logging.debug("Attempting to find container with access to azure.json file")
+        logging.debug("Passive Hunter is attempting to find container with access to azure.json file")
         raw_pods = requests.get(self.base_url + "/pods", verify=False).text
         if "items" in raw_pods:
             pods_data = json.loads(raw_pods)["items"]
