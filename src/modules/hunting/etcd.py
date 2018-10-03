@@ -84,7 +84,7 @@ class etcdRemoteAccessActive(ActiveHunter):
 
         res = helperFuncDo2Requests(r_secure, r_not_secure)
         if res:
-            self.publish_event(etcdRemoteWriteAccessEvent(res.content))
+            self.publish_event(etcdRemoteWriteAccessEvent())
             return True
         return False
 
