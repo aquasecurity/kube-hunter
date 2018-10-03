@@ -82,13 +82,13 @@ class etcdRemoteAccessActive(ActiveHunter):
         r_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
         r_not_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
 
-        if self.helperFuncDo2Requests(r_secure, r_not_secure, data=data, req_type="put"):
-            self.publish_event(etcdRemoteWriteAccessEvent())
+        res = helperFuncDo2Requests(r_secure, r_not_secure)
+        if res:
+            self.publish_event(etcdRemoteReadAccessEvent(res.content))
             return True
         return False
 
     def execute(self):
-       print 'Active hunter execute() scope~~~~~\n'
        self.db_keys_write_access()
 
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
@@ -121,7 +121,7 @@ class etcdRemoteAccess(Hunter):
         r_not_secure = "http://{host}:{port}/version".format(host=self.event.host, port=2379)
         res = helperFuncDo2Requests(r_secure, r_not_secure)
         if res:
-            self.publish_event(etcdRemoteReadAccessEvent(res.content))
+            self.publish_event(etcdRemoteVersionDisclosureEvent(res.content))
             return True
         return False
 
