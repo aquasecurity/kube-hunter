@@ -62,8 +62,9 @@ class etcdRemoteVersionDisclosureEvent(Vulnerability, Event):
 class etcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
     """Etcd is accessible without authorization, it would allow a potential attacker to gain access to the etcd"""
 
-    def __init__(self):
+    def __init__(self, version):
         Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible without authorization", category=UnauthenticatedAccess)
+        self.evidence = version
 
 
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
@@ -89,14 +90,13 @@ class etcdRemoteAccessActive(ActiveHunter):
         return False
 
     def execute(self):
-       self.db_keys_write_access()
+        self.db_keys_write_access()
 
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
 class etcdRemoteAccess(Hunter):
     """Etcd Remote Access
     Checks for remote availability of etcd, version, read access, write access
     """
-
     # TODO:
     # Check the etcd hunter on a remote cluster! (currently everything was checked only at 127.0.0.1:2379)
     def __init__(self, event):
@@ -120,12 +120,13 @@ class etcdRemoteAccess(Hunter):
         r_not_secure = "http://{host}:{port}/version".format(host=self.event.host, port=2379)
         res = helperFuncDo2Requests(r_secure, r_not_secure)
         if res:
+            self.no_auth_evidence = res.content
             self.publish_event(etcdRemoteVersionDisclosureEvent(res.content))
             return True
         return False
 
     def execute(self):
         if (self.version_disclosure()):
-            self.publish_event(etcdAccessEnabledWithoutAuthEvent())  # if version is accessible we can publish "no auth event".
+            self.publish_event(etcdAccessEnabledWithoutAuthEvent(self.no_auth_evidence))  # if version is accessible we can publish "no auth event".
             self.db_keys_disclosure()
             self.db_keys_write_access()
