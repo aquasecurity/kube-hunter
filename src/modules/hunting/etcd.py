@@ -5,7 +5,7 @@ import requests
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
-from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure
+from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure, RemoteCodeExec, UnauthenticatedAccess, AccessRisk
 
 """ Helper functions """
 
@@ -43,27 +43,27 @@ class etcdRemoteWriteAccessEvent(Vulnerability, Event):
     """Remote write access might grant an attacker full control over the kubernetes cluster"""
 
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event")
+        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec)
 
 class etcdRemoteReadAccessEvent(Vulnerability, Event):
     """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
 
     def __init__(self, keys):
-        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd Remote Read Access Event")
+        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd Remote Read Access Event", category=AccessRisk)
         self.evidence = keys
 
 class etcdRemoteVersionDisclosureEvent(Vulnerability, Event):
     """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
 
     def __init__(self, version):
-        Vulnerability.__init__(self, KubernetesCluster,  category="boii", name="Etcd Remote version disclosure")
+        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure", category=AccessRisk)
         self.evidence = version
 
 class etcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
     """Etcd is accessible without authorization, it would allow a potential attacker to gain access to the etcd"""
 
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible without authorization")
+        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible without authorization", category=UnauthenticatedAccess)
 
 
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
