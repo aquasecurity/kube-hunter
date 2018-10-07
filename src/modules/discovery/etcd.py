@@ -14,7 +14,7 @@ from ...core.types import Hunter
 class etcdAccessEvent(Service, Event):
     """Etcd is a DB that stores cluster's data, it contains configuration and current state information, and might contain secrets"""
     def __init__(self):
-        Service.__init__(self, name="Etcd Access")
+        Service.__init__(self, name="Etcd")
 
 
 
