@@ -98,7 +98,6 @@ class etcdRemoteAccess(Hunter):
     """
 
     # TODO:
-    # Read Liz's book & etcd's rest api and check if I've missed important commands to check
     # Check the etcd hunter on a remote cluster! (currently everything was checked only at 127.0.0.1:2379)
     def __init__(self, event):
         self.event = event
