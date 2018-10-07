@@ -112,7 +112,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         return privileged_containers if len(privileged_containers) > 0 else None
     
     def get_pods_endpoint(self):
-        logging.debug("Passive hunter is attempting to find pods endpoints")
+        logging.debug("Attempting to find pods endpoints")
         response = requests.get(self.path + "pods")
         if "items" in response.text:
             return json.loads(response.text)
