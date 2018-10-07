@@ -125,8 +125,18 @@ class etcdRemoteAccess(Hunter):
             return True
         return False
 
+    def unauthorized_access(self):
+        logging.debug(self.event.host)
+        logging.debug("Passive hunter is attempting to access etcd without authorization")
+        r_not_secure = "http://{host}:{port}/version".format(host=self.event.host, port=2379)
+        res = helperFuncDo2Requests(r_not_secure, r_not_secure)# We dont have to do 2 requests this time
+        if res:
+            self.publish_event(etcdAccessEnabledWithoutAuthEvent(res.content))
+            return True
+        return False
+
     def execute(self):
-        if (self.version_disclosure()):
-            self.publish_event(etcdAccessEnabledWithoutAuthEvent(self.no_auth_evidence))  # if version is accessible we can publish "no auth event".
+        if self.version_disclosure():
+            self.unauthorized_access()
             self.db_keys_disclosure()
             self.db_keys_write_access()
