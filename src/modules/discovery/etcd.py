@@ -25,9 +25,4 @@ class EtcdRemoteAccess(Hunter):
         self.event = event
 
     def execute(self):
-        try:
-            self.publish_event(EtcdAccessEvent())
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-
+        self.publish_event(EtcdAccessEvent())
