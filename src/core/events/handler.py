@@ -50,7 +50,7 @@ class EventQueue(Queue, object):
             else:
                 self.active_hunters[hook] = hook.__doc__
         elif Hunter in hook.__mro__:
-             self.passive_hunters[hook] = hook.__doc__
+            self.passive_hunters[hook] = hook.__doc__
 
         if hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))

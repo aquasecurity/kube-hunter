@@ -39,61 +39,63 @@ def helperDoRequest(req, is_verify, data=None, req_type="get"):
 
 
 """ Vulnerabilities """
-class etcdRemoteWriteAccessEvent(Vulnerability, Event):
+class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
     """Remote write access might grant an attacker full control over the kubernetes cluster"""
 
-    def __init__(self):
+    def __init__(self, write_res):
         Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec)
+        self.evidence = write_res
 
-class etcdRemoteReadAccessEvent(Vulnerability, Event):
+class EtcdRemoteReadAccessEvent(Vulnerability, Event):
     """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
 
     def __init__(self, keys):
         Vulnerability.__init__(self, KubernetesCluster,  name="Etcd Remote Read Access Event", category=AccessRisk)
         self.evidence = keys
 
-class etcdRemoteVersionDisclosureEvent(Vulnerability, Event):
+class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
     """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
 
     def __init__(self, version):
-        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure", category=AccessRisk)
+        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure", category=InformationDisclosure)
         self.evidence = version
 
-class etcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
+class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
     """Etcd is accessible without authorization, it would allow a potential attacker to gain access to the etcd"""
 
     def __init__(self, version):
         Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible without authorization", category=UnauthenticatedAccess)
         self.evidence = version
 
-
-@handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
-class etcdRemoteAccessActive(ActiveHunter):
+# Active Hunter
+@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
+class EtcdRemoteAccessActive(ActiveHunter):
     """Checks for remote write access to etcd"""
 
     def __init__(self, event):
         self.event = event
+        self.write_evidence = ''
 
     def db_keys_write_access(self):
-        logging.debug(self.event.host)
-        logging.debug("Active hunter is attempting to write keys remotely")
+        logging.debug("Active hunter is attempting to write keys remotely on host " + self.event.host)
         data = {
-            'value': 'remote write access penetration'
+            'value': 'remotely written data'
         }
         r_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
-        r_not_secure = "https://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
-
+        r_not_secure = "http://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379)
         res = helperFuncDo2Requests(r_secure, r_not_secure)
         if res:
-            self.publish_event(etcdRemoteWriteAccessEvent())
+            self.write_evidence = res.content
             return True
         return False
 
     def execute(self):
-        self.db_keys_write_access()
+        if self.db_keys_write_access():
+            self.publish_event(EtcdRemoteWriteAccessEvent(self.write_evidence))
 
+# Passive Hunter
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
-class etcdRemoteAccess(Hunter):
+class EtcdRemoteAccess(Hunter):
     """Etcd Remote Access
     Checks for remote availability of etcd, version, read access, write access
     """
@@ -101,6 +103,8 @@ class etcdRemoteAccess(Hunter):
     # Check the etcd hunter on a remote cluster! (currently everything was checked only at 127.0.0.1:2379)
     def __init__(self, event):
         self.event = event
+        self.version_evidence = ''
+        self.keys_evidence = ''
 
     def db_keys_disclosure(self):
         logging.debug(self.event.host)
@@ -109,7 +113,7 @@ class etcdRemoteAccess(Hunter):
         r_not_secure = "http://{host}:{port}/v2/keys".format(host=self.event.host, port=2379)
         res = helperFuncDo2Requests(r_secure, r_not_secure)
         if res:
-            self.publish_event(etcdRemoteReadAccessEvent(res.content))
+            self.keys_evidence = res.content
             return True
         return False
 
@@ -120,8 +124,7 @@ class etcdRemoteAccess(Hunter):
         r_not_secure = "http://{host}:{port}/version".format(host=self.event.host, port=2379)
         res = helperFuncDo2Requests(r_secure, r_not_secure)
         if res:
-            self.no_auth_evidence = res.content
-            self.publish_event(etcdRemoteVersionDisclosureEvent(res.content))
+            self.version_evidence = res.content
             return True
         return False
 
@@ -129,14 +132,15 @@ class etcdRemoteAccess(Hunter):
         logging.debug(self.event.host)
         logging.debug("Passive hunter is attempting to access etcd without authorization")
         r_not_secure = "http://{host}:{port}/version".format(host=self.event.host, port=2379)
-        res = helperFuncDo2Requests(r_not_secure, r_not_secure)# We dont have to do 2 requests this time
+        res = helperFuncDo2Requests(r_not_secure, r_not_secure)  # We don't have to do 2 requests this time
         if res:
-            self.publish_event(etcdAccessEnabledWithoutAuthEvent(res.content))
             return True
         return False
 
     def execute(self):
         if self.version_disclosure():
-            self.unauthorized_access()
-            self.db_keys_disclosure()
-            self.db_keys_write_access()
+            self.publish_event(EtcdRemoteVersionDisclosureEvent(self.version_evidence))
+            if self.unauthorized_access():
+                self.publish_event(EtcdAccessEnabledWithoutAuthEvent(self.version_evidence))
+            if self.db_keys_disclosure():
+                self.publish_event(EtcdRemoteReadAccessEvent(self.keys_evidence))
