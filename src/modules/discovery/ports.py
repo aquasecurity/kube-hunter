@@ -20,7 +20,7 @@ class PortDiscovery(Hunter):
         self.port = event.port
 
     def execute(self):
-        logging.debug("host {0} try reach ports: {1}".format(self.host, default_ports))
+        logging.debug("host {0} try ports: {1}".format(self.host, default_ports))
         for single_port in default_ports:
             if self.test_connection(self.host, single_port):
                 logging.debug("Reachable port found: {0}".format(single_port))

@@ -55,7 +55,7 @@ class KubeletDiscovery(Hunter):
             self.publish_event(SecureKubeletEvent(secure=True, anonymous_auth=False))
 
     def ping_kubelet(self):
-        logging.debug("Attempting to ping kubelet")
+        logging.debug("Attempting to get pod info from kubelet")
         try:
             return requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).status_code
         except Exception as ex:

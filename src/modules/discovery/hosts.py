@@ -73,7 +73,7 @@ class HostDiscovery(Hunter):
 
     def get_cloud(self, host):
         try:
-            logging.debug("Passive hunter is attempting to access azure's cloud")
+            logging.debug("Passive hunter is checking whether the cluster is deployed on azure's cloud")
             metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text
         except requests.ConnectionError as e:
             logging.info("- unable to check cloud: {0}".format(e))
@@ -83,7 +83,7 @@ class HostDiscovery(Hunter):
 
     def is_azure_pod(self):
         try:
-            logging.debug("Passive hunter is attempting to access azure's pod")
+            logging.debug("Attempting to access Azure Metadata API")
             if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}, timeout=5).status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
@@ -114,7 +114,7 @@ class HostDiscovery(Hunter):
     # for normal scanning
     def scan_interfaces(self):
         try:
-            logging.debug("Passive hunter is attempting to scan interfaces")
+            logging.debug("Passive hunter is attempting to get external IP address")
             external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
         except requests.ConnectionError as e:
             logging.debug("unable to determine local IP address: {0}".format(e))
