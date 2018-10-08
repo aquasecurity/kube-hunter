@@ -7,11 +7,9 @@ from ...core.events import handler
 from ...core.events.types import Event, OpenPortEvent, Service
 from ...core.types import Hunter
 
-"""Etcd is a DB that stores cluster's data,
-    it contains configuration and current state information, and might contain secrets"""
-#services:
+# Service:
 
-class etcdAccessEvent(Service, Event):
+class EtcdAccessEvent(Service, Event):
     """Etcd is a DB that stores cluster's data, it contains configuration and current state information, and might contain secrets"""
     def __init__(self):
         Service.__init__(self, name="Etcd")
@@ -19,7 +17,7 @@ class etcdAccessEvent(Service, Event):
 
 
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
-class etcdRemoteAccess(Hunter):
+class EtcdRemoteAccess(Hunter):
     """Etcd Remote Access
     Checks for remote availability of etcd, version, read access, write access
     """
@@ -28,7 +26,7 @@ class etcdRemoteAccess(Hunter):
 
     def execute(self):
         try:
-            self.publish_event(etcdAccessEvent())
+            self.publish_event(EtcdAccessEvent())
         except Exception as e:
             import traceback
             traceback.print_exc()
