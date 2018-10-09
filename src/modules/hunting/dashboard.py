@@ -23,6 +23,7 @@ class KubeDashboard(Hunter):
         self.event = event
 
     def get_nodes(self):
+        logging.debug("Passive hunter is attempting to get nodes types of the cluster")
         r = requests.get("http://{}:{}/api/v1/node".format(self.event.host, self.event.port))
         if r.status_code == 200 and "nodes" in r.text:
             return list(map(lambda node: node["objectMeta"]["name"], json.loads(r.text)["nodes"]))

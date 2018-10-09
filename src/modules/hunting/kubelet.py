@@ -91,6 +91,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         self.pods_endpoint_data = ""
 
     def get_k8s_version(self):
+        logging.debug("Passive hunter is attempting to find kubernetes version")
         metrics = requests.get(self.path + "metrics").text
         for line in metrics.split("\n"):
             if line.startswith("kubernetes_build_info"):
@@ -101,6 +102,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
     
     # returns list of tuples of Privileged container and their pod. 
     def find_privileged_containers(self):
+        logging.debug("Passive hunter is attempting to find privileged containers and their pods")
         privileged_containers = list()
         if self.pods_endpoint_data:
             for pod in self.pods_endpoint_data["items"]:
@@ -110,6 +112,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         return privileged_containers if len(privileged_containers) > 0 else None
     
     def get_pods_endpoint(self):
+        logging.debug("Attempting to find pods endpoints")
         response = requests.get(self.path + "pods")
         if "items" in response.text:
             return json.loads(response.text)

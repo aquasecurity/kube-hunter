@@ -1,4 +1,5 @@
 import requests
+import logging
 
 from ...core.types import Hunter
 from ...core.events import handler
@@ -24,6 +25,7 @@ class ApiServerDiscovery(Hunter):
         self.event = event
 
     def execute(self):
+        logging.debug("Attempting to discover an Api server")
         main_request = requests.get("https://{}:{}".format(self.event.host, self.event.port), verify=False).text
         if "code" in main_request:
             self.event.role = "Master"
