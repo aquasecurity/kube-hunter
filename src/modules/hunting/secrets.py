@@ -6,21 +6,21 @@ import os
 import requests
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event
-from ...core.types import Hunter, KubernetesCluster, AccessRisk
-from ..discovery.hosts import RunningAsPodEvent
+from ...core.events.types import Vulnerability, Event, OpenPortEvent
+from ...core.types import  Hunter, KubernetesCluster, AccessRisk
+
 
 """ Vulnerabilities """
-class SecretsAccess(Vulnerability, Event):
-    """ Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
+class secretsAccess(Vulnerability, Event):
+    """ Accessing the server API within a compromised pod would help an attacker gain full control over the cluster"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Accessed to pod's secrets", category=AccessRisk)
         self.evidence = evidence
 
-
 # Passive Hunter
-@handler.subscribe(RunningAsPodEvent)
+#should change the subscribtion here... (openPortEvent isnt relevant..)
+@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 6443 or  p.port == 443 or p.port == 10250 or p.port == 10255 or p.port == 2379)
 class AccessSecrets(Hunter):
     """Accessing the secrets accessible to the pod"""
 
@@ -30,11 +30,18 @@ class AccessSecrets(Hunter):
 
     def get_services(self):
         logging.debug(self.event.host)
-        logging.debug('Passive Hunter is attempting to access pod\'s secrets directory')
-        # get all files and subdirectories files:
-        self.secrets_evidence = [val for sublist in [[os.path.join(i[0], j) for j in i[2]] for i in os.walk('/var/run/secrets/')] for val in sublist]
-        return True if len(self.secrets_evidence) > 0 else False
+        self.secrets_evidence = os.listdir('/var/run/secrets')
+        if len(self.secrets_evidence) > 0:
+            return True
+        return False
 
+    #todo:
+    # remove traceback
     def execute(self):
-        if self.get_services():
-            self.publish_event(SecretsAccess(self.secrets_evidence))
+        try:
+            if self.get_services():
+                self.publish_event(secretsAccess(self.secrets_evidence))
+
+        except:
+            import traceback
+            traceback.print_exc()
