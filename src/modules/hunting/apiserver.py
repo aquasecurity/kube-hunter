@@ -5,7 +5,7 @@ import requests
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
-from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure, RemoteCodeExec, UnauthenticatedAccess, AccessRisk
+from ...core.types import  Hunter, KubernetesCluster, RemoteCodeExec, AccessRisk
 
 
 """ Vulnerabilities """
@@ -37,7 +37,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
     def access_api_server(self):
         logging.debug(self.event.host)
-        res = requests.get('https://' + str(self.event.host) + ':6443/api', headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
+        res = requests.get("https://{host}:{port}/api".format(host=self.event.host, port=6443), headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
                      verify=False)
         self.api_server_evidence = res.content
         return res.status_code == 200 and res.content != ''
@@ -55,6 +55,5 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                 self.publish_event(ServiceAccountTokenAccess(self.service_account_token_evidence))
                 if self.access_api_server():
                     self.publish_event(ServerApiAccess(self.api_server_evidence))
-        except:
-            import traceback
-            traceback.print_exc()
+        except:  #We dont want to interrupt the program on any connection error)
+            pass
