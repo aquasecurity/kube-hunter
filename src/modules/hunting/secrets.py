@@ -30,7 +30,8 @@ class AccessSecrets(Hunter):
 
     def get_services(self):
         logging.debug(self.event.host)
-        self.secrets_evidence = os.listdir('/var/run/secrets')
+        # get all files and subdirectories files:
+        self.secrets_evidence = [val for sublist in [[os.path.join(i[0], j) for j in i[2]] for i in os.walk('./')] for val in sublist]
         if len(self.secrets_evidence) > 0:
             return True
         return False
