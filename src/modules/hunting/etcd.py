@@ -61,7 +61,7 @@ class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
         self.evidence = version
 
 class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
-    """Etcd is accessible without authorization, it would allow a potential attacker to gain access to the etcd"""
+    """Etcd is accessible using HTTP (without authorization and authentication), it would allow a potential attacker to gain access to the etcd"""
 
     def __init__(self, version):
         Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible without authorization", category=UnauthenticatedAccess)
