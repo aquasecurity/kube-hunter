@@ -88,7 +88,7 @@ class EtcdRemoteAccess(Hunter):
         return r.content if r.status_code == '200' and r.content != '' else False
 
     def execute(self):
-        if self.unauthorized_access():  # inits http/https protocol
+        if self.unauthorized_access():  # decide between http and https protocol
             self.protocol = 'http'
         if self.version_disclosure():
             self.publish_event(EtcdRemoteVersionDisclosureEvent(self.version_evidence))
