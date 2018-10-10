@@ -20,7 +20,7 @@ class secretsAccess(Vulnerability, Event):
 
 # Passive Hunter
 #should change the subscribtion here... (openPortEvent isnt relevant..)
-@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 6443 or  p.port == 443 or p.port == 10250 or p.port == 10255 or p.port == 2379)
+@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 6443)
 class AccessSecrets(Hunter):
     """Accessing the secrets accessible to the pod"""
 
