@@ -12,7 +12,7 @@ from ...core.types import  Hunter, KubernetesCluster, AccessRisk
 
 """ Vulnerabilities """
 class secretsAccess(Vulnerability, Event):
-    """ Accessing the server API within a compromised pod would help an attacker gain full control over the cluster"""
+    """ Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Accessed to pod's secrets", category=AccessRisk)
