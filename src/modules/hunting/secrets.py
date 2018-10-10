@@ -36,13 +36,10 @@ class AccessSecrets(Hunter):
             return True
         return False
 
-    #todo:
-    # remove traceback
     def execute(self):
         try:
             if self.get_services():
                 self.publish_event(secretsAccess(self.secrets_evidence))
 
         except:
-            import traceback
-            traceback.print_exc()
+            pass
