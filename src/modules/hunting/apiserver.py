@@ -20,7 +20,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
     """ Accessing the pod's service account token gives an attacker the option to use the server API """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="read access to the token", category=AccessRisk)
+        Vulnerability.__init__(self, KubernetesCluster, name="Read access to pod's service account token", category=AccessRisk)
         self.evidence = evidence
 
 # Passive Hunter
