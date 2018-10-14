@@ -11,7 +11,7 @@ from ...core.types import  Hunter, KubernetesCluster, AccessRisk
 
 
 """ Vulnerabilities """
-class secretsAccess(Vulnerability, Event):
+class SecretsAccess(Vulnerability, Event):
     """ Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
 
     def __init__(self, evidence):
@@ -33,10 +33,8 @@ class AccessSecrets(Hunter):
         logging.debug('Passive Hunter is attempting to access pod\'s secrets directory')
         # get all files and subdirectories files:
         self.secrets_evidence = [val for sublist in [[os.path.join(i[0], j) for j in i[2]] for i in os.walk('/var/run/secrets/')] for val in sublist]
-        if len(self.secrets_evidence) > 0:
-            return True
-        return False
+        return True if len(self.secrets_evidence) > 0 else False
 
     def execute(self):
         if self.get_services():
-            self.publish_event(secretsAccess(self.secrets_evidence))
+            self.publish_event(SecretsAccess(self.secrets_evidence))
