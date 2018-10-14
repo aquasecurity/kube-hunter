@@ -17,6 +17,9 @@ class Kubelet(KubernetesCluster):
     """The kubelet is the primary "node agent" that runs on each node"""
     name = "Kubelet"
 
+class Azure(KubernetesCluster):
+    """Azure Cluster"""
+    name = "Azure"
 
 """ Categories """
 class InformationDisclosure(object):
