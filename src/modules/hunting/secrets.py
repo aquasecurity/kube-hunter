@@ -30,6 +30,7 @@ class AccessSecrets(Hunter):
 
     def get_services(self):
         logging.debug(self.event.host)
+        logging.debug('Passive Hunter is attempting to access pod\'s secrets directory')
         # get all files and subdirectories files:
         self.secrets_evidence = [val for sublist in [[os.path.join(i[0], j) for j in i[2]] for i in os.walk('/var/run/secrets/')] for val in sublist]
         if len(self.secrets_evidence) > 0:
@@ -37,9 +38,5 @@ class AccessSecrets(Hunter):
         return False
 
     def execute(self):
-        try:
-            if self.get_services():
-                self.publish_event(secretsAccess(self.secrets_evidence))
-
-        except:
-            pass
+        if self.get_services():
+            self.publish_event(secretsAccess(self.secrets_evidence))
