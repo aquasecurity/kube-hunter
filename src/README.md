@@ -72,6 +72,9 @@ _The file's (module's) content is imported automatically"_
 The second step is to determine what events your Hunter will subscribe to, and from where you can get them.  
 `Convention:` Events should be declared in their corresponding module. for example, a KubeDashboardEvent event is declared in the dashboard discovery module.  
      
+ `Notice:` An hunter located under the `disovery` folder should not import any modules located under the `hunting` folder 
+in order to prevent circular dependency bug.
+
 Following the above example, let's figure out the imports:  
 ```python  
 from ...core.types import Hunter  
@@ -114,7 +117,7 @@ relative import: `...core.types`
   
   
 ## Creating Events  
-As discussed above, we know there are alot of different types of events that can be created. but at the end, they all need to inherit from the base class `Event`  
+As discussed above, we know there are a lot of different types of events that can be created. but at the end, they all need to inherit from the base class `Event`  
 lets see some examples of creating different types of events:  
 ### Vulnerability  
 ```python  
