@@ -6,9 +6,9 @@ import os
 import requests
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, OpenPortEvent
-from ...core.types import  Hunter, KubernetesCluster, AccessRisk
-
+from ...core.events.types import Vulnerability, Event
+from ...core.types import Hunter, KubernetesCluster, AccessRisk
+from ..discovery.hosts import RunningAsPodEvent
 
 """ Vulnerabilities """
 class SecretsAccess(Vulnerability, Event):
@@ -18,9 +18,9 @@ class SecretsAccess(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Accessed to pod's secrets", category=AccessRisk)
         self.evidence = evidence
 
+
 # Passive Hunter
-#should change the subscribtion here... (openPortEvent isnt relevant..)
-@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 6443)
+@handler.subscribe(RunningAsPodEvent)
 class AccessSecrets(Hunter):
     """Accessing the secrets accessible to the pod"""
 
