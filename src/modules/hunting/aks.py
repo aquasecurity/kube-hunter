@@ -7,7 +7,7 @@ from kubelet import ExposedRunHandler
 
 from ...core.events import handler
 from ...core.events.types import Event, Vulnerability
-from ...core.types import Hunter, ActiveHunter, KubernetesCluster, IdentityTheft
+from ...core.types import Hunter, ActiveHunter, KubernetesCluster, IdentityTheft, Azure
 
 
 class AzureSpnExposure(Vulnerability, Event):
