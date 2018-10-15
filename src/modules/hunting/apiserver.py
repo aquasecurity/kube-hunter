@@ -5,7 +5,7 @@ import requests
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
-from ...core.types import  Hunter, KubernetesCluster, RemoteCodeExec, AccessRisk
+from ...core.types import Hunter, KubernetesCluster, RemoteCodeExec, AccessRisk
 
 
 """ Vulnerabilities """
@@ -24,7 +24,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
         self.evidence = evidence
 
 # Passive Hunter
-@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 6443)
+@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port==443 or x.port==6443)
 class AccessApiServerViaServiceAccountToken(Hunter):
     """
     Accessing the api server might grant an attacker full control over the cluster
@@ -39,7 +39,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         logging.debug(self.event.host)
         logging.debug('Passive Hunter is attempting to access the API server using the pod\'s service account token')
         try:
-            res = requests.get("https://{host}:{port}/api".format(host=self.event.host, port=6443),
+            res = requests.get("https://{host}:{port}/api".format(host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.api_server_evidence = res.content
             return res.status_code == 200 and res.content != ''
@@ -62,4 +62,3 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             self.publish_event(ServiceAccountTokenAccess(self.service_account_token_evidence))
             if self.access_api_server():
                 self.publish_event(ServerApiAccess(self.api_server_evidence))
-
