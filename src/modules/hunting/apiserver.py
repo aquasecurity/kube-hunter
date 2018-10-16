@@ -9,6 +9,8 @@ from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExe
 
 
 """ Vulnerabilities """
+
+
 class ServerApiAccess(Vulnerability, Event):
     """ Accessing the server API within a compromised pod would help an attacker gain full control over the cluster"""
 
