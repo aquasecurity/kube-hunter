@@ -13,8 +13,7 @@ from netifaces import AF_INET, ifaddresses, interfaces
 
 from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent, Vulnerability
-from ...core.types import Hunter, InformationDisclosure
-from ..hunting.aks import Azure
+from ...core.types import Hunter, InformationDisclosure, Azure
 
 
 class AzureMetadataApi(Vulnerability, Event):
