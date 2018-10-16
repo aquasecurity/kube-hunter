@@ -3,6 +3,7 @@ import logging
 from __main__ import config
 from src.core.events import handler
 from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted
+import threading
 
 services = list()
 vulnerabilities = list()

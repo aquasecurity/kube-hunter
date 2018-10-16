@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import argparse
 import logging
+import threading
 
 try:
     raw_input          # Python 2
@@ -87,8 +88,10 @@ def list_hunters():
             name, docs = parse_docs(hunter, docs)
             print("* {}\n  {}\n".format( name, docs))
         
-
+tlock3 = threading.Lock
+tlock3.acquire()
 hunt_started = False
+tlock3.release()
 def main():
     global hunt_started 
     scan_options = [
@@ -104,8 +107,10 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-        
+        tlock = threading.Lock
+        tlock.acquire()
         hunt_started = True
+        tlock.release()
         handler.publish_event(HuntStarted())
         handler.publish_event(HostScanEvent())
         
@@ -117,11 +122,15 @@ def main():
     except EOFError:
         logging.error("\033[0;31mPlease run again with -it\033[0m")
     finally:
+        tlock2 = threading.Lock()
+        tlock2.acquire()
         if hunt_started:
             handler.publish_event(HuntFinished())
             handler.join()
             handler.free()
             logging.debug("Cleaned Queue")
+        tlock2.release()
+
 
 if __name__ == '__main__':
     main()
