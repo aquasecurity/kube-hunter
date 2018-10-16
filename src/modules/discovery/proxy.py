@@ -25,6 +25,7 @@ class KubeProxy(Hunter):
 
     @property
     def accesible(self):
+        logging.debug("Attempting to discover a proxy service")
         r = requests.get("http://{host}:{port}/api/v1".format(host=self.host, port=self.port))
         if r.status_code == 200 and "APIResourceList" in r.text:
             return True

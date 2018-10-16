@@ -3,6 +3,7 @@ import logging
 from __main__ import config
 from src.core.events import handler
 from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted
+import threading
 
 services = list()
 vulnerabilities = list()
@@ -37,6 +38,8 @@ class Collector(object):
 
     def execute(self):
         """function is called only when collecting data"""
+        tlock = threading.Lock()
+        tlock.acquire()
         global services, vulnerabilities
         bases = self.event.__class__.__mro__
         if Service in bases:
@@ -58,6 +61,7 @@ class Collector(object):
                     port=self.event.port,
                     desc=wrap_last_line(console_trim(self.event.explain(), '|     '))
                 ))
+        tlock.release()
 
 
 class TablesPrinted(Event):

@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import argparse
 import logging
+import threading
 
 try:
     raw_input          # Python 2
@@ -66,6 +67,7 @@ def interactive_set_config():
         return False
     return True
 
+
 def parse_docs(hunter, docs):
     """returns tuple of (name, docs)"""
     if not docs:
@@ -74,7 +76,8 @@ def parse_docs(hunter, docs):
     for i, line in enumerate(docs):
         docs[i] = line.strip()
     return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
-    
+
+
 def list_hunters():
     print("\nPassive Hunters:\n----------------")
     for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
@@ -86,9 +89,14 @@ def list_hunters():
         for i, (hunter, docs) in enumerate(handler.active_hunters.items()):
             name, docs = parse_docs(hunter, docs)
             print("* {}\n  {}\n".format( name, docs))
-        
 
+
+tlock3 = threading.Lock()
+tlock3.acquire()
 hunt_started = False
+tlock3.release()
+
+
 def main():
     global hunt_started 
     scan_options = [
@@ -104,8 +112,10 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-        
+        tlock = threading.Lock()
+        tlock.acquire()
         hunt_started = True
+        tlock.release()
         handler.publish_event(HuntStarted())
         handler.publish_event(HostScanEvent())
         
@@ -117,11 +127,21 @@ def main():
     except EOFError:
         logging.error("\033[0;31mPlease run again with -it\033[0m")
     finally:
+        tlock2 = threading.Lock()
+        tlock2.acquire()
         if hunt_started:
             handler.publish_event(HuntFinished())
             handler.join()
             handler.free()
             logging.debug("Cleaned Queue")
+        tlock2.release()
+
 
 if __name__ == '__main__':
-    main()
+    for i in range(6):
+        try:
+            main()
+        except:
+            import traceback
+            print ('\n\n\n\n\n\n\n\n\n')
+            traceback.print_exc()
