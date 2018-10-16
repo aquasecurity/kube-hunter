@@ -138,10 +138,5 @@ def main():
 
 
 if __name__ == '__main__':
-    for i in range(6):
-        try:
-            main()
-        except:
-            import traceback
-            print ('\n\n\n\n\n\n\n\n\n')
-            traceback.print_exc()
+        main()
+
