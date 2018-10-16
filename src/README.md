@@ -72,7 +72,7 @@ _The file's (module's) content is imported automatically"_
 The second step is to determine what events your Hunter will subscribe to, and from where you can get them.  
 `Convention:` Events should be declared in their corresponding module. for example, a KubeDashboardEvent event is declared in the dashboard discovery module.  
      
- `Notice:` An hunter located under the `disovery` folder should not import any modules located under the `hunting` folder 
+ `Note:` An hunter located under the `discovery` folder should not import any modules located under the `hunting` folder 
 in order to prevent circular dependency bug.
 
 Following the above example, let's figure out the imports:  
