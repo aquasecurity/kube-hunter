@@ -57,63 +57,68 @@ class ListAllNamespaces(Vulnerability, Event):
 
 
 class CreateARole(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
+    """ Creating a role might give an attacker the option to harm the normal routine of newly created pods
+     within the specified namespaces.
     """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all namespaces list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Created a role",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
 class CreateAClusterRole(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
+    """ Creating a role might give an attacker the option to harm the normal routine of newly created pods within the
+    whole cluster scope.
     """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all namespaces list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Created a cluster role",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
 class PatchARole(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
+    """ Patching a cluster role might give an attacker the option to create new pods with custom roles within the
+    specific role's namespace scope
     """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all namespaces list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Patched a role",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
 class PatchAClusterRole(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
+    """ Patching a cluster role might give an attacker the option to create new pods with custom roles within the whole
+    cluster scope.
     """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all namespaces list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Patched a cluster role",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
-class CreateARole(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
-    """
+class DeleteARole(Vulnerability, Event):
+    """ Deleting a role might give an attacker the option to create new pods with custom roles within a specific role's
+    namespace scope."""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all namespaces list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Deleted a role",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
-class  CreateAClusterRole(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
-    """
+class DeleteAClusterRole(Vulnerability, Event):
+    """ Deleting a cluster role might give an attacker the option to create new pods with custom roles within the whole
+    cluster scope."""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all namespaces list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Deleted a cluster role",
                                category=InformationDisclosure)
         self.evidence = evidence
+
 
 # Passive Hunter
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 443 or x.port == 6443)
@@ -295,7 +300,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  host=self.event.host, port=self.event.port, namespace=namespace),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.namespace_roles_evidence = res.content
-            return res.status_code == 200 and res.content != ''
+            return res.content if res.status_code == 200 and res.content != '' else False
         except requests.exceptions.ConnectionError:
             return False
 
@@ -305,7 +310,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.namespace_roles_evidence = res.content
-            return res.status_code == 200 and res.content != ''
+            return res.content if res.status_code == 200 and res.content != '' else False
         except requests.exceptions.ConnectionError:
             return False
 
@@ -315,7 +320,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.namespace_roles_evidence = res.content
-            return res.status_code == 200 and res.content != ''
+            return res.content if res.status_code == 200 and res.content != '' else False
         except requests.exceptions.ConnectionError:
             return False
 
