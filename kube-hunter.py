@@ -67,6 +67,7 @@ def interactive_set_config():
         return False
     return True
 
+
 def parse_docs(hunter, docs):
     """returns tuple of (name, docs)"""
     if not docs:
@@ -75,7 +76,8 @@ def parse_docs(hunter, docs):
     for i, line in enumerate(docs):
         docs[i] = line.strip()
     return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
-    
+
+
 def list_hunters():
     print("\nPassive Hunters:\n----------------")
     for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
@@ -87,11 +89,14 @@ def list_hunters():
         for i, (hunter, docs) in enumerate(handler.active_hunters.items()):
             name, docs = parse_docs(hunter, docs)
             print("* {}\n  {}\n".format( name, docs))
-        
+
+
 tlock3 = threading.Lock
 tlock3.acquire()
 hunt_started = False
 tlock3.release()
+
+
 def main():
     global hunt_started 
     scan_options = [

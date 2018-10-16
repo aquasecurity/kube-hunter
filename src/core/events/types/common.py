@@ -3,6 +3,7 @@ import requests
 import json
 import threading
 
+
 class Event(object):
     def __init__(self):
         self.previous = None
@@ -24,8 +25,11 @@ class Event(object):
             previous = previous.previous
         return history
 
+
 """ Event Types """
 # TODO: make proof an abstract method.
+
+
 class Service(object):
     def __init__(self, name, path="", secure=True):
         self.name = name
@@ -41,6 +45,7 @@ class Service(object):
 
     def explain(self):
         return self.__doc__
+
 
 class Vulnerability(object):
     def __init__(self, component, name, category=None):
@@ -63,6 +68,8 @@ class Vulnerability(object):
 
 event_id_count = 0
 """ Discovery/Hunting Events """
+
+
 class NewHostEvent(Event):
     def __init__(self, host, cloud=None):
         global event_id_count
@@ -74,6 +81,7 @@ class NewHostEvent(Event):
     def __str__(self):
         return str(self.host)
 
+
 class OpenPortEvent(Event):
     def __init__(self, port):
         self.port = port
@@ -81,8 +89,10 @@ class OpenPortEvent(Event):
     def __str__(self):
         return str(self.port)
 
+
 class HuntFinished(Event):
     pass
-    
+
+
 class HuntStarted(Event):
     pass
