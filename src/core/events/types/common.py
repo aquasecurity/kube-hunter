@@ -65,8 +65,11 @@ class Vulnerability(object):
     def explain(self):
         return self.__doc__
 
-
+tlock1 = threading.Lock()
+tlock1.acquire()
 event_id_count = 0
+tlock1.release()
+
 """ Discovery/Hunting Events """
 
 
@@ -74,9 +77,12 @@ class NewHostEvent(Event):
     def __init__(self, host, cloud=None):
         global event_id_count
         self.host = host
-        self.event_id = event_id_count
         self.cloud = cloud
+        tlock = threading.Lock()
+        tlock.acquire()
+        self.event_id = event_id_count
         event_id_count += 1
+        tlock.release()
 
     def __str__(self):
         return str(self.host)

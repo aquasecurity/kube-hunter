@@ -91,7 +91,7 @@ def list_hunters():
             print("* {}\n  {}\n".format( name, docs))
 
 
-tlock3 = threading.Lock
+tlock3 = threading.Lock()
 tlock3.acquire()
 hunt_started = False
 tlock3.release()
@@ -112,7 +112,7 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-        tlock = threading.Lock
+        tlock = threading.Lock()
         tlock.acquire()
         hunt_started = True
         tlock.release()
@@ -138,4 +138,10 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    for i in range(6):
+        try:
+            main()
+        except:
+            import traceback
+            print ('\n\n\n\n\n\n\n\n\n')
+            traceback.print_exc()
