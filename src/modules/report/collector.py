@@ -19,9 +19,6 @@ vulnerabilities = list()
 vulnerabilities_lock.release()
 
 
-
-
-
 def console_trim(text, prefix=' '):
     a = text.split(" ")
     b = a[:]

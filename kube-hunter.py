@@ -129,15 +129,17 @@ def main():
     finally:
         hunt_started_lock.acquire()
         if hunt_started:
+            hunt_started_lock.release()
             handler.publish_event(HuntFinished())
             handler.join()
             handler.free()
             logging.debug("Cleaned Queue")
-        hunt_started_lock.release()
+        else:
+            hunt_started_lock.release()
 
 
 if __name__ == '__main__':
-    for i in range(6):
+    for i in range(1):
         try:
             main()
         except:

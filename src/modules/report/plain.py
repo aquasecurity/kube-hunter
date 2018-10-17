@@ -17,14 +17,19 @@ class PlainReporter(object):
         output = ""
         services_lock.acquire()
         if len(services):
+            services_lock.release()
             output += self.nodes_table()
             if not config.mapping:
                 output += self.services_table()
+                vulnerabilities_lock.acquire()
                 if len(vulnerabilities):
+                    vulnerabilities_lock.release()
                     output += self.vulns_table()
                 else:
+                    vulnerabilities_lock.release()
                     output += "\nNo vulnerabilities were found"
         else:
+            services_lock.release()
             print("\nKube Hunter couldn't find any clusters")
         services_lock.release()
             # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
@@ -45,8 +50,9 @@ class PlainReporter(object):
             if service.event_id not in id_memory:
                 nodes_table.add_row(["Node/Master", service.host])
                 id_memory.append(service.event_id)
-        services_lock.acquire()
-        return "\nNodes\n{}\n".format(nodes_table)
+        nodes_ret = "\nNodes\n{}\n".format(nodes_table)
+        services_lock.release()
+        return nodes_ret
 
     def services_table(self):
         services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
@@ -59,8 +65,9 @@ class PlainReporter(object):
         services_lock.acquire()
         for service in services:
             services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
+        detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
         services_lock.release()
-        return "\nDetected Services\n{}\n".format(services_table)
+        return detected_services_ret
 
     def vulns_table(self):
         column_names = ["Location", "Category", "Vulnerability", "Description", "Evidence"]
