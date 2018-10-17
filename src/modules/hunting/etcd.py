@@ -50,10 +50,13 @@ class EtcdRemoteAccessActive(ActiveHunter):
         data = {
             'value': 'remotely written data'
         }
-        r = "{protocol}://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379, protocol=self.protocol,
-                                                                data=data)
-        self.write_evidence = r.content if r.status_code == 200 and r.content != '' else False
-        return self.write_evidence
+        try:
+            r = requests.post("{protocol}://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379,
+                                                                                  protocol=self.protocol), data=data)
+            self.write_evidence = r.content if r.status_code == 200 and r.content != '' else False
+            return self.write_evidence
+        except requests.exceptions.ConnectionError:
+            return False
 
     def execute(self):
         if self.db_keys_write_access():
@@ -75,24 +78,33 @@ class EtcdRemoteAccess(Hunter):
 
     def db_keys_disclosure(self):
         logging.debug(self.event.host + " Passive hunter is attempting to read etcd keys remotely")
-        r = requests.get(
-            "{protocol}://{host}:{port}/v2/keys".format(protocol=self.protocol, host=self.event.host, port=2379),
-            verify=False)
-        self.keys_evidence = r.content if r.status_code == 200 and r.content != '' else False
-        return self.version_evidence
+        try:
+            r = requests.get(
+                "{protocol}://{host}:{port}/v2/keys".format(protocol=self.protocol, host=self.event.host, port=2379),
+                verify=False)
+            self.keys_evidence = r.content if r.status_code == 200 and r.content != '' else False
+            return self.version_evidence
+        except requests.exceptions.ConnectionError:
+            return False
 
     def version_disclosure(self):
         logging.debug(self.event.host + " Passive hunter is attempting to check etcd version remotely")
-        r = requests.get(
-            "{protocol}://{host}:{port}/version".format(protocol=self.protocol, host=self.event.host, port=2379),
-            verify=False)
-        self.version_evidence = r.content if r.status_code == 200 and r.content != '' else False
-        return self.version_evidence
+        try:
+            r = requests.get(
+                "{protocol}://{host}:{port}/version".format(protocol=self.protocol, host=self.event.host, port=2379),
+                verify=False)
+            self.version_evidence = r.content if r.status_code == 200 and r.content != '' else False
+            return self.version_evidence
+        except requests.exceptions.ConnectionError:
+            return False
 
     def unauthorized_access(self):
         logging.debug(self.event.host + " Passive hunter is attempting to access etcd without authorization")
-        r = requests.get("http://{host}:{port}/version".format(host=self.event.host, port=2379), verify=False)
-        return r.content if r.status_code == 200 and r.content != '' else False
+        try:
+            r = requests.get("http://{host}:{port}/version".format(host=self.event.host, port=2379), verify=False)
+            return r.content if r.status_code == 200 and r.content != '' else False
+        except requests.exceptions.ConnectionError:
+            return False
 
     def execute(self):
         if self.unauthorized_access():  # decide between http and https protocol
