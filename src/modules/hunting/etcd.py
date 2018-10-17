@@ -1,11 +1,11 @@
-import json
 import logging
 
 import requests
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
-from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure, RemoteCodeExec, UnauthenticatedAccess, AccessRisk
+from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure, RemoteCodeExec, \
+    UnauthenticatedAccess, AccessRisk
 
 """ Vulnerabilities """
 class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
@@ -26,20 +26,24 @@ class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
     """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
 
     def __init__(self, version):
-        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure", category=InformationDisclosure)
+        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure",
+                               category=InformationDisclosure)
         self.evidence = version
 
 class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
-    """Etcd is accessible using HTTP (without authorization and authentication), it would allow a potential attacker to gain access to the etcd"""
+    """Etcd is accessible using HTTP (without authorization and authentication), it would allow a potential attacker to
+     gain access to the etcd"""
 
     def __init__(self, version):
-        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible without authorization", category=UnauthenticatedAccess)
+        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible using insecure connection (HTTP)",
+                               category=UnauthenticatedAccess)
         self.evidence = version
 
 # Active Hunter
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
 class EtcdRemoteAccessActive(ActiveHunter):
-    """Checks for remote write access to etcd"""
+    """Etcd Remote Access
+    Checks for remote write access to etcd"""
 
     def __init__(self, event):
         self.event = event
@@ -98,8 +102,8 @@ class EtcdRemoteAccess(Hunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    def unauthorized_access(self):
-        logging.debug(self.event.host + " Passive hunter is attempting to access etcd without authorization")
+    def insecure_access(self):
+        logging.debug(self.event.host + " Passive hunter is attempting to access etcd insecurely")
         try:
             r = requests.get("http://{host}:{port}/version".format(host=self.event.host, port=2379), verify=False)
             return r.content if r.status_code == 200 and r.content != '' else False
@@ -107,11 +111,11 @@ class EtcdRemoteAccess(Hunter):
             return False
 
     def execute(self):
-        if self.unauthorized_access():  # decide between http and https protocol
+        if self.insecure_access():  # make a decision between http and https protocol
             self.protocol = 'http'
         if self.version_disclosure():
             self.publish_event(EtcdRemoteVersionDisclosureEvent(self.version_evidence))
-            if self.protocol == 'http' and self.unauthorized_access():
+            if self.protocol == 'http':
                 self.publish_event(EtcdAccessEnabledWithoutAuthEvent(self.version_evidence))
             if self.db_keys_disclosure():
                 self.publish_event(EtcdRemoteReadAccessEvent(self.keys_evidence))
