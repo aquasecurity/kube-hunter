@@ -99,7 +99,9 @@ hunt_started_lock.release()
 
 
 def main():
-    global hunt_started 
+    hunt_started_lock.acquire()
+    global hunt_started
+    hunt_started_lock.release()
     scan_options = [
         config.pod, 
         config.cidr,

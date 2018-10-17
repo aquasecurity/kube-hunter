@@ -48,7 +48,12 @@ class Collector(object):
 
     def execute(self):
         """function is called only when collecting data"""
-        global services, vulnerabilities
+        services_lock.acquire()
+        global services
+        services_lock.release()
+        vulnerabilities_lock.acquire()
+        global vulnerabilities
+        vulnerabilities_lock.release()
         bases = self.event.__class__.__mro__
         if Service in bases:
             services_lock.acquire()

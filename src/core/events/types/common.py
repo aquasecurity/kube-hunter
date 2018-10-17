@@ -77,7 +77,9 @@ event_id_count_lock.release()
 
 class NewHostEvent(Event):
     def __init__(self, host, cloud=None):
+        event_id_count_lock.acquire()
         global event_id_count
+        event_id_count_lock.release()
         self.host = host
         self.cloud = cloud
         event_id_count_lock.acquire()

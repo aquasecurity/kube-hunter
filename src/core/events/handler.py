@@ -91,5 +91,7 @@ class EventQueue(Queue, object):
         self.running = False
         with self.mutex:
             self.queue.clear()
-        
+
+
 handler = EventQueue(800)
+
