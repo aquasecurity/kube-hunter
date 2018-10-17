@@ -31,7 +31,6 @@ class PlainReporter(object):
         else:
             services_lock.release()
             print("\nKube Hunter couldn't find any clusters")
-        services_lock.release()
             # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output
 
