@@ -146,5 +146,4 @@ if __name__ == '__main__':
             import traceback
             print ('\n\n\n\n\n\n\n\n\n')
             traceback.print_exc()
-        main()
 
