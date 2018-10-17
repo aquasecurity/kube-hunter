@@ -75,7 +75,7 @@ class EventQueue(Queue, object):
             hook = self.get()
             try:
                 hook.execute()
-            except Exception as ex: 
+            except Exception as ex:
                 logging.debug(ex.message)
             self.task_done()
         logging.debug("closing thread...")

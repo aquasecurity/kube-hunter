@@ -3,7 +3,7 @@ from __future__ import print_function
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
-from collector import services, vulnerabilities
+from collector import services, vulnerabilities,services_lock, vulnerabilities_lock
 import threading
 
 EVIDENCE_PREVIEW = 40
@@ -15,19 +15,22 @@ class PlainReporter(object):
     def get_report(self):
         """generates report tables"""
         output = ""
-        tlock = threading.Lock
-        tlock.acquire()
+        services_lock.acquire()
         if len(services):
+            services_lock.release()
             output += self.nodes_table()
             if not config.mapping:
                 output += self.services_table()
+                vulnerabilities_lock.acquire()
                 if len(vulnerabilities):
+                    vulnerabilities_lock.release()
                     output += self.vulns_table()
                 else:
+                    vulnerabilities_lock.release()
                     output += "\nNo vulnerabilities were found"
         else:
+            services_lock.release()
             print("\nKube Hunter couldn't find any clusters")
-        tlock.release()
             # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output
 
@@ -41,14 +44,14 @@ class PlainReporter(object):
         nodes_table.header_style = "upper"
         # TODO: replace with sets
         id_memory = list()
-        tlock = threading.Lock
-        tlock.acquire()
+        services_lock.acquire()
         for service in services:
             if service.event_id not in id_memory:
                 nodes_table.add_row(["Node/Master", service.host])
                 id_memory.append(service.event_id)
-        tlock.release()
-        return "\nNodes\n{}\n".format(nodes_table)
+        nodes_ret = "\nNodes\n{}\n".format(nodes_table)
+        services_lock.release()
+        return nodes_ret
 
     def services_table(self):
         services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
@@ -58,12 +61,12 @@ class PlainReporter(object):
         services_table.sortby = "Service"
         services_table.reversesort = True
         services_table.header_style = "upper"
-        tlock = threading.Lock
-        tlock.acquire()
+        services_lock.acquire()
         for service in services:
             services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-        tlock.release()
-        return "\nDetected Services\n{}\n".format(services_table)
+        detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
+        services_lock.release()
+        return detected_services_ret
 
     def vulns_table(self):
         column_names = ["Location", "Category", "Vulnerability", "Description", "Evidence"]
@@ -74,12 +77,12 @@ class PlainReporter(object):
         vuln_table.reversesort = True
         vuln_table.padding_width = 1
         vuln_table.header_style = "upper"
-        tlock = threading.Lock
-        tlock.acquire()
+
+        vulnerabilities_lock.acquire()
         for vuln in vulnerabilities:
             row = ["{}:{}".format(vuln.host, vuln.port) if vuln.host else "", vuln.category.name, vuln.get_name(), vuln.explain()]
             evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
             row.append(evidence)
             vuln_table.add_row(row)
-        tlock.release()
+        vulnerabilities_lock.release()
         return "\nVulnerabilities\n{}\n".format(vuln_table)

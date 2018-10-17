@@ -82,7 +82,7 @@ def list_hunters():
     print("\nPassive Hunters:\n----------------")
     for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
         name, docs = parse_docs(hunter, docs)
-        print("* {}\n  {}\n".format( name, docs))
+        print("* {}\n  {}\n".format(name, docs))
 
     if config.active:
         print("\n\nActive Hunters:\n---------------")
@@ -91,10 +91,11 @@ def list_hunters():
             print("* {}\n  {}\n".format( name, docs))
 
 
-tlock3 = threading.Lock()
-tlock3.acquire()
+global hunt_started_lock
+hunt_started_lock = threading.Lock()
+hunt_started_lock.acquire()
 hunt_started = False
-tlock3.release()
+hunt_started_lock.release()
 
 
 def main():
@@ -112,10 +113,9 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-        tlock = threading.Lock()
-        tlock.acquire()
+        hunt_started_lock.acquire()
         hunt_started = True
-        tlock.release()
+        hunt_started_lock.release()
         handler.publish_event(HuntStarted())
         handler.publish_event(HostScanEvent())
         
@@ -127,16 +127,24 @@ def main():
     except EOFError:
         logging.error("\033[0;31mPlease run again with -it\033[0m")
     finally:
-        tlock2 = threading.Lock()
-        tlock2.acquire()
+        hunt_started_lock.acquire()
         if hunt_started:
+            hunt_started_lock.release()
             handler.publish_event(HuntFinished())
             handler.join()
             handler.free()
             logging.debug("Cleaned Queue")
-        tlock2.release()
+        else:
+            hunt_started_lock.release()
 
 
 if __name__ == '__main__':
+    for i in range(1):
+        try:
+            main()
+        except:
+            import traceback
+            print ('\n\n\n\n\n\n\n\n\n')
+            traceback.print_exc()
         main()
 
