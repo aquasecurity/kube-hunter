@@ -11,6 +11,9 @@ from ..types import ActiveHunter, Hunter
 
 from ...core.events.types import HuntFinished
 
+global queue_lock
+queue_lock = Lock()
+
 global is_running_lock
 is_running_lock = Lock()
 
@@ -23,9 +26,10 @@ class EventQueue(Queue, object):
         self.active_hunters = dict()
 
         self.hooks = defaultdict(list)
-        is_running_lock.acquire()
+        #is_running_lock.acquire()
+
         self.running = True
-        is_running_lock.release()
+        #is_running_lock.release()
         self.workers = list()
 
         for i in range(num_worker):
@@ -74,15 +78,15 @@ class EventQueue(Queue, object):
 
     # executes callbacks on dedicated thread as a daemon
     def worker(self):
-        is_running_lock.acquire()
         while self.running:
+            queue_lock.acquire()
             hook = self.get()
+            queue_lock.release()
             try:
                 hook.execute()
             except Exception as ex:
                 logging.debug(ex.message)
             self.task_done()
-        is_running_lock.release()
         logging.debug("closing thread...")
 
     def notifier(self):
@@ -93,9 +97,9 @@ class EventQueue(Queue, object):
 
     # stops execution of all daemons
     def free(self):
-        is_running_lock.acquire()
+        #is_running_lock.acquire()
         self.running = False
-        is_running_lock.release()
+        #is_running_lock.release()
         with self.mutex:
             self.queue.clear()
 
