@@ -87,7 +87,7 @@ class EtcdRemoteAccess(Hunter):
                 "{protocol}://{host}:{port}/v2/keys".format(protocol=self.protocol, host=self.event.host, port=2379),
                 verify=False)
             self.keys_evidence = r.content if r.status_code == 200 and r.content != '' else False
-            return self.version_evidence
+            return self.keys_evidence
         except requests.exceptions.ConnectionError:
             return False
 
