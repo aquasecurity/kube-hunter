@@ -135,6 +135,8 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         self.service_account_token_evidence = ''
         self.pod_list_under_default_namespace_evidence = ''
         self.pod_list_under_all_namespaces_evidence = ''
+        self.newly_created_cluster_role_name_evidence = ''
+        self.newly_created_role_name_evidence = ''
 
     def access_api_server(self):
         logging.debug(self.event.host)
@@ -282,8 +284,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    #Namespaces methods:
-
+    #  Namespaces methods:
     def get_all_namespaces(self):
         try:
             res = requests.get("https://{host}:{port}/api/v1/namespaces".format(host=self.event.host,
@@ -341,7 +342,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def create_role(self, namespace):
         try:
-            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
+            res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                  host=self.event.host, port=self.event.port, namespace=namespace),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.namespace_roles_evidence = res.content
@@ -351,7 +352,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def create_cluster_role(self):
         try:
-            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
+            res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                  host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.namespace_roles_evidence = res.content
@@ -362,7 +363,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     # would be use on an newly create role only
     def delete_a_role(self, namespace_name, newly_created_role_name):
         try:
-            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
+            res = requests.delete("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
                                  host=self.event.host, port=self.event.port, namespace=namespace_name, role=newly_created_role_name),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.namespace_roles_evidence = res.content
@@ -408,18 +409,32 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         if self.get_service_account_token():
             self.get_pods_list_under_all_namespace()
             self.get_pods_list_under_default_namespace()
+            if self.create_cluster_role():
+                self.patch_a_cluster_role(self.newly_created_cluster_role_name_evidence)
+                self.delete_a_cluster_role(self.newly_created_cluster_role_name_evidence)
+            for namespace in self.all_namespaces_evidence:
+                if self.create_a_pod(namespace):
+                    self.patch_a_pod(namespace, self.new_pod_name_evidence)
+                    self.delete_a_pod(namespace, self.new_pod_name_evidence)
+
             #  TODO- Implement the following algorithm:
             # Algorithm in words:
-            # Get All data from the passive hunter
-            # Attempt to create a cluster role
 
-            # Attempt to create a pod/s in all namespaces found (or just default namespace if none found)
-                # Attempt to patch newly created pod/s in all namespaces found (or just default namespace if none found
-                # --and we were able to create a pod in it)
+            # This hunter should be triggered only when 443 or 6443 port are open AND the passive hunter
+            # --have published it to start
 
-            # Attempt to create a role/s in all of the namespaces (or just default namespace if none found)
-                # Attempt to patch newly created role/s in all of the namespaces (or just default namespace if none found
-                # --and we were able to create a role on it)
+            # (1) Get All data from the passive hunter
+            # (2) Attempt to create a cluster role, patch it, and delete it
+            # (3) Attempt to create a pod/s in all namespaces found (or just default namespace if none found)
+                # (3.1) Attempt to patch newly created pod/s in all namespaces found (or just default namespace if none
+                # -- found and we were able to create a pod in it)
+                # (3.2) Attempt to delete newly created pod/s in all namespaces found (or just default namespace if none
+                # -- found and we were able to create a pod in it
+            # (4) Attempt to create a role/s in all of the namespaces (or just default namespace if none found)
+                # (4.1) Attempt to patch newly created role/s in all of the namespaces (or just default namespace if
+                # -- none found and we were able to create a role on it)
+                # (4.2) Attempt to delete newly created role/s in all of the namespaces (or just default namespace if
+                # -- none found and we were able to create a role on it)
 
-            #  Note: we are not binding any role or cluster role because it would take much more calls to the apiserver
+            #  Note: we are not binding any role or cluster role because it would take much more calls to the API server
             # -- AND because it might effect the cluster (and we are not allowed to do that)
