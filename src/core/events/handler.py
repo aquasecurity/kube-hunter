@@ -96,5 +96,7 @@ class EventQueue(Queue, object):
             self.queue.clear()
 
 
-handler = EventQueue(800)
 
+
+
+handler = EventQueue(800)
