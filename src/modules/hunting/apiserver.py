@@ -192,6 +192,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                 self.publish_event(PodListUnderAllNamespaces(self.pod_list_under_all_namespaces_evidence))
             if self.get_pods_list_under_default_namespace():
                 self.publish_event(PodListUnderDefaultNamespace(self.pod_list_under_default_namespace_evidence))
+            #publish here event active hunter would listen to so he knows service account token is ready
 
 
 # Active Hunter
@@ -209,6 +210,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.namespace_roles_evidence = ''
         self.all_roles_evidence = ''
         self.cluster_roles_evidence = ''
+        self.new_pod_name_evidence = ''
 
         self.namespaces_and_their_pod_names = {}
 
@@ -225,8 +227,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def get_pods_list_under_default_namespace(self):
         try:
-            res = requests.get("https://{host}:{port}/api/v1/namespaces/{namespace}/pods".format(host=self.event.host,
-                                port=self.event.port, namespace='default'),
+            res = requests.get("https://{host}:{port}/api/v1/namespaces/default/pods".format(host=self.event.host,
+                                port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
 
             parsed_response_content = json.loads(res.content)
@@ -249,14 +251,21 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
-    def create_a_pod(self):
-        pass
+    def create_a_pod(self, namespace):
+        try:
+            res = requests.post("https://{host}:{port}/api/v1/namespaces/{namespace}/pods".format(host=self.event.host, port=self.event.port),
+                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
+                                        namespace=namespace, verify=False)
+            #if got name on the response: self.new_pod_name_evidence = res.content["name"]?
+            return res.status_code == 200 and res.content != ''
+        except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
+            return False
 
     #  would be used on our newly created pod only
-    def delete_a_pod(self, pod_namespace, pod_name):
+    def delete_a_pod(self, pod_name, namespace):
         try:
             res = requests.delete("https://{host}:{port}/api/v1/namespaces/{namespace}/pods/{name}".format(
-                                 host=self.event.host, port=self.event.port, namespace=pod_namespace, name=pod_name),
+                                 host=self.event.host, port=self.event.port, name=pod_name, namespace=namespace),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:
@@ -291,11 +300,15 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             return False
 
     def create_namespace(self):
-        pass
+        try:
+            res = requests.post("https://{host}:{port}/api/v1/namespaces".format(host=self.event.host, port=self.event.port),
+                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            #if got name on the response: self.new_namespace_name_evidence = res.content["name"]?
+            return res.status_code == 200 and res.content != ''
+        except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
+            return False
 
-
-    #Roles & Cluster roles Methods:
-
+    #  Roles & Cluster roles Methods:
     def get_roles_for_namespace(self, namespace):
         try:
             res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
@@ -326,32 +339,87 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    def create_role(self):
-        pass
+    def create_role(self, namespace):
+        try:
+            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
+                                 host=self.event.host, port=self.event.port, namespace=namespace),
+                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            self.namespace_roles_evidence = res.content
+            return res.content if res.status_code == 200 and res.content != '' else False
+        except requests.exceptions.ConnectionError:
+            return False
 
     def create_cluster_role(self):
-        pass
+        try:
+            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
+                                 host=self.event.host, port=self.event.port),
+                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            self.namespace_roles_evidence = res.content
+            return res.content if res.status_code == 200 and res.content != '' else False
+        except requests.exceptions.ConnectionError:
+            return False
 
     # would be use on an newly create role only
-    def delete_a_role(self):
-        pass
+    def delete_a_role(self, namespace_name, newly_created_role_name):
+        try:
+            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
+                                 host=self.event.host, port=self.event.port, namespace=namespace_name, role=newly_created_role_name),
+                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            self.namespace_roles_evidence = res.content
+            return res.content if res.status_code == 200 and res.content != '' else False
+        except requests.exceptions.ConnectionError:
+            return False
 
     # would be use on an newly create cluster role only
-    def delete_a_cluster_role(self):
-        pass
+    def delete_a_cluster_role(self, newly_created_cluster_role_name):
+        try:
+            res = requests.delete("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
+                                 host=self.event.host, port=self.event.port, name=newly_created_cluster_role_name),
+                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            self.namespace_roles_evidence = res.content
+            return res.content if res.status_code == 200 and res.content != '' else False
+        except requests.exceptions.ConnectionError:
+            return False
 
     # would be use on an newly create role only
-    def patch_a_role(self):
-        pass
+    def patch_a_role(self, newly_created_role_name, newly_created_namespace_name):
+        try:
+            res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}".format(
+                                 host=self.event.host, port=self.event.port, name=newly_created_role_name,
+                                 namespace=newly_created_namespace_name),
+                                 headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            self.namespace_roles_evidence = res.content
+            return res.content if res.status_code == 200 and res.content != '' else False
+        except requests.exceptions.ConnectionError:
+            return False
 
     # would be use on an newly create role only
-    def patch_a_cluster_role(self):
-        pass
+    def patch_a_cluster_role(self, newly_created_cluster_role_name):
+        try:
+            res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
+                                 host=self.event.host, port=self.event.port, name=newly_created_cluster_role_name),
+                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            self.namespace_roles_evidence = res.content
+            return res.content if res.status_code == 200 and res.content != '' else False
+        except requests.exceptions.ConnectionError:
+            return False
 
     def execute(self):
         if self.get_service_account_token():
-            # Do I need these data for other hunters (the onces that uses pod name or namespace as an argument)?
             self.get_pods_list_under_all_namespace()
             self.get_pods_list_under_default_namespace()
+            #TODO- Implement the following algorithm:
+            # Algorithm in words:
+            # Get All data from the passive hunter
+            # Attempt to create a cluster role
 
+            # Attempt to create a pod/s in all namespaces found (or just default namespace if none found)
+                # Attempt to patch newly created pod/s in all namespaces found (or just default namespace if none found
+                # --and we were able to create a pod in it)
 
+            # Attempt to create a role/s in all of the namespaces (or just default namespace if none found)
+                # Attempt to patch newly created role/s in all of the namespaces (or just default namespace if none found
+                # --and we were able to create a role on it)
+
+            #  Note: we are not binding any role or cluster role because it would take much more calls to the apiserver
+            # -- AND because it might effect the cluster (and we are not allowed to do that)
