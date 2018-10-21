@@ -93,15 +93,11 @@ def list_hunters():
 
 global hunt_started_lock
 hunt_started_lock = threading.Lock()
-hunt_started_lock.acquire()
 hunt_started = False
-hunt_started_lock.release()
 
 
 def main():
-    hunt_started_lock.acquire()
     global hunt_started
-    hunt_started_lock.release()
     scan_options = [
         config.pod, 
         config.cidr,
