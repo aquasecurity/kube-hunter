@@ -3,7 +3,6 @@ import StringIO
 from ruamel.yaml import YAML
 
 from collector import services, vulnerabilities, services_lock, vulnerabilities_lock
-import threading
 
 
 class YAMLReporter(object):
