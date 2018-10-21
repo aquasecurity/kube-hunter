@@ -122,6 +122,35 @@ class DeleteAClusterRole(Vulnerability, Event):
         self.evidence = evidence
 
 
+class CreateAPod(Vulnerability, Event):
+    """ Creating a new pod would gain an attacker the option to compromise another (newly created) pod"""
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Created A Pod",
+                               category=InformationDisclosure)
+        self.evidence = evidence
+
+
+class PatchAPod(Vulnerability, Event):
+    """ Patching pod would gain an attacker the option to compromise other pod, and control it """
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Patched A Pod",
+                               category=InformationDisclosure)
+        self.evidence = evidence
+
+
+class DeleteAPod(Vulnerability, Event):
+    """ Deleting a pod from within a compromised pod might gain an attacker the option to disturbe cluster\'s
+     normal behaviour."""
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Deleted A Pod",
+                               category=InformationDisclosure)
+        self.evidence = evidence
+
+
+
 # Passive Hunter
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 443 or x.port == 6443)
 class AccessApiServerViaServiceAccountToken(Hunter):
@@ -440,6 +469,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 self.delete_a_cluster_role(self.newly_created_cluster_role_name_evidence)
             for namespace in self.all_namespaces_evidence:
                 if self.create_a_pod(namespace):
+                    self.publish_event(PodCreate)
                     self.patch_a_pod(namespace, self.new_pod_name_evidence)
                     self.delete_a_pod(namespace, self.new_pod_name_evidence)
 
