@@ -408,7 +408,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         if self.get_service_account_token():
             self.get_pods_list_under_all_namespace()
             self.get_pods_list_under_default_namespace()
-            #TODO- Implement the following algorithm:
+            #  TODO- Implement the following algorithm:
             # Algorithm in words:
             # Get All data from the passive hunter
             # Attempt to create a cluster role
