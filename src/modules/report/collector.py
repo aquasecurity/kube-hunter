@@ -38,8 +38,6 @@ class Collector(object):
 
     def execute(self):
         """function is called only when collecting data"""
-        tlock = threading.Lock()
-        tlock.acquire()
         global services, vulnerabilities
         bases = self.event.__class__.__mro__
         if Service in bases:
@@ -61,7 +59,6 @@ class Collector(object):
                     port=self.event.port,
                     desc=wrap_last_line(console_trim(self.event.explain(), '|     '))
                 ))
-        tlock.release()
 
 
 class TablesPrinted(Event):
