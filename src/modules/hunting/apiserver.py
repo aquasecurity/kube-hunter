@@ -58,6 +58,16 @@ class ListAllNamespaces(Vulnerability, Event):
         self.evidence = evidence
 
 
+class CreateANamespace(Vulnerability, Event):
+
+    """ Creating a namespace might give an attacker an area with default (exploitable) permissions to run pod in.
+    """
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Created a role",
+                               category=InformationDisclosure)
+        self.evidence = evidence
+
+
 class CreateARole(Vulnerability, Event):
     """ Creating a role might give an attacker the option to harm the normal routine of newly created pods
      within the specified namespaces.
@@ -148,7 +158,6 @@ class DeleteAPod(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Deleted A Pod",
                                category=InformationDisclosure)
         self.evidence = evidence
-
 
 
 # Passive Hunter
@@ -242,8 +251,11 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.all_roles_evidence = ''
         self.cluster_roles_evidence = ''
         self.new_pod_name_evidence = ''
+        self.delete_newly_created_pod_evidence = ''
+        self.new_namespace_name_evidence = ''
 
         self.namespaces_and_their_pod_names = {}
+        self.all_namespaces_names = set()
 
     def get_service_account_token(self):
         logging.debug(self.event.host)
@@ -311,8 +323,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 'Authorization': 'Bearer {token}'.format(token=self.service_account_token_evidence)
             }
             res = requests.post("https://{host}:{port}/api/v1/namespaces/{namespace}/pods".format(
-                                host=self.event.host, port=self.event.port),
-                                namespace=namespace, verify=False, data=jsonPod, headers=headers)
+                                host=self.event.host, port=self.event.port, namespace=namespace),
+                                verify=False, data=jsonPod, headers=headers)
             self.new_pod_name_evidence = res.content['metadata']['name']
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
@@ -324,6 +336,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             res = requests.delete("https://{host}:{port}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                  host=self.event.host, port=self.event.port, name=pod_name, namespace=namespace),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+            self.delete_newly_created_pod_evidence = res.content['metadata']['deletionTimestamp']
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:
             return False
@@ -350,16 +363,32 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             # Parse content after creating RBAC roles that would return 200 OK so I can see the data myself and understand how to parse it
             # for item in parsed_response_content["items"]:
             #     self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
-
+            #self.all_namespaces_names.add()
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
     def create_namespace(self):
+        #  Initialize variables:
+        json_namespace = \
+            """
+                apiVersion: v1
+                kind: Namespace
+                metadata:
+                  name: new-namespace
+            """
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {token}'.format(token=self.service_account_token_evidence)
+        }
+        #  Do request
         try:
-            res = requests.post("https://{host}:{port}/api/v1/namespaces".format(host=self.event.host, port=self.event.port),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
-            #if got name on the response: self.new_namespace_name_evidence = res.content["name"]?
+            res = requests.post("https://{host}:{port}/api/v1/namespaces".format(
+                host=self.event.host, port=self.event.port),
+                verify=False, data=json_namespace, headers=headers)
+
+            self.new_namespace_name_evidence = res.content['metadata']['name']
+            self.all_namespaces_names.add(self.new_namespace_name_evidenc)
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
@@ -461,17 +490,35 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             return False
 
     def execute(self):
+        #  Getting Passive hunter data-> SHOULD BE CHANGED (we dont want to make the same req twice)
         if self.get_service_account_token():
             self.get_pods_list_under_all_namespace()
             self.get_pods_list_under_default_namespace()
+
+            if self.create_namespace():
+                self.publish_event(self.CreateANamespace('new namespace name: {n}'.
+                                                         format(n=self.new_namespace_name_evidence)))
+            #  TODO: publish events here..
             if self.create_cluster_role():
                 self.patch_a_cluster_role(self.newly_created_cluster_role_name_evidence)
                 self.delete_a_cluster_role(self.newly_created_cluster_role_name_evidence)
+
+            #  Operating on pods over all namespaces:
             for namespace in self.all_namespaces_evidence:
                 if self.create_a_pod(namespace):
-                    self.publish_event(PodCreate)
-                    self.patch_a_pod(namespace, self.new_pod_name_evidence)
-                    self.delete_a_pod(namespace, self.new_pod_name_evidence)
+                    self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
+                                                  pod_name=self.new_pod_name_evidence, pod_namespace=namespace)))
+                    #  TODO- finish patch a pod method:
+                    if self.patch_a_pod(namespace, self.new_pod_name_evidence):
+                        self.publish_event(PatchAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
+                                                     pod_name=self.new_pod_name_evidence,
+                                                     delete_evidence=self.delete_newly_created_pod_evidence)))
+
+                    if self.delete_a_pod(namespace, self.new_pod_name_evidence):
+                        self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
+                                                     pod_name=self.new_pod_name_evidence,
+                                                     delete_evidence=self.delete_newly_created_pod_evidence)))
+
 
             #  TODO- Implement the following algorithm:
             # Algorithm in words:
@@ -479,8 +526,9 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             # This hunter should be triggered only when 443 or 6443 port are open AND the passive hunter
             # --have published it to start
 
-            # (1) Get All data from the passive hunter
-            # (2) Attempt to create a cluster role, patch it, and delete it
+            # (1) Get All data from the passive hunter.
+            # (2) Attempt to create a cluster role, patch it, and delete it.
+            # (2) Attempt to create a new namespace.
             # (3) Attempt to create a pod/s in all namespaces found (or just default namespace if none found)
                 # (3.1) Attempt to patch newly created pod/s in all namespaces found (or just default namespace if none
                 # -- found and we were able to create a pod in it)
