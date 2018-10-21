@@ -253,17 +253,43 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
-    def create_a_pod(self, namespace):
+    def create_a_pod(self, namespace): #--> V
         try:
-            res = requests.post("https://{host}:{port}/api/v1/namespaces/{namespace}/pods".format(host=self.event.host, port=self.event.port),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
-                                        namespace=namespace, verify=False)
-            #if got name on the response: self.new_pod_name_evidence = res.content["name"]?
+            jsonPod = \
+            """
+                "apiVersion": "v1",            
+                "kind": "Pod",
+                "metadata": {
+                    "name": "nginx1"
+                },
+                "spec": {
+                    "containers": [
+                        {
+                            "name": "nginx",
+                            "image": "nginx:1.7.9",
+                            "ports": [
+                                {
+                                    "containerPort": 80
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+            """
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer {token}'.format(token=self.service_account_token_evidence)
+            }
+            res = requests.post("https://{host}:{port}/api/v1/namespaces/{namespace}/pods".format(
+                                host=self.event.host, port=self.event.port),
+                                namespace=namespace, verify=False, data=jsonPod, headers=headers)
+            self.new_pod_name_evidence = res.content['metadata']['name']
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
-    #  would be used on our newly created pod only
+    #  would be used on our newly created pod only --> V
     def delete_a_pod(self, pod_name, namespace):
         try:
             res = requests.delete("https://{host}:{port}/api/v1/namespaces/{namespace}/pods/{name}".format(
