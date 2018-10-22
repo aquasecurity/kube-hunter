@@ -28,7 +28,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
         self.evidence = evidence
 
 
-class PodListUnderDefaultNamespace(Vulnerability, Event):
+class ListPodUnderDefaultNamespace(Vulnerability, Event):
     """ Accessing the pods list under default namespace within a compromised pod might grant an attacker a valuable
      information to harm the cluster """
 
@@ -38,7 +38,7 @@ class PodListUnderDefaultNamespace(Vulnerability, Event):
         self.evidence = evidence
 
 
-class PodListUnderAllNamespaces(Vulnerability, Event):
+class ListPodUnderAllNamespaces(Vulnerability, Event):
     """ Accessing the pods list under ALL of the namespaces within a compromised pod might grant an attacker a valuable
      information to harm the cluster """
 
@@ -54,6 +54,26 @@ class ListAllNamespaces(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Access to the all namespaces list",
+                               category=InformationDisclosure)
+        self.evidence = evidence
+
+
+class ListAllRoles(Vulnerability, Event):
+    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
+    """
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all roles list",
+                               category=InformationDisclosure)
+        self.evidence = evidence
+
+
+class ListAllClusterRoles(Vulnerability, Event):
+    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
+    """
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all cluster roles list",
                                category=InformationDisclosure)
         self.evidence = evidence
 
@@ -184,6 +204,9 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         self.newly_created_cluster_role_name_evidence = ''
         self.newly_created_role_name_evidence = ''
         self.all_namespaces_names_evidence = ''
+        self.all_roles_names_evidence = ''
+        self.all_cluster_roles_names_evidence = ''
+        self.namespaces_and_their_pod_names = dict()
 
     def access_api_server(self):
         logging.debug(self.event.host)
@@ -246,6 +269,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                                verify=False)
 
             parsed_response_content = json.loads(res.content)
+            print parsed_response_content
             # Parse content after creating RBAC roles that would return 200 ()OK so I can see the data myself and understand how to parse it
             # for item in parsed_response_content["items"]:
             #     self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
@@ -267,7 +291,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             return False
 
     #  --> V
-    def get_cluster_roles(self):
+    def get_all_cluster_roles(self):
         try:
             res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                  host=self.event.host, port=self.event.port),
@@ -293,15 +317,29 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             self.publish_event(ServiceAccountTokenAccess(self.service_account_token_evidence))
             if self.access_api_server():
                 self.publish_event(ServerApiAccess(self.api_server_evidence))
-            if self.get_pods_list_under_all_namespace():
-                self.publish_event(PodListUnderAllNamespaces(self.pod_list_under_all_namespaces_evidence))
-            if self.get_all_namespaces():
-                self.publish_event(ListAllNamespaces(self.all_namespaces))
-            #  At this point we know we got the service_account_token, and we might got all of the namespaces
-            self.publish_event(ApiServerPassiveHunterFinished(self.service_account_token_evidence,
-                                                              self.pod_list_under_all_namespaces_evidence))
-            if self.get_pods_list_under_default_namespace():
-                self.publish_event(PodListUnderDefaultNamespace(self.pod_list_under_default_namespace_evidence))
+            try:
+                if self.get_all_namespaces():
+                    self.publish_event(ListAllNamespaces(self.all_namespaces_names_evidence))
+
+                if self.get_pods_list_under_all_namespace():
+                    self.publish_event(ListPodUnderAllNamespaces(self.pod_list_under_all_namespaces_evidence))
+                else:
+                    if self.get_pods_list_under_default_namespace():
+                        self.publish_event(ListPodUnderDefaultNamespace(self.pod_list_under_default_namespace_evidence))
+
+                if self.get_all_roles():
+                    self.publish_event(ListAllRoles(self.all_roles_names_evidence))
+
+                if self.get_all_cluster_roles():
+                    self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
+
+                #  At this point we know we got the service_account_token, and we might got all of the namespaces
+                self.publish_event(ApiServerPassiveHunterFinished(self.service_account_token_evidence,
+                                                                  self.pod_list_under_all_namespaces_evidence))
+
+            except Exception:
+                import traceback
+                traceback.print_exc()
 
 
 # Active Hunter
