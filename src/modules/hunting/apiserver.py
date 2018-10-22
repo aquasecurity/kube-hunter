@@ -473,8 +473,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             res = requests.post("https://{host}:{port}/api/v1/namespaces".format(
                 host=self.event.host, port=self.event.port),
                 verify=False, data=json_namespace, headers=headers)
-            print res.status_code
-            print res.content
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.created_new_namespace_name_evidence = parsed_content['metadata']['namespace']
@@ -497,6 +495,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         return True
 
     def create_a_cluster_role(self):
+        #TODO: data={clusterrole json}
         try:
             res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                host=self.event.host, port=self.event.port),
