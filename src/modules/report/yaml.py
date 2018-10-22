@@ -8,13 +8,11 @@ from collector import services, vulnerabilities, services_lock, vulnerabilities_
 class YAMLReporter(object):
     def get_report(self):
         yaml = YAML()
-        vulnerabilities_lock.acquire()
         report = {
             "nodes": self.get_nodes(),
             "services": self.get_services(),
             "vulnerabilities": self.get_vulenrabilities()
         }
-        vulnerabilities_lock.release()
         output = StringIO.StringIO()
         yaml.dump(report, output)
         return output.getvalue()

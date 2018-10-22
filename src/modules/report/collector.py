@@ -8,15 +8,11 @@ import threading
 
 global services_lock
 services_lock = threading.Lock()
-services_lock.acquire()
 services = list()
-services_lock.release()
 
 global vulnerabilities_lock
 vulnerabilities_lock = threading.Lock()
-vulnerabilities_lock.acquire()
 vulnerabilities = list()
-vulnerabilities_lock.release()
 
 
 def console_trim(text, prefix=' '):

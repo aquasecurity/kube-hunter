@@ -14,21 +14,24 @@ class PlainReporter(object):
     def get_report(self):
         """generates report tables"""
         output = ""
+
+        vulnerabilities_lock.acquire()
+        vulnerabilities_len = len(services)
+        vulnerabilities_lock.release()
+
         services_lock.acquire()
-        if len(services):
-            services_lock.release()
+        services_len = len(vulnerabilities)
+        services_lock.release()
+
+        if services_len:
             output += self.nodes_table()
             if not config.mapping:
                 output += self.services_table()
-                vulnerabilities_lock.acquire()
-                if len(vulnerabilities):
-                    vulnerabilities_lock.release()
+                if vulnerabilities_len:
                     output += self.vulns_table()
                 else:
-                    vulnerabilities_lock.release()
                     output += "\nNo vulnerabilities were found"
         else:
-            services_lock.release()
             print("\nKube Hunter couldn't find any clusters")
             # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output

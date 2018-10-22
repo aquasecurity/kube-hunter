@@ -68,9 +68,7 @@ class Vulnerability(object):
 
 global event_id_count_lock
 event_id_count_lock = threading.Lock()
-event_id_count_lock.acquire()
 event_id_count = 0
-event_id_count_lock.release()
 
 """ Discovery/Hunting Events """
 
