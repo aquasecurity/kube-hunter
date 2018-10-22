@@ -393,26 +393,28 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def create_a_pod(self, namespace):
         jsonPod = \
             """
-                "apiVersion": "v1",            
+            
+                {{"apiVersion": "v1",            
                 "kind": "Pod",
-                "metadata": {
+                "metadata": {{
                     "name": "{random_str}"
-                },
-                "spec": {
+                }},
+                "spec": {{
                     "containers": [
-                        {
+                        {{
                             "name": "{random_str}",
                             "image": "nginx:1.7.9",
                             "ports": [
-                                {
+                                {{
                                     "containerPort": 80
-                                }
+                                }}
                             ]
-                        }
+                        }}
                     ]
-                }
-            }
-            """.format(random_str=str(uuid.uuid4())[0:5])
+                }}
+            }}
+            
+            """.format(random_str=(str(uuid.uuid4()))[0:5])
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
@@ -422,7 +424,9 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                 host=self.event.host, port=self.event.port, namespace=namespace),
                                 verify=False, data=jsonPod, headers=headers)
             if res.status_code not in [200, 201, 202]: return False
-            self.self.created_pod_name_evidence = res.content['metadata']['name']
+
+            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            self.created_pod_name_evidence = parsed_content['metadata']['name']
             return res.status_code in [200, 201, 202] and res.content != ''
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -434,7 +438,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  host=self.event.host, port=self.event.port, name=pod_name, namespace=namespace),
                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             if res.status_code not in [200, 201, 202]: return False
-            self.deleted_newly_created_pod_evidence = res.content['metadata']['deletionTimestamp']
+            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            self.deleted_newly_created_pod_evidence = parsed_content['metadata']['deletionTimestamp']
             return res.status_code == 200 and res.content != ''
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -448,7 +453,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  host=self.event.host, port=self.event.port, namespace=namespace, name=pod_name),
                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False, data=patch_data)
             if res.status_code not in [200, 201, 202]: return False
-            self.patched_newly_created_pod = res.content['metadata']   # DECIDE WHAT EVIDENCE HERE
+            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            self.patched_newly_created_pod_evidence = parsed_content['metadata']['namespace']
             return res.status_code == 200 and res.content != ''
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -457,19 +463,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     # 1 Namespaces method:
     def create_namespace(self):
         #  Initialize variables:
-        json_namespace = \
-            """
-            {
-                "kind": "Namespace",
-                "apiVersion": "v1",
-                "metadata": {
-                    "name": "{random_str}",
-                    "labels": {
-                        "name": "{random_str}"
-                    }
-                }
-            }
-            """.format(random_str=str(uuid.uuid4())[0:5])
+        json_namespace = '{{"kind":"Namespace","apiVersion":"v1","metadata":{{"name":"{random_str}","labels":{{"name":"{random_str}"}}}}}}'.format(random_str=(str(uuid.uuid4()))[0:5])
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
