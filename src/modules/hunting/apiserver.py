@@ -1,6 +1,7 @@
 import logging
 import json
 import requests
+from pprint import pprint
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
@@ -66,6 +67,7 @@ class ListAllRoles(Vulnerability, Event):
                                category=InformationDisclosure)
         self.evidence = evidence
 
+
 class ListAllRolesUnderDefaultNamespace(Vulnerability, Event):
     """ Accessing all of the roles under default namespace within a compromised pod might grant an attacker a valuable information
     """
@@ -74,6 +76,7 @@ class ListAllRolesUnderDefaultNamespace(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Access to the all roles list",
                                category=InformationDisclosure)
         self.evidence = evidence
+
 
 class ListAllClusterRoles(Vulnerability, Event):
     """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
@@ -351,12 +354,13 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                 self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
 
             #  At this point we know we got the service_account_token, and we might got all of the namespaces
-            self.publish_event(ApiServerPassiveHunterFinished(self.service_account_token_evidence,
-                                                              self.pod_list_under_all_namespaces_evidence, self.event.host, self.event.port))
+            self.publish_event(ApiServerPassiveHunterFinished(self.pod_list_under_all_namespaces_evidence,
+                                                              self.service_account_token_evidence,
+                                                              self.event.host, self.event.port))
 
 
 # Active Hunter
-@handler.subscribe(ApiServerPassiveHunterFinished, predicate=lambda event: event.service_account_token != '')
+@handler.subscribe(ApiServerPassiveHunterFinished)
 class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     """API server hunter
     Accessing the api server might grant an attacker full control over the cluster
@@ -364,7 +368,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def __init__(self, event):
         self.event = event
-
+        pprint(vars(event))
         # Getting Passive hunter's data:
         self.namespaces_and_their_pod_names = dict()
         self.all_namespaces_names = set(event.all_namespaces_names)
@@ -386,7 +390,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.created_new_namespace_name_evidence = ''
 
     # 3 Pod methods:
-    # --> V
     def create_a_pod(self, namespace):
         try:
             jsonPod = \
@@ -413,7 +416,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             """
             headers = {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer {token}'.format(token=self.service_account_token_evidence)
+                'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
             }
             res = requests.post("https://{host}:{port}/api/v1/namespaces/{namespace}/pods".format(
                                 host=self.event.host, port=self.event.port, namespace=namespace),
@@ -423,12 +426,11 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
-    # --> V
     def delete_a_pod(self, pod_name, namespace):
         try:
             res = requests.delete("https://{host}:{port}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                  host=self.event.host, port=self.event.port, name=pod_name, namespace=namespace),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             self.deleted_newly_created_pod_evidence = res.content['metadata']['deletionTimestamp']
             return res.status_code == 200 and res.content != ''
         except (requests.exceptions.ConnectionError, KeyError):
@@ -439,14 +441,13 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             patch_data = {}
             res = requests.patch("https://{host}:{port}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                  host=self.event.host, port=self.event.port, namespace=pod_namespace, name=pod_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False, data=patch_data)
+                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False, data=patch_data)
             self.patched_newly_created_pod = res.content['metadata']   # DECIDE WHAT EVIDENCE HERE
             return res.status_code == 200 and res.content != ''
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     # 1 Namespaces method:
-    # --> V
     def create_namespace(self):
         #  Initialize variables:
         json_namespace = \
@@ -458,7 +459,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             """
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token_evidence)
+            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
         }
         #  Do request
         try:
@@ -474,34 +475,31 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             return False
 
     #  6 Roles & Cluster roles Methods:
-    # --> V
     def create_a_role(self, namespace):
         try:
             res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                 host=self.event.host, port=self.event.port, namespace=namespace),
-                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             self.created_role_evidence = res.content['items'][0]['metadata']['name']
             return res.content if res.status_code in [200, 201, 202] and res.content != '' else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
-    # --> V
     def create_a_cluster_role(self):
         try:
             res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                host=self.event.host, port=self.event.port),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             self.created_cluster_role_evidence = res.content['items'][0]['metadata']['name']
             return res.content if res.status_code in [200, 201, 202] and res.content != '' else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
-    # --> V
     def delete_a_role(self, namespace_name, newly_created_role_name):
         try:
             res = requests.delete("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
                                  host=self.event.host, port=self.event.port, namespace=namespace_name, role=newly_created_role_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             self.deleted_newly_created_role_evidence = res.content["status"]
             return res.content if res.status_code == 200 and res.content != '' else False
         except (requests.exceptions.ConnectionError, KeyError):
@@ -511,7 +509,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         try:
             res = requests.delete("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
                                  host=self.event.host, port=self.event.port, name=newly_created_cluster_role_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
+                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             self.deleted_newly_created_cluster_role_evidence = res.content["status"]
             return res.content if res.status_code == 200 and res.content != '' else False
         except (requests.exceptions.ConnectionError, KeyError):
@@ -527,7 +525,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}".format(
                                  host=self.event.host, port=self.event.port, name=newly_created_role_name,
                                  namespace=newly_created_namespace_name),
-                                 headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
+                                 headers={'Authorization': 'Bearer ' + self.service_account_token},
                                  verify=False, data=data)
             self.patched_newly_created_cluster_role_evidence = res.content
             return res.content if res.status_code == 200 and res.content != '' else False
@@ -543,7 +541,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         try:
             res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
                                  host=self.event.host, port=self.event.port, name=newly_created_cluster_role_name),
-                                 headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
+                                 headers={'Authorization': 'Bearer ' + self.service_account_token},
                                  verify=False, data=data)
             self.patched_newly_created_cluster_role_evidence = res.content
             return res.content if res.status_code == 200 and res.content != '' else False
@@ -551,55 +549,57 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             return False
 
     def execute(self):
+        try:
+            if self.service_account_token != '':
+                print 'nice\n\n\n\ndsadsd'
+                if self.create_namespace():
+                    self.publish_event(self.CreateANamespace('new namespace name: {name}'.
+                                                             format(name=self.new_namespace_name_evidence)))
+                if self.create_a_cluster_role():
+                    self.publish_event(CreateAClusterRole('Cluster role name:  {name}'.format(
+                                                          name=self.created_cluster_role_evidence)))
+                    if self.patch_a_cluster_role(self.newly_created_cluster_role_name_evidence):  #  TODO: add evidences when publishing events
 
-        if self.service_account_token_evidence != '':
-            if self.create_namespace():
-                self.publish_event(self.CreateANamespace('new namespace name: {name}'.
-                                                         format(name=self.new_namespace_name_evidence)))
-            if self.create_a_cluster_role():
-                self.publish_event(CreateAClusterRole('Cluster role name:  {name}'.format(
-                                                      name=self.created_cluster_role_evidence)))
-                if self.patch_a_cluster_role(self.newly_created_cluster_role_name_evidence):  #  TODO: add evidences when publishing events
+                        self.publish_event(PatchAClusterRole('Patched Cluster Role Name:  {name}'.format(
+                                                             name=self.patched_newly_created_cluster_role_evidence)))
 
-                    self.publish_event(PatchAClusterRole('Patched Cluster Role Name:  {name}'.format(
-                                                         name=self.patched_newly_created_cluster_role_evidence)))
+                    if self.delete_a_cluster_role(self.newly_created_cluster_role_name_evidence):
+                        self.publish_event(DeleteAClusterRole('Cluster role deletion time:  {time}'.format(
+                                                              time=self.deleted_newly_created_cluster_role_evidence)))
 
-                if self.delete_a_cluster_role(self.newly_created_cluster_role_name_evidence):
-                    self.publish_event(DeleteAClusterRole('Cluster role deletion time:  {time}'.format(
-                                                          time=self.deleted_newly_created_cluster_role_evidence)))
+                if self.create_a_role():
+                    self.publish_event(CreateAClusterRole('Role name:  {name}'.format(
+                                                         name=self.created_role_evidence)))
 
-            if self.create_a_role():
-                self.publish_event(CreateAClusterRole('Role name:  {name}'.format(
-                                                     name=self.created_role_evidence)))
+                    if self.patch_a_role(self.newly_created_cluster_role_name_evidence):  #  TODO: add evidences when publishing events
+                        self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
+                                                             name=self.patched_newly_created_role_evidence)))
 
-                if self.patch_a_role(self.newly_created_cluster_role_name_evidence):  #  TODO: add evidences when publishing events
-                    self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
-                                                         name=self.patched_newly_created_role_evidence)))
+                    if self.delete_a_role(self.newly_created_cluster_role_name_evidence):
+                        self.publish_event(DeleteARole('Role deletion time: {time}'.format(
+                                                       time=self.delete_a_role())))
 
-                if self.delete_a_role(self.newly_created_cluster_role_name_evidence):
-                    self.publish_event(DeleteARole('Role deletion time: {time}'.format(
-                                                   time=self.delete_a_role())))
+                #  Operating on pods over all namespaces:
+                for namespace in self.all_namespaces_names:
+                    if self.create_a_pod(namespace):
+                        self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
+                                                      pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
 
-            #  Operating on pods over all namespaces:
-            for namespace in self.all_namespaces_evidence:
-                if self.create_a_pod(namespace):
-                    self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
-                                                  pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
+                        #  TODO- finish patch a pod method:
+                        if self.patch_a_pod(namespace, self.new_pod_name_evidence):
+                            self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
+                                                         pod_name=self.created_pod_name_evidence,
+                                                         patch_evidence=self.patched_newly_created_pod_evidence)))
 
-                    #  TODO- finish patch a pod method:
-                    if self.patch_a_pod(namespace, self.new_pod_name_evidence):
-                        self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
-                                                     pod_name=self.created_pod_name_evidence,
-                                                     patch_evidence=self.patched_newly_created_pod_evidence)))
+                        if self.delete_a_pod(namespace, self.new_pod_name_evidence):
+                            self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
+                                                         pod_name=self.created_pod_name_evidence,
+                                                         delete_evidence=self.deleted_newly_created_pod_evidence)))
+        except Exception:
+            import traceback
+            traceback.print_exc()
 
-                    if self.delete_a_pod(namespace, self.new_pod_name_evidence):
-                        self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
-                                                     pod_name=self.created_pod_name_evidence,
-                                                     delete_evidence=self.deleted_newly_created_pod_evidence)))
-
-
-            #  TODO- Implement the following algorithm:
-            # Algorithm in words:
+            # *Algorithm in words*
 
             # This hunter should be triggered only when 443 or 6443 port are open AND the passive hunter
             # --have published it to start
@@ -612,6 +612,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 # -- found and we were able to create a pod in it)
                 # (3.2) Attempt to delete newly created pod/s in all namespaces found (or just default namespace if none
                 # -- found and we were able to create a pod in it
+            #  TODO- Implement the rest of the following algorithm:
             # (4) Attempt to create a role/s in all of the namespaces (or just default namespace if none found)
                 # (4.1) Attempt to patch newly created role/s in all of the namespaces (or just default namespace if
                 # -- none found and we were able to create a role on it)
