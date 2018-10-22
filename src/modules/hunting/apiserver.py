@@ -210,11 +210,10 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         self.service_account_token_evidence = ''
         self.pod_list_under_default_namespace_evidence = ''
         self.pod_list_under_all_namespaces_evidence = ''
-        self.newly_created_cluster_role_name_evidence = ''
-        self.newly_created_role_name_evidence = ''
+
         self.all_namespaces_names_evidence = list()
         self.all_roles_names_evidence = list()
-        self.roles_names_under_default_namespace_evidence = ''
+        self.roles_names_under_default_namespace_evidence = list()
         self.all_cluster_roles_names_evidence = list()
         self.namespaces_and_their_pod_names = list(dict())
 
