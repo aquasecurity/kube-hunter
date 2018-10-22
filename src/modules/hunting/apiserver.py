@@ -66,6 +66,14 @@ class ListAllRoles(Vulnerability, Event):
                                category=InformationDisclosure)
         self.evidence = evidence
 
+class ListAllRolesUnderDefaultNamespace(Vulnerability, Event):
+    """ Accessing all of the roles under default namespace within a compromised pod might grant an attacker a valuable information
+    """
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Access to the all roles list",
+                               category=InformationDisclosure)
+        self.evidence = evidence
 
 class ListAllClusterRoles(Vulnerability, Event):
     """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
@@ -180,7 +188,9 @@ class DeleteAPod(Vulnerability, Event):
 
 
 class ApiServerPassiveHunterFinished(Event):
-    def __init__(self, all_namespaces_names, service_account_token):
+    def __init__(self, all_namespaces_names, service_account_token, host, port):
+        self.host = host
+        self.port = port
         self.all_namespaces_names = all_namespaces_names
         self.service_account_token = service_account_token
 
@@ -203,9 +213,10 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         self.newly_created_cluster_role_name_evidence = ''
         self.newly_created_role_name_evidence = ''
         self.all_namespaces_names_evidence = list()
-        self.all_roles_names_evidence = ''
-        self.all_cluster_roles_names_evidence = ''
-        self.namespaces_and_their_pod_names = dict()
+        self.all_roles_names_evidence = list()
+        self.roles_names_under_default_namespace_evidence = ''
+        self.all_cluster_roles_names_evidence = list()
+        self.namespaces_and_their_pod_names = list(dict())
 
     def access_api_server(self):
         logging.debug(self.event.host)
@@ -239,10 +250,13 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
             parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
-                self.namespaces_and_their_pod_names[item["metadata"]["name"]] = item["metadata"]["name"]
+                name = item["metadata"]["name"].encode('ascii', 'ignore')
+                namespace = item["metadata"]["namespace"].encode('ascii', 'ignore')
+
+                self.namespaces_and_their_pod_names.append({'name': name, 'namespace': namespace})
 
             return res.status_code == 200 and res.content != ''
-        except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
+        except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     # --> V
@@ -253,10 +267,13 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
             parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
-                self.namespaces_and_their_pod_names[item["metadata"]["name"]] = item["metadata"]["name"]
+                name = item["metadata"]["name"].encode('ascii', 'ignore')
+                namespace = item["metadata"]["namespace"].encode('ascii', 'ignore')
+
+                self.namespaces_and_their_pod_names.append({'name': name, 'namespace': namespace})
 
             return res.status_code == 200 and res.content != ''
-        except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
+        except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     # 1 Namespace method:
@@ -270,21 +287,23 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
             parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
-                self.all_namespaces_names_evidence.append(item["metadata"]["name"])
+                self.all_namespaces_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.status_code == 200 and res.content != ''
-        except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
+        except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     # 3 Roles & Cluster Roles Methods:
     #  --> V
-    def get_roles_under_namespace(self, namespace):
+    def get_roles_under_default_namespace(self):
         try:
-            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
-                                 host=self.event.host, port=self.event.port, namespace=namespace),
+            res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/default/roles".format(
+                                 host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
-            self.namespace_roles_evidence = res.content
+            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            for item in parsed_response_content["items"]:
+                self.roles_names_under_default_namespace_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.content if res.status_code == 200 and res.content != '' else False
-        except requests.exceptions.ConnectionError:
+        except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     #  --> V
@@ -293,9 +312,11 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                  host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
-            self.namespace_roles_evidence = res.content
+            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            for item in parsed_response_content["items"]:
+                self.all_cluster_roles_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.content if res.status_code == 200 and res.content != '' else False
-        except requests.exceptions.ConnectionError:
+        except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     #  --> V
@@ -304,9 +325,11 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/roles".format(
                                  host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
-            self.namespace_roles_evidence = res.content
+            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            for item in parsed_response_content["items"]:
+                self.all_roles_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.content if res.status_code == 200 and res.content != '' else False
-        except requests.exceptions.ConnectionError:
+        except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     def execute(self):
@@ -319,20 +342,23 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                     self.publish_event(ListAllNamespaces(self.all_namespaces_names_evidence))
 
                 if self.get_pods_list_under_all_namespace():
-                    self.publish_event(ListPodUnderAllNamespaces(self.pod_list_under_all_namespaces_evidence))
+                    self.publish_event(ListPodUnderAllNamespaces(self.namespaces_and_their_pod_names))
                 else:
                     if self.get_pods_list_under_default_namespace():
-                        self.publish_event(ListPodUnderDefaultNamespace(self.pod_list_under_default_namespace_evidence))
+                        self.publish_event(ListPodUnderDefaultNamespace(self.namespaces_and_their_pod_names))
 
                 if self.get_all_roles():
                     self.publish_event(ListAllRoles(self.all_roles_names_evidence))
-
+                else:
+                    if self.get_roles_under_default_namespace():
+                        self.publish_event(ListAllRolesUnderDefaultNamespace(
+                                            self.roles_names_under_default_namespace_evidence))
                 if self.get_all_cluster_roles():
                     self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
 
                 #  At this point we know we got the service_account_token, and we might got all of the namespaces
                 self.publish_event(ApiServerPassiveHunterFinished(self.service_account_token_evidence,
-                                                                  self.pod_list_under_all_namespaces_evidence))
+                                                                  self.pod_list_under_all_namespaces_evidence, self.event.host, self.event.port))
 
             except Exception:
                 import traceback
