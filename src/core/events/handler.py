@@ -11,8 +11,9 @@ from ..types import ActiveHunter, Hunter
 
 from ...core.events.types import HuntFinished
 
-working_count = 0
-lock = Lock()
+global queue_lock
+queue_lock = Lock()
+
 
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue, object):
@@ -34,12 +35,12 @@ class EventQueue(Queue, object):
         t.daemon = True
         t.start()
 
-
     # decorator wrapping for easy subscription
     def subscribe(self, event, hook=None, predicate=None):
         def wrapper(hook):
             self.subscribe_event(event, hook=hook, predicate=predicate)
             return hook
+
         return wrapper
 
     # getting uninstantiated event object
@@ -72,7 +73,9 @@ class EventQueue(Queue, object):
     # executes callbacks on dedicated thread as a daemon
     def worker(self):
         while self.running:
+            queue_lock.acquire()
             hook = self.get()
+            queue_lock.release()
             try:
                 hook.execute()
             except Exception as ex:

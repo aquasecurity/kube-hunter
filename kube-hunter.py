@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import argparse
 import logging
+import threading
 
 try:
     raw_input          # Python 2
@@ -66,6 +67,7 @@ def interactive_set_config():
         return False
     return True
 
+
 def parse_docs(hunter, docs):
     """returns tuple of (name, docs)"""
     if not docs:
@@ -74,23 +76,28 @@ def parse_docs(hunter, docs):
     for i, line in enumerate(docs):
         docs[i] = line.strip()
     return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
-    
+
+
 def list_hunters():
     print("\nPassive Hunters:\n----------------")
     for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
         name, docs = parse_docs(hunter, docs)
-        print("* {}\n  {}\n".format( name, docs))
+        print("* {}\n  {}\n".format(name, docs))
 
     if config.active:
         print("\n\nActive Hunters:\n---------------")
         for i, (hunter, docs) in enumerate(handler.active_hunters.items()):
             name, docs = parse_docs(hunter, docs)
             print("* {}\n  {}\n".format( name, docs))
-        
 
+
+global hunt_started_lock
+hunt_started_lock = threading.Lock()
 hunt_started = False
+
+
 def main():
-    global hunt_started 
+    global hunt_started
     scan_options = [
         config.pod, 
         config.cidr,
@@ -104,8 +111,9 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-        
+        hunt_started_lock.acquire()
         hunt_started = True
+        hunt_started_lock.release()
         handler.publish_event(HuntStarted())
         handler.publish_event(HostScanEvent())
         
@@ -117,11 +125,17 @@ def main():
     except EOFError:
         logging.error("\033[0;31mPlease run again with -it\033[0m")
     finally:
+        hunt_started_lock.acquire()
         if hunt_started:
+            hunt_started_lock.release()
             handler.publish_event(HuntFinished())
             handler.join()
             handler.free()
             logging.debug("Cleaned Queue")
+        else:
+            hunt_started_lock.release()
+
 
 if __name__ == '__main__':
-    main()
+        main()
+
