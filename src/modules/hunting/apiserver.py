@@ -1,6 +1,5 @@
-import ast
 import logging
-
+import json
 import requests
 
 from ...core.events import handler
@@ -203,7 +202,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         self.pod_list_under_all_namespaces_evidence = ''
         self.newly_created_cluster_role_name_evidence = ''
         self.newly_created_role_name_evidence = ''
-        self.all_namespaces_names_evidence = ''
+        self.all_namespaces_names_evidence = list()
         self.all_roles_names_evidence = ''
         self.all_cluster_roles_names_evidence = ''
         self.namespaces_and_their_pod_names = dict()
@@ -238,9 +237,9 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                                 port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
 
-            parsed_response_content = str(ast.literal_eval(res.content.replace('u', '')))
+            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
-                self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
+                self.namespaces_and_their_pod_names[item["metadata"]["name"]] = item["metadata"]["name"]
 
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
@@ -251,9 +250,10 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         try:
             res = requests.get("https://{host}:{port}/api/v1/pods".format(host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
-            parsed_response_content = str(ast.literal_eval(res.content.replace('u', '')))
+
+            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
-                self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
+                self.namespaces_and_their_pod_names[item["metadata"]["name"]] = item["metadata"]["name"]
 
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
@@ -268,10 +268,9 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
                                verify=False)
 
-            parsed_response_content = str(ast.literal_eval(res.content.replace('u', '')))
+            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
-                self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
-                self.all_namespaces_names_evidence.add(item["metadata"]["name"])
+                self.all_namespaces_names_evidence.append(item["metadata"]["name"])
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
