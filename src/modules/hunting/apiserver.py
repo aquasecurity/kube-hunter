@@ -1,4 +1,4 @@
-import json
+import ast
 import logging
 
 import requests
@@ -238,7 +238,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                                 port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
 
-            parsed_response_content = json.loads(res.content)
+            parsed_response_content = str(ast.literal_eval(res.content.replace('u', '')))
             for item in parsed_response_content["items"]:
                 self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
 
@@ -251,7 +251,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         try:
             res = requests.get("https://{host}:{port}/api/v1/pods".format(host=self.event.host, port=self.event.port),
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
-            parsed_response_content = json.loads(res.content)
+            parsed_response_content = str(ast.literal_eval(res.content.replace('u', '')))
             for item in parsed_response_content["items"]:
                 self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
 
@@ -268,12 +268,10 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence},
                                verify=False)
 
-            parsed_response_content = json.loads(res.content)
-            print parsed_response_content
-            # Parse content after creating RBAC roles that would return 200 ()OK so I can see the data myself and understand how to parse it
-            # for item in parsed_response_content["items"]:
-            #     self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
-            #     self.all_namespaces_names_evidence.add(item["metadata"]["name"])
+            parsed_response_content = str(ast.literal_eval(res.content.replace('u', '')))
+            for item in parsed_response_content["items"]:
+                self.namespaces_and_their_pod_names[item["metadata"]["namespace"]] = item["metadata"]["name"]
+                self.all_namespaces_names_evidence.add(item["metadata"]["name"])
             return res.status_code == 200 and res.content != ''
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
