@@ -257,6 +257,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.namespaces_and_their_pod_names = {}
         self.all_namespaces_names = set()
 
+    # --> V
     def get_service_account_token(self):
         logging.debug(self.event.host)
         logging.debug('Passive Hunter is attempting to access pod\'s service account token')
@@ -268,6 +269,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except IOError:  # Couldn't read file
             return False
 
+    # 5 Pod methods:
+    # --> V
     def get_pods_list_under_default_namespace(self):
         try:
             res = requests.get("https://{host}:{port}/api/v1/namespaces/default/pods".format(host=self.event.host,
@@ -282,6 +285,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
+    # --> V
     def get_pods_list_under_all_namespace(self):
         try:
             res = requests.get("https://{host}:{port}/api/v1/pods".format(host=self.event.host, port=self.event.port),
@@ -294,7 +298,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
-    def create_a_pod(self, namespace): #--> V
+    # --> V
+    def create_a_pod(self, namespace):
         try:
             jsonPod = \
             """
@@ -330,7 +335,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
-    #  would be used on our newly created pod only --> V
+    # --> V
     def delete_a_pod(self, pod_name, namespace):
         try:
             res = requests.delete("https://{host}:{port}/api/v1/namespaces/{namespace}/pods/{name}".format(
@@ -341,7 +346,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    # would be used on our newly created pod only
+
     def patch_a_pod(self, pod_namespace, pod_name):
         try:
             patch_data = {}
@@ -352,7 +357,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    #  Namespaces methods:
+    #  2 Namespaces methods:
+    # --> V
     def get_all_namespaces(self):
         try:
             res = requests.get("https://{host}:{port}/api/v1/namespaces".format(host=self.event.host,
@@ -368,6 +374,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
+    # --> V
     def create_namespace(self):
         #  Initialize variables:
         json_namespace = \
@@ -393,8 +400,9 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
             return False
 
-    #  Roles & Cluster roles Methods:
-    def get_roles_for_namespace(self, namespace):
+    #  11 Roles & Cluster roles Methods:
+    #  --> V
+    def get_roles_under_namespace(self, namespace):
         try:
             res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                  host=self.event.host, port=self.event.port, namespace=namespace),
@@ -404,6 +412,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
+    #  --> V
     def get_cluster_roles(self):
         try:
             res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
@@ -414,6 +423,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
+    #  --> V
     def get_all_roles(self):
         try:
             res = requests.get("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/roles".format(
@@ -444,7 +454,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    # would be use on an newly create role only
     def delete_a_role(self, namespace_name, newly_created_role_name):
         try:
             res = requests.delete("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
@@ -455,7 +464,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    # would be use on an newly create cluster role only
     def delete_a_cluster_role(self, newly_created_cluster_role_name):
         try:
             res = requests.delete("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
@@ -466,7 +474,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    # would be use on an newly create role only
     def patch_a_role(self, newly_created_role_name, newly_created_namespace_name):
         try:
             res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}".format(
@@ -478,7 +485,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    # would be use on an newly create role only
     def patch_a_cluster_role(self, newly_created_cluster_role_name):
         try:
             res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
