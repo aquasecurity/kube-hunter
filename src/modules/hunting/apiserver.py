@@ -487,6 +487,9 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                 host=self.event.host, port=self.event.port, namespace=namespace),
                                 headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+            print res.content
+            print res.status_code
+
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.created_role_evidence = parsed_content['items'][0]['metadata']['name']
@@ -596,16 +599,16 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 #  Operating on pods over all namespaces:
                 for namespace in self.all_namespaces_names:
                     #  Pods Api Calls:
-                    if self.create_a_pod(namespace):
+                    if self.create_a_pod(namespace):#
                         self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
                                                       pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
 
-                        if self.patch_a_pod(namespace, self.new_pod_name_evidence):
+                        if self.patch_a_pod(namespace, self.created_pod_name_evidence):
                             self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
                                                          pod_name=self.created_pod_name_evidence,
                                                          patch_evidence=self.patched_newly_created_pod_evidence)))
 
-                        if self.delete_a_pod(namespace, self.new_pod_name_evidence):
+                        if self.delete_a_pod(namespace, self.created_pod_name_evidence):
                             self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
                                                          pod_name=self.created_pod_name_evidence,
                                                          delete_evidence=self.deleted_newly_created_pod_evidence)))
