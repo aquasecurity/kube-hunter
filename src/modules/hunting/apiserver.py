@@ -97,6 +97,16 @@ class CreateANamespace(Vulnerability, Event):
         self.evidence = evidence
 
 
+class DeleteANamespace(Vulnerability, Event):
+
+    """ Deleting a namespace might give an attacker the option to interrupt pod\'s normal run.
+    """
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Delete a namespace",
+                               category=InformationDisclosure)
+        self.evidence = evidence
+
+
 class CreateARole(Vulnerability, Event):
     """ Creating a role might give an attacker the option to harm the normal routine of newly created pods
      within the specified namespaces.
@@ -372,7 +382,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.all_namespaces_names = set(event.all_namespaces_names)
         self.service_account_token = event.service_account_token
 
-        # 10 Evidences:
+        # 11 Evidences:
         self.created_pod_name_evidence = ''
         self.patched_newly_created_pod_evidence = ''
         self.deleted_newly_created_pod_evidence = ''
@@ -386,6 +396,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.deleted_newly_created_cluster_role_evidence = ''
 
         self.created_new_namespace_name_evidence = ''
+        self.deleted_new_namespace_name_evidence = ''
 
     # 3 Pod methods:
     def create_a_pod(self, namespace):
@@ -489,10 +500,10 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             res = requests.delete("https://{host}:{port}/api/v1/namespaces/{name}".format(
                 host=self.event.host, port=self.event.port, name=self.created_new_namespace_name_evidence),
                 verify=False,  headers=headers)
-            if res.status_code not in [200, 201, 202]: return False
+            if res.status_code != 200: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
-            self.created_new_namespace_name_evidence = parsed_content['metadata']['namespace']
-            self.all_namespaces_names.append(self.new_namespace_name_evidenc)
+            self.created_new_namespace_name_evidence = parsed_content
+            self.all_namespaces_names.remove(self.new_namespace_name_evidenc)
         except (requests.exceptions.ConnectionError, KeyError):  # e.g. DNS failure, refused connection, etc
             return False
         return True
@@ -641,10 +652,14 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def execute(self):
         if self.service_account_token != '':
+            #  Namespaces Api Calls:
             if self.create_namespace():
                 self.publish_event(self.CreateANamespace('new namespace name: {name}'.
                                                          format(name=self.created_new_namespace_name_evidence)))
-            # #  Cluster Roles Api Calls:
+                if self.delete_namespace():
+                    self.publish_event(self.DeleteANamespace(self.deleted_new_namespace_name_evidence))
+
+            #  Cluster Roles Api Calls:
             if self.create_a_cluster_role():
                 self.publish_event(CreateAClusterRole('Cluster role name:  {name}'.format(
                                                       name=self.created_cluster_role_evidence)))
