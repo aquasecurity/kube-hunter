@@ -257,7 +257,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
                 self.namespaces_and_their_pod_names.append({'name': name, 'namespace': namespace})
 
-            return res.status_code == 200 and res.content != ''
+            return res.status_code == 200
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
@@ -273,7 +273,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
                 self.namespaces_and_their_pod_names.append({'name': name, 'namespace': namespace})
 
-            return res.status_code == 200 and res.content != ''
+            return res.status_code == 200
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
@@ -288,7 +288,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
                 self.all_namespaces_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
-            return res.status_code == 200 and res.content != ''
+            return res.status_code == 200
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
@@ -301,7 +301,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
                 self.roles_names_under_default_namespace_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
-            return res.content if res.status_code == 200 and res.content != '' else False
+            return res.content if res.status_code == 200 else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
@@ -313,7 +313,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
                 self.all_cluster_roles_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
-            return res.content if res.status_code == 200 and res.content != '' else False
+            return res.content if res.status_code == 200 else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
@@ -325,33 +325,33 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             parsed_response_content = json.loads(res.content.replace('\'', '\"'))
             for item in parsed_response_content["items"]:
                 self.all_roles_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
-            return res.content if res.status_code == 200 and res.content != '' else False
+            return res.content if res.status_code == 200 else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     def execute(self):
         if self.get_service_account_token():
             self.publish_event(ServiceAccountTokenAccess(self.service_account_token_evidence))
-            if self.access_api_server():
-                self.publish_event(ServerApiAccess(self.api_server_evidence))
+            # if self.access_api_server():
+            #     self.publish_event(ServerApiAccess(self.api_server_evidence))
 
-            if self.get_all_namespaces():
-                self.publish_event(ListAllNamespaces(self.all_namespaces_names_evidence))
-
-            if self.get_pods_list_under_all_namespace():
-                self.publish_event(ListPodUnderAllNamespaces(self.namespaces_and_their_pod_names))
-            else:
-                if self.get_pods_list_under_default_namespace():
-                    self.publish_event(ListPodUnderDefaultNamespace(self.namespaces_and_their_pod_names))
-
-            if self.get_all_roles():
-                self.publish_event(ListAllRoles(self.all_roles_names_evidence))
-            else:
-                if self.get_roles_under_default_namespace():
-                    self.publish_event(ListAllRolesUnderDefaultNamespace(
-                                        self.roles_names_under_default_namespace_evidence))
-            if self.get_all_cluster_roles():
-                self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
+            # if self.get_all_namespaces():
+            #     self.publish_event(ListAllNamespaces(self.all_namespaces_names_evidence))
+            #
+            # if self.get_pods_list_under_all_namespace():
+            #     self.publish_event(ListPodUnderAllNamespaces(self.namespaces_and_their_pod_names))
+            # else:
+            #     if self.get_pods_list_under_default_namespace():
+            #         self.publish_event(ListPodUnderDefaultNamespace(self.namespaces_and_their_pod_names))
+            #
+            # if self.get_all_roles():
+            #     self.publish_event(ListAllRoles(self.all_roles_names_evidence))
+            # else:
+            #     if self.get_roles_under_default_namespace():
+            #         self.publish_event(ListAllRolesUnderDefaultNamespace(
+            #                             self.roles_names_under_default_namespace_evidence))
+            # if self.get_all_cluster_roles():
+            #     self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
             #  At this point we know we got the service_account_token, and we might got all of the namespaces
             self.publish_event(ApiServerPassiveHunterFinished(self.all_namespaces_names_evidence,
                                                               self.service_account_token_evidence,
@@ -425,7 +425,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.created_pod_name_evidence = parsed_content['metadata']['name']
-            return res.status_code in [200, 201, 202] and res.content != ''
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -438,7 +437,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.deleted_newly_created_pod_evidence = parsed_content['metadata']['deletionTimestamp']
-            return res.status_code == 200 and res.content != ''
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -453,7 +451,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.patched_newly_created_pod_evidence = parsed_content['metadata']['namespace']
-            return res.status_code == 200 and res.content != ''
+            return res.status_code == 200
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -514,20 +512,20 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                 headers=headers, verify=False, data=role_json)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
-            self.created_role_evidence = parsed_content['items'][0]['metadata']['name']
+            self.created_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
 
     def create_a_cluster_role(self):
-        cluster_role_json = """{
+        cluster_role_json = """{{
                       "kind": "ClusterRole",
                       "apiVersion": "rbac.authorization.k8s.io/v1",
-                      "metadata": {
+                      "metadata": {{
                         "name": "{random_str}"
-                      },
+                      }},
                       "rules": [
-                        {
+                        {{
                           "apiGroups": [
                             ""
                           ],
@@ -539,10 +537,9 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                             "watch",
                             "list"
                           ]
-                        }
+                        }}
                       ]
-                    }
-                    """.format(random_str=(str(uuid.uuid4()))[0:5])
+                    }}""".format(random_str=(str(uuid.uuid4()))[0:5])
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
@@ -553,8 +550,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                headers=headers, verify=False, data=cluster_role_json)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
-            self.created_cluster_role_evidence = parsed_content['items'][0]['metadata']['name']
-            return res.content if res.status_code in [200, 201, 202] and res.content != '' else False
+            self.created_cluster_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -567,7 +563,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.deleted_newly_created_role_evidence = parsed_content["status"]
-            return res.content if res.status_code == 200 and res.content != '' else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -580,7 +575,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.deleted_newly_created_cluster_role_evidence = parsed_content["status"]
-            return res.content if res.status_code == 200 and res.content != '' else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -600,7 +594,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.patched_newly_created_cluster_role_evidence = res.content
-            return res.content if res.status_code == 200 and res.content != '' else False
+            return res.content if res.status_code == 200 else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -619,7 +613,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.patched_newly_created_cluster_role_evidence = res.content
-            return res.content if res.status_code == 200 and res.content != '' else False
+            return res.content if res.status_code == 200 else False
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -639,7 +633,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 #         self.publish_event(PatchAClusterRole('Patched Cluster Role Name:  {name}'.format(
                 #                                              name=self.patched_newly_created_cluster_role_evidence)))
                 #
-                    if self.delete_a_cluster_role(self.newly_created_cluster_role_name_evidence):
+                    if self.delete_a_cluster_role(self.created_cluster_role_evidence):
                         self.publish_event(DeleteAClusterRole('Cluster role deletion time:  {time}'.format(
                                                               time=self.deleted_newly_created_cluster_role_evidence)))
 
@@ -670,8 +664,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                     #         name=self.patched_newly_created_role_evidence)))
                     #
                     if self.delete_a_role(namespace, self.created_role_evidence):
-                        self.publish_event(DeleteARole('Role deletion time: {time}'.format(
-                            time=self.delete_a_role())))
+                        self.publish_event(DeleteARole('Role Status response: {status}'.format(
+                            status=self.deleted_newly_created_role_evidence)))
         except Exception:
             import traceback
             traceback.print_exc()
