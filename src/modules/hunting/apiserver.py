@@ -238,7 +238,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
                                headers={'Authorization': 'Bearer ' + self.service_account_token_evidence}, verify=False)
             self.api_server_evidence = res.content
             return res.status_code == 200 and res.content != ''
-        except requests.exceptions.ConnectionError:  # e.g. DNS failure, refused connection, etc
+        except requests.exceptions.ConnectionError:
             return False
 
     def get_service_account_token(self):
@@ -484,8 +484,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 verify=False, data=json_namespace, headers=headers)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
-            self.created_new_namespace_name_evidence = parsed_content['metadata']['namespace']
-            self.all_namespaces_names.append(self.new_namespace_name_evidenc)
+            self.created_new_namespace_name_evidence = parsed_content['metadata']['name']
+            self.all_namespaces_names.add(self.created_new_namespace_name_evidence)
         except (requests.exceptions.ConnectionError, KeyError):  # e.g. DNS failure, refused connection, etc
             return False
         return True
@@ -502,8 +502,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 verify=False,  headers=headers)
             if res.status_code != 200: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
-            self.created_new_namespace_name_evidence = parsed_content
-            self.all_namespaces_names.remove(self.new_namespace_name_evidenc)
+            self.deleted_new_namespace_name_evidence = parsed_content['metadata']['name']
+            self.all_namespaces_names.remove(self.created_new_namespace_name_evidence)
         except (requests.exceptions.ConnectionError, KeyError):  # e.g. DNS failure, refused connection, etc
             return False
         return True
@@ -654,10 +654,10 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         if self.service_account_token != '':
             #  Namespaces Api Calls:
             if self.create_namespace():
-                self.publish_event(self.CreateANamespace('new namespace name: {name}'.
+                self.publish_event(CreateANamespace('new namespace name: {name}'.
                                                          format(name=self.created_new_namespace_name_evidence)))
                 if self.delete_namespace():
-                    self.publish_event(self.DeleteANamespace(self.deleted_new_namespace_name_evidence))
+                    self.publish_event(DeleteANamespace(self.deleted_new_namespace_name_evidence))
 
             #  Cluster Roles Api Calls:
             if self.create_a_cluster_role():
@@ -674,7 +674,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
             #  Operating on pods over all namespaces:
             for namespace in self.all_namespaces_names:
-                #  Pods Api Calls:
+                # Pods Api Calls:
                 if self.create_a_pod(namespace):
                     self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace: {pod_namespace}'.format(
                                                   pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
