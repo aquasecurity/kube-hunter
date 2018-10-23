@@ -441,17 +441,19 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             return False
         return True
 
-    #TODO- patch data
     def patch_a_pod(self, namespace, pod_name):
-        patch_data = {}
+        patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
+        headers = {
+            'Content-Type': 'application/json-patch+json',
+            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+        }
         try:
             res = requests.patch("https://{host}:{port}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                  host=self.event.host, port=self.event.port, namespace=namespace, name=pod_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False, data=patch_data)
+                                 headers=headers, verify=False, data=patch_data)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.patched_newly_created_pod_evidence = parsed_content['metadata']['namespace']
-            return res.status_code == 200
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -580,40 +582,39 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         return True
 
     def patch_a_role(self, namespace, newly_created_role_name):
-        data = """{
-            [
-                {"op": "add", "path": "/hello", "value": ["world"]}
-            ]
-        }"""
+        data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
+        headers = {
+            'Content-Type': 'application/json-patch+json',
+            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+        }
         try:
             res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}".format(
                                  host=self.event.host, port=self.event.port, name=newly_created_role_name,
                                  namespace=namespace),
-                                 headers={'Authorization': 'Bearer ' + self.service_account_token},
+                                 headers=headers,
                                  verify=False, data=data)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
-            self.patched_newly_created_cluster_role_evidence = res.content
-            return res.content if res.status_code == 200 else False
+            self.patched_newly_created_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
 
     def patch_a_cluster_role(self, newly_created_cluster_role_name):
-        data = """{
-            [
-                {"op": "add", "path": "/hello", "value": ["world"]}
-            ]
-        }"""
+        data ='[{ "op": "add", "path": "/hello", "value": ["world"] }]'
+
+        headers = {
+            'Content-Type': 'application/json-patch+json',
+            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+        }
         try:
             res = requests.patch("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
                                  host=self.event.host, port=self.event.port, name=newly_created_cluster_role_name),
-                                 headers={'Authorization': 'Bearer ' + self.service_account_token},
+                                 headers=headers,
                                  verify=False, data=data)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
-            self.patched_newly_created_cluster_role_evidence = res.content
-            return res.content if res.status_code == 200 else False
+            self.patched_newly_created_cluster_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
         return True
@@ -628,41 +629,41 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 if self.create_a_cluster_role():
                     self.publish_event(CreateAClusterRole('Cluster role name:  {name}'.format(
                                                           name=self.created_cluster_role_evidence)))
-                #     if self.patch_a_cluster_role(self.newly_created_cluster_role_name_evidence):  #  TODO: add evidences when publishing events
-                #
-                #         self.publish_event(PatchAClusterRole('Patched Cluster Role Name:  {name}'.format(
-                #                                              name=self.patched_newly_created_cluster_role_evidence)))
-                #
+                    if self.patch_a_cluster_role(self.created_cluster_role_evidence):
+
+                        self.publish_event(PatchAClusterRole('Patched Cluster Role Name:  {name}'.format(
+                                                              name=self.patched_newly_created_cluster_role_evidence)))
+
                     if self.delete_a_cluster_role(self.created_cluster_role_evidence):
-                        self.publish_event(DeleteAClusterRole('Cluster role deletion time:  {time}'.format(
-                                                              time=self.deleted_newly_created_cluster_role_evidence)))
+                        self.publish_event(DeleteAClusterRole('Cluster role status:  {status}'.format(
+                                                               status=self.deleted_newly_created_cluster_role_evidence)))
 
                 #  Operating on pods over all namespaces:
                 #for namespace in self.all_namespaces_names:
                     #  Pods Api Calls:
-                    # if self.create_a_pod(namespace):#
-                    #     self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
-                    #                                   pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
-                    #
-                    #     if self.patch_a_pod(namespace, self.created_pod_name_evidence):
-                    #         self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
-                    #                                      pod_name=self.created_pod_name_evidence,
-                    #                                      patch_evidence=self.patched_newly_created_pod_evidence)))
-                    #
-                    #     if self.delete_a_pod(namespace, self.created_pod_name_evidence):
-                    #         self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
-                    #                                      pod_name=self.created_pod_name_evidence,
-                    #                                      delete_evidence=self.deleted_newly_created_pod_evidence)))
                 namespace = 'default'
+                if self.create_a_pod(namespace):#
+                    self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
+                                                  pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
+
+                    if self.patch_a_pod(namespace, self.created_pod_name_evidence):
+                        self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
+                                                     pod_name=self.created_pod_name_evidence,
+                                                     patch_evidence=self.patched_newly_created_pod_evidence)))
+
+                    if self.delete_a_pod(namespace, self.created_pod_name_evidence):
+                        self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
+                                                     pod_name=self.created_pod_name_evidence,
+                                                     delete_evidence=self.deleted_newly_created_pod_evidence)))
                 # Roles Api Calls:
                 if self.create_a_role(namespace):
                     self.publish_event(CreateARole('Role name:  {name}'.format(
                         name=self.created_role_evidence)))
 
-                    # if self.patch_a_role(namespace, self.created_role_evidence):
-                    #     self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
-                    #         name=self.patched_newly_created_role_evidence)))
-                    #
+                    if self.patch_a_role(namespace, self.created_role_evidence):
+                        self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
+                            name=self.patched_newly_created_role_evidence)))
+
                     if self.delete_a_role(namespace, self.created_role_evidence):
                         self.publish_event(DeleteARole('Role Status response: {status}'.format(
                             status=self.deleted_newly_created_role_evidence)))
