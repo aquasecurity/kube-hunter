@@ -332,27 +332,28 @@ class AccessApiServerViaServiceAccountToken(Hunter):
     def execute(self):
         if self.get_service_account_token():
             self.publish_event(ServiceAccountTokenAccess(self.service_account_token_evidence))
-            # if self.access_api_server():
-            #     self.publish_event(ServerApiAccess(self.api_server_evidence))
+            if self.access_api_server():
+                self.publish_event(ServerApiAccess(self.api_server_evidence))
 
-            # if self.get_all_namespaces():
-            #     self.publish_event(ListAllNamespaces(self.all_namespaces_names_evidence))
-            #
-            # if self.get_pods_list_under_all_namespace():
-            #     self.publish_event(ListPodUnderAllNamespaces(self.namespaces_and_their_pod_names))
-            # else:
-            #     if self.get_pods_list_under_default_namespace():
-            #         self.publish_event(ListPodUnderDefaultNamespace(self.namespaces_and_their_pod_names))
-            #
-            # if self.get_all_roles():
-            #     self.publish_event(ListAllRoles(self.all_roles_names_evidence))
-            # else:
-            #     if self.get_roles_under_default_namespace():
-            #         self.publish_event(ListAllRolesUnderDefaultNamespace(
-            #                             self.roles_names_under_default_namespace_evidence))
-            # if self.get_all_cluster_roles():
-            #     self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
-            #  At this point we know we got the service_account_token, and we might got all of the namespaces
+            if self.get_all_namespaces():
+                self.publish_event(ListAllNamespaces(self.all_namespaces_names_evidence))
+
+            if self.get_pods_list_under_all_namespace():
+                self.publish_event(ListPodUnderAllNamespaces(self.namespaces_and_their_pod_names))
+            else:
+                if self.get_pods_list_under_default_namespace():
+                    self.publish_event(ListPodUnderDefaultNamespace(self.namespaces_and_their_pod_names))
+
+            if self.get_all_roles():
+                self.publish_event(ListAllRoles(self.all_roles_names_evidence))
+            else:
+                if self.get_roles_under_default_namespace():
+                    self.publish_event(ListAllRolesUnderDefaultNamespace(
+                                        self.roles_names_under_default_namespace_evidence))
+            if self.get_all_cluster_roles():
+                self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
+
+            # At this point we know we got the service_account_token, and we might got all of the namespaces
             self.publish_event(ApiServerPassiveHunterFinished(self.all_namespaces_names_evidence,
                                                               self.service_account_token_evidence,
                                                               self.event.host, self.event.port))
@@ -639,34 +640,33 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                                                status=self.deleted_newly_created_cluster_role_evidence)))
 
                 #  Operating on pods over all namespaces:
-                #for namespace in self.all_namespaces_names:
+                for namespace in self.all_namespaces_names:
                     #  Pods Api Calls:
-                namespace = 'default'
-                if self.create_a_pod(namespace):#
-                    self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
-                                                  pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
+                    if self.create_a_pod(namespace):#
+                        self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace: {pod_namespace}'.format(
+                                                      pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
 
-                    if self.patch_a_pod(namespace, self.created_pod_name_evidence):
-                        self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
-                                                     pod_name=self.created_pod_name_evidence,
-                                                     patch_evidence=self.patched_newly_created_pod_evidence)))
+                        if self.patch_a_pod(namespace, self.created_pod_name_evidence):
+                            self.publish_event(PatchAPod('Pod Name: {pod_name}  Pod namespace: {patch_evidence}'.format(
+                                                         pod_name=self.created_pod_name_evidence,
+                                                         patch_evidence=self.patched_newly_created_pod_evidence)))
 
-                    if self.delete_a_pod(namespace, self.created_pod_name_evidence):
-                        self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
-                                                     pod_name=self.created_pod_name_evidence,
-                                                     delete_evidence=self.deleted_newly_created_pod_evidence)))
-                # Roles Api Calls:
-                if self.create_a_role(namespace):
-                    self.publish_event(CreateARole('Role name:  {name}'.format(
-                        name=self.created_role_evidence)))
+                        if self.delete_a_pod(namespace, self.created_pod_name_evidence):
+                            self.publish_event(DeleteAPod('Pod Name: {pod_name}  deletion time: {delete_evidence}'.format(
+                                                         pod_name=self.created_pod_name_evidence,
+                                                         delete_evidence=self.deleted_newly_created_pod_evidence)))
+                    # Roles Api Calls:
+                    if self.create_a_role(namespace):
+                        self.publish_event(CreateARole('Role name:  {name}'.format(
+                            name=self.created_role_evidence)))
 
-                    if self.patch_a_role(namespace, self.created_role_evidence):
-                        self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
-                            name=self.patched_newly_created_role_evidence)))
+                        if self.patch_a_role(namespace, self.created_role_evidence):
+                            self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
+                                name=self.patched_newly_created_role_evidence)))
 
-                    if self.delete_a_role(namespace, self.created_role_evidence):
-                        self.publish_event(DeleteARole('Role Status response: {status}'.format(
-                            status=self.deleted_newly_created_role_evidence)))
+                        if self.delete_a_role(namespace, self.created_role_evidence):
+                            self.publish_event(DeleteARole('Role Status response: {status}'.format(
+                                status=self.deleted_newly_created_role_evidence)))
         except Exception:
             import traceback
             traceback.print_exc()
