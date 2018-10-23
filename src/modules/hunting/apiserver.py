@@ -481,15 +481,37 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     #  6 Roles & Cluster roles Methods:
     def create_a_role(self, namespace):
-        role_json = """{{"kind":"Role","apiVersion":"rbac.authorization.k8s.io/v1beta1","metadata":{{"namespace":"default","name":"{random_str}"}},"rules":[{{"apiGroups":[""],"resources":["pods"],"verbs":["get"]}}]}}""".format(random_str=(str(uuid.uuid4()))[0:5])
-
+        role_json = """{{
+                          "kind": "Role",
+                          "apiVersion": "rbac.authorization.k8s.io/v1",
+                          "metadata": {{
+                            "namespace": "{namespace}",
+                            "name": "{random_str}"
+                          }},
+                          "rules": [
+                            {{
+                              "apiGroups": [
+                                ""
+                              ],
+                              "resources": [
+                                "pods"
+                              ],
+                              "verbs": [
+                                "get",
+                                "watch",
+                                "list"
+                              ]
+                            }}
+                          ]
+                        }}""".format(random_str=(str(uuid.uuid4()))[0:5], namespace=namespace)
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+        }
         try:
             res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                 host=self.event.host, port=self.event.port, namespace=namespace),
-                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False, data=role_json)
-            print res.content
-            print res.status_code
-
+                                headers=headers, verify=False, data=role_json)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.created_role_evidence = parsed_content['items'][0]['metadata']['name']
@@ -498,11 +520,37 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         return True
 
     def create_a_cluster_role(self):
-        #TODO: data={clusterrole json}
+        cluster_role_json = """{
+                      "kind": "ClusterRole",
+                      "apiVersion": "rbac.authorization.k8s.io/v1",
+                      "metadata": {
+                        "name": "{random_str}"
+                      },
+                      "rules": [
+                        {
+                          "apiGroups": [
+                            ""
+                          ],
+                          "resources": [
+                            "pods"
+                          ],
+                          "verbs": [
+                            "get",
+                            "watch",
+                            "list"
+                          ]
+                        }
+                      ]
+                    }
+                    """.format(random_str=(str(uuid.uuid4()))[0:5])
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+        }
         try:
             res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                host=self.event.host, port=self.event.port),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                               headers=headers, verify=False, data=cluster_role_json)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content.replace('\'', '\"'))
             self.created_cluster_role_evidence = parsed_content['items'][0]['metadata']['name']
@@ -579,24 +627,24 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def execute(self):
         try:
             if self.service_account_token != '':
-                if self.create_namespace():
-                    self.publish_event(self.CreateANamespace('new namespace name: {name}'.
-                                                             format(name=self.created_new_namespace_name_evidence)))
-                #  Cluster Roles Api Calls:
+                # if self.create_namespace():
+                #     self.publish_event(self.CreateANamespace('new namespace name: {name}'.
+                #                                              format(name=self.created_new_namespace_name_evidence)))
+                # #  Cluster Roles Api Calls:
                 if self.create_a_cluster_role():
                     self.publish_event(CreateAClusterRole('Cluster role name:  {name}'.format(
                                                           name=self.created_cluster_role_evidence)))
-                    if self.patch_a_cluster_role(self.newly_created_cluster_role_name_evidence):  #  TODO: add evidences when publishing events
-
-                        self.publish_event(PatchAClusterRole('Patched Cluster Role Name:  {name}'.format(
-                                                             name=self.patched_newly_created_cluster_role_evidence)))
-
+                #     if self.patch_a_cluster_role(self.newly_created_cluster_role_name_evidence):  #  TODO: add evidences when publishing events
+                #
+                #         self.publish_event(PatchAClusterRole('Patched Cluster Role Name:  {name}'.format(
+                #                                              name=self.patched_newly_created_cluster_role_evidence)))
+                #
                     if self.delete_a_cluster_role(self.newly_created_cluster_role_name_evidence):
                         self.publish_event(DeleteAClusterRole('Cluster role deletion time:  {time}'.format(
                                                               time=self.deleted_newly_created_cluster_role_evidence)))
 
                 #  Operating on pods over all namespaces:
-                for namespace in self.all_namespaces_names:
+                #for namespace in self.all_namespaces_names:
                     #  Pods Api Calls:
                     # if self.create_a_pod(namespace):#
                     #     self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
@@ -611,18 +659,19 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                     #         self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
                     #                                      pod_name=self.created_pod_name_evidence,
                     #                                      delete_evidence=self.deleted_newly_created_pod_evidence)))
-                    # Roles Api Calls:
-                    if self.create_a_role(namespace):
-                        self.publish_event(CreateARole('Role name:  {name}'.format(
-                            name=self.created_role_evidence)))
+                namespace = 'default'
+                # Roles Api Calls:
+                if self.create_a_role(namespace):
+                    self.publish_event(CreateARole('Role name:  {name}'.format(
+                        name=self.created_role_evidence)))
 
-                        if self.patch_a_role(namespace, self.newly_created_cluster_role_name_evidence):
-                            self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
-                                name=self.patched_newly_created_role_evidence)))
-
-                        if self.delete_a_role(namespace, self.newly_created_cluster_role_name_evidence):
-                            self.publish_event(DeleteARole('Role deletion time: {time}'.format(
-                                time=self.delete_a_role())))
+                    # if self.patch_a_role(namespace, self.created_role_evidence):
+                    #     self.publish_event(PatchARole('Patched Role Name:  {name}'.format(
+                    #         name=self.patched_newly_created_role_evidence)))
+                    #
+                    if self.delete_a_role(namespace, self.created_role_evidence):
+                        self.publish_event(DeleteARole('Role deletion time: {time}'.format(
+                            time=self.delete_a_role())))
         except Exception:
             import traceback
             traceback.print_exc()
