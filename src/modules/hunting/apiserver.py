@@ -2,7 +2,6 @@ import logging
 import json
 import requests
 import uuid
-from pprint import pprint
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
@@ -368,7 +367,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def __init__(self, event):
         self.event = event
-        pprint(vars(event))
         # Getting Passive hunter's data:
         self.namespaces_and_their_pod_names = dict()
         self.all_namespaces_names = set(event.all_namespaces_names)
@@ -483,10 +481,12 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     #  6 Roles & Cluster roles Methods:
     def create_a_role(self, namespace):
+        role_json = """{{"kind":"Role","apiVersion":"rbac.authorization.k8s.io/v1beta1","metadata":{{"namespace":"default","name":"{random_str}"}},"rules":[{{"apiGroups":[""],"resources":["pods"],"verbs":["get"]}}]}}""".format(random_str=(str(uuid.uuid4()))[0:5])
+
         try:
             res = requests.post("https://{host}:{port}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                 host=self.event.host, port=self.event.port, namespace=namespace),
-                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False, data=role_json)
             print res.content
             print res.status_code
 
@@ -578,7 +578,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def execute(self):
         try:
-            print 'executes! ~~~~~~ \n\n\n'
             if self.service_account_token != '':
                 if self.create_namespace():
                     self.publish_event(self.CreateANamespace('new namespace name: {name}'.
@@ -599,19 +598,19 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 #  Operating on pods over all namespaces:
                 for namespace in self.all_namespaces_names:
                     #  Pods Api Calls:
-                    if self.create_a_pod(namespace):#
-                        self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
-                                                      pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
-
-                        if self.patch_a_pod(namespace, self.created_pod_name_evidence):
-                            self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
-                                                         pod_name=self.created_pod_name_evidence,
-                                                         patch_evidence=self.patched_newly_created_pod_evidence)))
-
-                        if self.delete_a_pod(namespace, self.created_pod_name_evidence):
-                            self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
-                                                         pod_name=self.created_pod_name_evidence,
-                                                         delete_evidence=self.deleted_newly_created_pod_evidence)))
+                    # if self.create_a_pod(namespace):#
+                    #     self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace:{pod_namespace}'.format(
+                    #                                   pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
+                    #
+                    #     if self.patch_a_pod(namespace, self.created_pod_name_evidence):
+                    #         self.publish_event(PatchAPod('Pod Name: {pod_name}  {patch_evidence}'.format(
+                    #                                      pod_name=self.created_pod_name_evidence,
+                    #                                      patch_evidence=self.patched_newly_created_pod_evidence)))
+                    #
+                    #     if self.delete_a_pod(namespace, self.created_pod_name_evidence):
+                    #         self.publish_event(DeleteAPod('Pod Name: {pod_name}  {delete_evidence}'.format(
+                    #                                      pod_name=self.created_pod_name_evidence,
+                    #                                      delete_evidence=self.deleted_newly_created_pod_evidence)))
                     # Roles Api Calls:
                     if self.create_a_role(namespace):
                         self.publish_event(CreateARole('Role name:  {name}'.format(
