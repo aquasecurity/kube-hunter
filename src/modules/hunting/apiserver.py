@@ -93,7 +93,7 @@ class CreateANamespace(Vulnerability, Event):
     """
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Created a namespace",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -103,7 +103,7 @@ class DeleteANamespace(Vulnerability, Event):
     """
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Delete a namespace",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -114,7 +114,7 @@ class CreateARole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Created a role",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -125,7 +125,7 @@ class CreateAClusterRole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Created a cluster role",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -136,7 +136,7 @@ class PatchARole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Patched a role",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -147,7 +147,7 @@ class PatchAClusterRole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Patched a cluster role",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -157,7 +157,7 @@ class DeleteARole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Deleted a role",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -167,7 +167,7 @@ class DeleteAClusterRole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Deleted a cluster role",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -176,7 +176,7 @@ class CreateAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Created A Pod",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -185,7 +185,7 @@ class PatchAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Patched A Pod",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
@@ -195,7 +195,7 @@ class DeleteAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Deleted A Pod",
-                               category=InformationDisclosure)
+                               category=AccessRisk)
         self.evidence = evidence
 
 
