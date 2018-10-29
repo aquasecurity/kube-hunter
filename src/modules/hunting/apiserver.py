@@ -180,6 +180,15 @@ class CreateAPod(Vulnerability, Event):
         self.evidence = evidence
 
 
+class CreateAPrivilegedPod(Vulnerability, Event):
+    """ Creating a new PRIVILEGED pod would gain an attacker FULL CONTROL over the cluster"""
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Created A PRIVILEGED Pod",
+                               category=AccessRisk)
+        self.evidence = evidence
+
+
 class PatchAPod(Vulnerability, Event):
     """ Patching pod would gain an attacker the option to compromise other pod, and control it """
 
@@ -382,7 +391,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.all_namespaces_names = set(event.all_namespaces_names)
         self.service_account_token = event.service_account_token
 
-        # 11 Evidences:
+        # 12 Evidences:
+        self.is_privileged_pod_created = False
         self.created_pod_name_evidence = ''
         self.patched_newly_created_pod_evidence = ''
         self.deleted_newly_created_pod_evidence = ''
@@ -399,7 +409,10 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.deleted_new_namespace_name_evidence = ''
 
     # 3 Pod methods:
-    def create_a_pod(self, namespace):
+    def create_a_pod(self, namespace, is_privileged):
+        if is_privileged and self.is_privileged_pod_created:  # We don't want to create more than 1 privileged pod.
+            return False
+        privileged_value = ',"securityContext":{"privileged":true}' if is_privileged else ''
         json_pod = \
             """
             
@@ -418,12 +431,13 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                     "containerPort": 80
                                 }}
                             ]
+                            {is_privileged_flag}
                         }}
                     ]
                 }}
             }}
             
-            """.format(random_str=(str(uuid.uuid4()))[0:5])
+            """.format(random_str=(str(uuid.uuid4()))[0:5], is_privileged_flag=privileged_value)
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
@@ -438,6 +452,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             self.created_pod_name_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
+        if is_privileged:
+            self.is_privileged_pod_created = True
         return True
 
     def delete_a_pod(self, namespace, pod_name):
@@ -675,9 +691,14 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             #  Operating on pods over all namespaces:
             for namespace in self.all_namespaces_names:
                 # Pods Api Calls:
-                if self.create_a_pod(namespace):
-                    self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace: {pod_namespace}'.format(
+                if self.create_a_pod(namespace, True) or self.create_a_pod(namespace, False):
+
+                    if self.is_privileged_pod_created:
+                        self.publish_event(CreateAPrivilegedPod('Pod Name: {pod_name}  Pod Namespace: {pod_namespace}'.format(
                                                   pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
+                    else:
+                        self.publish_event(CreateAPod('Pod Name: {pod_name}  Pod Namespace: {pod_namespace}'.format(
+                                                      pod_name=self.created_pod_name_evidence, pod_namespace=namespace)))
 
                     if self.patch_a_pod(namespace, self.created_pod_name_evidence):
                         self.publish_event(PatchAPod('Pod Name: {pod_name}  Pod namespace: {patch_evidence}'.format(
