@@ -66,7 +66,7 @@ There are three methods for deploying kube-hunter:
 You can run the kube-hunter python code directly on your machine.
 #### Prerequisites
 
-You will need the following installed and assumed for path:
+You will need the following installed:
 * python 2.7
 * pip
 
@@ -79,7 +79,8 @@ Install module dependencies:
 ~~~
 cd ./kube-hunter
 pip install -r requirements.txt
-In the case you have python 3.x in the path as your default, use "python2 -m pip install -r requirements.txt"
+
+In the case where you have python 3.x in the path as your default, and python2 refers to a python 2.7 executable, use "python2 -m pip install -r requirements.txt"
 ~~~
 Run:
 `./kube-hunter.py`
