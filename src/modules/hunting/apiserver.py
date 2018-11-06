@@ -20,7 +20,7 @@ class ServerApiAccess(Vulnerability, Event):
 
 
 class ServiceAccountTokenAccess(Vulnerability, Event):
-    """ Accessing the pod's service account token gives an attacker the option to use the server API """
+    """ Accessing the pod service account token gives an attacker the option to use the server API """
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Read access to pod's service account token",
@@ -29,7 +29,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
 
 
 class ListPodUnderDefaultNamespace(Vulnerability, Event):
-    """ Accessing the pods list under default namespace within a compromised pod might grant an attacker a valuable
+    """ Accessing the pods list under default namespace might give an attacker valuable
      information to harm the cluster """
 
     def __init__(self, evidence):
@@ -39,8 +39,7 @@ class ListPodUnderDefaultNamespace(Vulnerability, Event):
 
 
 class ListPodUnderAllNamespaces(Vulnerability, Event):
-    """ Accessing the pods list under ALL of the namespaces within a compromised pod might grant an attacker a valuable
-     information"""
+    """ Accessing the pods list under ALL of the namespaces might give an attacker valuable information"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Listing pods list under ALL namespaces",
@@ -49,47 +48,44 @@ class ListPodUnderAllNamespaces(Vulnerability, Event):
 
 
 class ListAllNamespaces(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information """
+    """ Accessing all of the namespaces might give an attacker valuable information """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all namespaces list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Listing all namespaces",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
 class ListAllRoles(Vulnerability, Event):
-    """ Accessing all of the namespaces within a compromised pod might grant an attacker a valuable information
-    """
+    """ Accessing all of the roles might give an attacker valuable information """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all roles list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Listing all roles",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
 class ListAllRolesUnderDefaultNamespace(Vulnerability, Event):
-    """ Accessing all of the roles under default namespace within a compromised pod might grant an attacker a valuable information
-    """
+    """ Accessing all of the roles under default namespace might give an attacker valuable information """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all roles list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Listing all roles under default namespace",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
 class ListAllClusterRoles(Vulnerability, Event):
-    """ Accessing all of the cluster roles within a compromised pod might grant an attacker a valuable information
-    """
+    """ Accessing all of the cluster roles might give an attacker valuable information """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all cluster roles list",
+        Vulnerability.__init__(self, KubernetesCluster, name="Listing all cluster roles",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
 class CreateANamespace(Vulnerability, Event):
 
-    """ Creating a namespace might give an attacker an area with default (exploitable) permissions to run pod in.
+    """ Creating a namespace might give an attacker an area with default (exploitable) permissions to run pods in.
     """
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Created a namespace",
@@ -99,8 +95,7 @@ class CreateANamespace(Vulnerability, Event):
 
 class DeleteANamespace(Vulnerability, Event):
 
-    """ Deleting a namespace might give an attacker the option to interrupt pod\'s normal run.
-    """
+    """ Deleting a namespace might give an attacker the option to affect application behavior """
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Delete a namespace",
                                category=AccessRisk)
@@ -108,7 +103,7 @@ class DeleteANamespace(Vulnerability, Event):
 
 
 class CreateARole(Vulnerability, Event):
-    """ Creating a role might give an attacker the option to harm the normal routine of newly created pods
+    """ Creating a role might give an attacker the option to harm the normal behavior of newly created pods
      within the specified namespaces.
     """
 
@@ -119,8 +114,8 @@ class CreateARole(Vulnerability, Event):
 
 
 class CreateAClusterRole(Vulnerability, Event):
-    """ Creating a cluster role might give an attacker the option to harm the normal routine of newly created pods
-     within the whole cluster scope.
+    """ Creating a cluster role might give an attacker the option to harm the normal behavior of newly created pods
+     across the whole cluster
     """
 
     def __init__(self, evidence):
@@ -152,8 +147,7 @@ class PatchAClusterRole(Vulnerability, Event):
 
 
 class DeleteARole(Vulnerability, Event):
-    """ Deleting a role might give an attacker the option to create new pods with custom roles within a specific role's
-    namespace scope."""
+    """ Deleting a role might allow an attacker to affect access to resources in the namespace"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Deleted a role",
@@ -162,8 +156,7 @@ class DeleteARole(Vulnerability, Event):
 
 
 class DeleteAClusterRole(Vulnerability, Event):
-    """ Deleting a cluster role might give an attacker the option to create new pods with custom roles within the whole
-    cluster scope."""
+    """ Deleting a cluster role might allow an attacker to affect access to resources in the cluster"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Deleted a cluster role",
@@ -172,7 +165,7 @@ class DeleteAClusterRole(Vulnerability, Event):
 
 
 class CreateAPod(Vulnerability, Event):
-    """ Creating a new pod would gain an attacker the option to compromise another (newly created) pod"""
+    """ Creating a new pod allows an attacker to run custom code"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Created A Pod",
@@ -190,7 +183,7 @@ class CreateAPrivilegedPod(Vulnerability, Event):
 
 
 class PatchAPod(Vulnerability, Event):
-    """ Patching pod would gain an attacker the option to compromise other pod, and control it """
+    """ Patching a pod allows an attacker to compromise and control it """
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Patched A Pod",
@@ -199,8 +192,7 @@ class PatchAPod(Vulnerability, Event):
 
 
 class DeleteAPod(Vulnerability, Event):
-    """ Deleting a pod from within a compromised pod might gain an attacker the option to disturbe cluster\'s
-     normal behaviour."""
+    """ Deleting a pod allows an attacker to disturb applications on the cluster """
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Deleted A Pod",
@@ -223,7 +215,7 @@ class ApiServerPassiveHunterFinished(Event):
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 443 or x.port == 6443)
 class AccessApiServerViaServiceAccountToken(Hunter):
     """ API Server Hunter
-    Accessing the api server within a compromised pod might grant an attacker full control over the cluster
+    Accessing the API server within a compromised pod might grant an attacker full control over the cluster
     """
 
     def __init__(self, event):
