@@ -15,7 +15,7 @@ class ServerApiAccess(Vulnerability, Event):
     """ Accessing the server API within a compromised pod would help an attacker gain full control over the cluster"""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Accessed to server API", category=RemoteCodeExec)
+        Vulnerability.__init__(self, KubernetesCluster, name="Access to server API", category=RemoteCodeExec)
         self.evidence = evidence
 
 
