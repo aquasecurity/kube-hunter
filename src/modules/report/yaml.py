@@ -4,7 +4,6 @@ from ruamel.yaml import YAML
 
 from collector import services, vulnerabilities, services_lock, vulnerabilities_lock
 
-
 class YAMLReporter(object):
     def get_report(self):
         yaml = YAML()

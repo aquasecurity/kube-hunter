@@ -15,6 +15,10 @@ from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent, Vulnerability
 from ...core.types import Hunter, InformationDisclosure, Azure
 
+class RunningAsPodEvent(Event):
+    def __init__(self):
+        self.name = 'Running from within a pod'
+
 
 class AzureMetadataApi(Vulnerability, Event):
     """Access to the Azure Metadata API exposes sensitive information about the machines associated with the cluster"""
@@ -65,6 +69,7 @@ class HostDiscovery(Hunter):
             for host in config.remote:
                 self.publish_event(NewHostEvent(host=host, cloud=self.get_cloud(host)))
         elif config.pod:
+            self.publish_event(RunningAsPodEvent())
             if self.is_azure_pod():
                 self.azure_metadata_discovery()
             else:

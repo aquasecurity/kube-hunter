@@ -16,6 +16,7 @@ class ApiServer(Service, Event):
     def __init__(self):
         Service.__init__(self, name="API Server")
 
+
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port==443 or x.port==6443)
 class ApiServerDiscovery(Hunter):
     """Api Server Discovery

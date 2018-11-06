@@ -111,6 +111,7 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
+
         hunt_started_lock.acquire()
         hunt_started = True
         hunt_started_lock.release()
@@ -134,6 +135,7 @@ def main():
             logging.debug("Cleaned Queue")
         else:
             hunt_started_lock.release()
+
 
 
 if __name__ == '__main__':
