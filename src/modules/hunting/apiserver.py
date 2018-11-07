@@ -263,11 +263,10 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             res = requests.get("{path}/api/v1/{scope}/pods".format(path=self.path, scope=scope),
                                headers=self.headers, verify=False)
 
-            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_response_content = json.loads(res.content)
             for item in parsed_response_content["items"]:
                 name = item["metadata"]["name"].encode('ascii', 'ignore')
                 namespace = item["metadata"]["namespace"].encode('ascii', 'ignore')
-
                 self.namespaces_and_their_pod_names.append({'name': name, 'namespace': namespace})
 
             return res.status_code == 200
@@ -277,12 +276,11 @@ class AccessApiServerViaServiceAccountToken(Hunter):
     # 1 Namespace method:
     def get_all_namespaces(self):
         try:
-            res = requests.get("{path}/api/v1/namespaces".format(host=self.event.host,
-                                                                                port=self.event.port),
-                               headers=self.headers,
-                               verify=False)
+            res = requests.get("{path}/api/v1/namespaces".format(path=self.path),
+                                                                 headers=self.headers,
+                                                                 verify=False)
 
-            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_response_content = json.loads(res.content)
             for item in parsed_response_content["items"]:
                 self.all_namespaces_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.status_code == 200
@@ -295,7 +293,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             res = requests.get("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/default/roles".format(
                                  path=self.path),
                                headers=self.headers, verify=False)
-            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_response_content = json.loads(res.content)
             for item in parsed_response_content["items"]:
                 self.roles_names_under_default_namespace_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.content if res.status_code == 200 else False
@@ -307,7 +305,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             res = requests.get("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                  path=self.path),
                                headers=self.headers, verify=False)
-            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_response_content = json.loads(res.content)
             for item in parsed_response_content["items"]:
                 self.all_cluster_roles_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.content if res.status_code == 200 else False
@@ -319,7 +317,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             res = requests.get("{path}/apis/rbac.authorization.k8s.io/v1/roles".format(
                                  path=self.path),
                                headers=self.headers, verify=False)
-            parsed_response_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_response_content = json.loads(res.content)
             for item in parsed_response_content["items"]:
                 self.all_roles_names_evidence.append(item["metadata"]["name"].encode('ascii', 'ignore'))
             return res.content if res.status_code == 200 else False
@@ -430,7 +428,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                 verify=False, data=json_pod, headers=headers)
             if res.status_code not in [200, 201, 202]: return False
 
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.created_pod_name_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -444,7 +442,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  path=self.path, name=pod_name, namespace=namespace),
                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.deleted_newly_created_pod_evidence = parsed_content['metadata']['deletionTimestamp']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -462,7 +460,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  path=self.path, namespace=namespace, name=pod_name),
                                  headers=headers, verify=False, data=patch_data)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.patched_newly_created_pod_evidence = parsed_content['metadata']['namespace']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -481,7 +479,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 path=self.path),
                 verify=False, data=json_namespace, headers=headers)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.created_new_namespace_name_evidence = parsed_content['metadata']['name']
             self.all_namespaces_names.add(self.created_new_namespace_name_evidence)
         except (requests.exceptions.ConnectionError, KeyError):  # e.g. DNS failure, refused connection, etc
@@ -499,7 +497,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                 path=self.path, name=self.created_new_namespace_name_evidence),
                 verify=False,  headers=headers)
             if res.status_code != 200: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.deleted_new_namespace_name_evidence = parsed_content['metadata']['name']
             self.all_namespaces_names.remove(self.created_new_namespace_name_evidence)
         except (requests.exceptions.ConnectionError, KeyError):  # e.g. DNS failure, refused connection, etc
@@ -541,7 +539,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                 path=self.path, namespace=namespace),
                                 headers=headers, verify=False, data=role_json)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.created_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -580,7 +578,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                path=self.path),
                                headers=headers, verify=False, data=cluster_role_json)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.created_cluster_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -592,7 +590,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  path=self.path, namespace=namespace, role=newly_created_role_name),
                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.deleted_newly_created_role_evidence = parsed_content["status"]
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -604,7 +602,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  path=self.path, name=newly_created_cluster_role_name),
                                headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.deleted_newly_created_cluster_role_evidence = parsed_content["status"]
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -624,7 +622,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  headers=headers,
                                  verify=False, data=patch_data)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.patched_newly_created_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
@@ -642,7 +640,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                                  headers=headers,
                                  verify=False, data=patch_data)
             if res.status_code not in [200, 201, 202]: return False
-            parsed_content = json.loads(res.content.replace('\'', '\"'))
+            parsed_content = json.loads(res.content)
             self.patched_newly_created_cluster_role_evidence = parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
             return False
