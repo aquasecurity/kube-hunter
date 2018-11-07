@@ -629,6 +629,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         return True
 
     def patch_a_cluster_role(self, newly_created_cluster_role_name):
+
         patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
         headers = {
             'Content-Type': 'application/json-patch+json',
