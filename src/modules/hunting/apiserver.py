@@ -220,8 +220,8 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
     def __init__(self, event):
         self.event = event
-        self.headers = {'Authorization': 'Bearer ' + self.service_account_token_evidence}
-        self.path = "http://{}:{}/".format(self.event.host, self.event.port)
+        self.headers = dict()
+        self.path = "https://{}:{}".format(self.event.host, self.event.port)
 
         self.api_server_evidence = ''
         self.service_account_token_evidence = ''
@@ -252,6 +252,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as token:
                 data = token.read()
                 self.service_account_token_evidence = data
+                self.headers = {'Authorization': 'Bearer ' + self.service_account_token_evidence}
                 return True
         except IOError:  # Couldn't read file
             return False
@@ -326,6 +327,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             return False
 
     def execute(self):
+
         if self.get_service_account_token():
             self.publish_event(ServiceAccountTokenAccess(self.service_account_token_evidence))
             if self.access_api_server():
@@ -364,7 +366,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
 
     def __init__(self, event):
         self.event = event
-        self.path = "http://{}:{}/".format(self.event.host, self.event.port)
+        self.path = "https://{}:{}".format(self.event.host, self.event.port)
 
         # Getting Passive hunter's data:
         self.namespaces_and_their_pod_names = dict()
