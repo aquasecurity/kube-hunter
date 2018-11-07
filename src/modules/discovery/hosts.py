@@ -15,7 +15,6 @@ from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent, Vulnerability
 from ...core.types import Hunter, InformationDisclosure, Azure
 
-
 class RunningAsPodEvent(Event):
     def __init__(self):
         self.name = 'Running from within a pod'
@@ -54,7 +53,7 @@ class HostDiscovery(Hunter):
     def __init__(self, event):
         self.event = event
 
-    def execute(self):        
+    def execute(self):
         if config.cidr:
             try:
                 ip, sn = config.cidr.split('/')

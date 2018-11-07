@@ -5,7 +5,13 @@ from src.core.events import handler
 from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted
 import threading
 
+
+global services_lock
+services_lock = threading.Lock()
 services = list()
+
+global vulnerabilities_lock
+vulnerabilities_lock = threading.Lock()
 vulnerabilities = list()
 
 
@@ -38,10 +44,13 @@ class Collector(object):
 
     def execute(self):
         """function is called only when collecting data"""
-        global services, vulnerabilities
+        global services
+        global vulnerabilities
         bases = self.event.__class__.__mro__
         if Service in bases:
+            services_lock.acquire()
             services.append(self.event)
+            services_lock.release()
             import datetime
             logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  host: {host}:{port}".format(
                 host=self.event.host,
@@ -51,7 +60,9 @@ class Collector(object):
             ))
 
         elif Vulnerability in bases:
+            vulnerabilities_lock.acquire()
             vulnerabilities.append(self.event)
+            vulnerabilities_lock.release()
             logging.info(
                 "|\n| {name}:\n|   type: vulnerability\n|   host: {host}:{port}\n|   description: \n{desc}".format(
                     name=self.event.get_name(),
