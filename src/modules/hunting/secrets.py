@@ -22,7 +22,7 @@ class SecretsAccess(Vulnerability, Event):
 # Passive Hunter
 @handler.subscribe(RunningAsPodEvent)
 class AccessSecrets(Hunter):
-    """AccessSecrets
+    """Access Secrets
     Accessing the secrets accessible to the pod"""
 
     def __init__(self, event):
