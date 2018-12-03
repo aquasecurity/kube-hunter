@@ -7,6 +7,7 @@ from ...core.events.types import Vulnerability, Event, OpenPortEvent
 from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure, RemoteCodeExec, \
     UnauthenticatedAccess, AccessRisk
 
+
 """ Vulnerabilities """
 class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
     """Remote write access might grant an attacker full control over the kubernetes cluster"""
@@ -15,12 +16,14 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec)
         self.evidence = write_res
 
+
 class EtcdRemoteReadAccessEvent(Vulnerability, Event):
     """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
 
     def __init__(self, keys):
         Vulnerability.__init__(self, KubernetesCluster,  name="Etcd Remote Read Access Event", category=AccessRisk)
         self.evidence = keys
+
 
 class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
     """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
@@ -29,6 +32,7 @@ class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure",
                                category=InformationDisclosure)
         self.evidence = version
+
 
 class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
     """Etcd is accessible using HTTP (without authorization and authentication), it would allow a potential attacker to
@@ -39,11 +43,12 @@ class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
                                category=UnauthenticatedAccess)
         self.evidence = version
 
+
 # Active Hunter
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
 class EtcdRemoteAccessActive(ActiveHunter):
     """Etcd Remote Access
-    Checks for remote write access to etcd"""
+    Checks for remote write access to etcd- will attempt to add a new key to the etcd DB"""
 
     def __init__(self, event):
         self.event = event
@@ -71,7 +76,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
 class EtcdRemoteAccess(Hunter):
     """Etcd Remote Access
-    Checks for remote availability of etcd, version, read access, write access
+    Checks for remote availability of etcd, its version, and read access to the DB
     """
 
     def __init__(self, event):

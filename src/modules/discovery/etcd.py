@@ -18,8 +18,7 @@ class EtcdAccessEvent(Service, Event):
 
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
 class EtcdRemoteAccess(Hunter):
-    """Etcd Remote Access
-    Checks for remote availability of etcd, version, read access, write access
+    """Etcd open service
     """
     def __init__(self, event):
         self.event = event
