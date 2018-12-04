@@ -29,6 +29,7 @@ class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
     """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
 
     def __init__(self, version):
+
         Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure",
                                category=InformationDisclosure)
         self.evidence = version
