@@ -16,11 +16,11 @@ class PlainReporter(object):
         output = ""
 
         vulnerabilities_lock.acquire()
-        vulnerabilities_len = len(services)
+        vulnerabilities_len = len(vulnerabilities)
         vulnerabilities_lock.release()
 
         services_lock.acquire()
-        services_len = len(vulnerabilities)
+        services_len = len(services)
         services_lock.release()
 
         if services_len:
