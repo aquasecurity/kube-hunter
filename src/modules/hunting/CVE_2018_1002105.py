@@ -9,8 +9,6 @@ from ...core.events.types import Vulnerability, Event, OpenPortEvent
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, PrivilegeEscalation
 
 """ Vulnerabilities """
-
-
 class ServerApiVersionEndPointAccess(Vulnerability, Event):
     """ Accessing the server API within a compromised pod would help an attacker gain full control over the cluster"""
 
