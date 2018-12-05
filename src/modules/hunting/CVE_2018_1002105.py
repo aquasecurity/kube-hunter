@@ -9,10 +9,10 @@ from ...core.events.types import Vulnerability, Event, OpenPortEvent
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, PrivilegeEscalation
 
 """ Vulnerabilities """
-
-
 class ServerApiVersionEndPointAccess(Vulnerability, Event):
-    """ Accessing the server API within a compromised pod would help an attacker gain full control over the cluster"""
+    """ CVE-2018-1002105
+    Pod is vulnerable to critical CVE-2018-1002105
+"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Critical PrivilegedEscalation CVE", category=PrivilegeEscalation)
@@ -21,8 +21,8 @@ class ServerApiVersionEndPointAccess(Vulnerability, Event):
 # Passive Hunter
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 443 or x.port == 6443)
 class IsVulnerableToCVEAttack(Hunter):
-    """ API Server Hunter
-    Accessing the API server within a compromised pod might grant an attacker full control over the cluster
+    """ CVE-2018-1002105
+    Pod is vulnerable to critical CVE-2018-1002105
     """
 
     def __init__(self, event):
