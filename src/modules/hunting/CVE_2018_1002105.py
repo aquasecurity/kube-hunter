@@ -2,6 +2,7 @@ import logging
 import json
 import requests
 import uuid
+import ast
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
@@ -29,6 +30,8 @@ class IsVulnerableToCVEAttack(Hunter):
         self.headers = dict()
         self.path = "https://{}:{}".format(self.event.host, self.event.port)
         self.service_account_token_evidence = ''
+        self.api_server_evidence = ''
+        self.k8sVersion = ''
 
     def access_api_server_version_end_point(self):
         logging.debug(self.event.host)
@@ -36,9 +39,21 @@ class IsVulnerableToCVEAttack(Hunter):
         try:
             res = requests.get("{path}/version".format(path=self.path),
                                headers=self.headers, verify=False)
-            self.service_account_token_evidence = res.content
-            return res.status_code == 200 and res.content != ''
-        except requests.exceptions.ConnectionError:
+            self.api_server_evidence = res.content
+            resDict = ast.literal_eval(res.content)
+            version = resDict["gitVersion"].split('.')
+            first_two_minor_digists = eval(version[1])
+            last_two_minor_digists = eval(version[2])
+
+            if first_two_minor_digists == 10 and last_two_minor_digists < 11:
+                return True
+            elif first_two_minor_digists == 11 and last_two_minor_digists < 5:
+                return True
+            elif first_two_minor_digists == 12 and last_two_minor_digists < 3:
+                return True
+            elif first_two_minor_digists < 10:
+                return True
+        except (requests.exceptions.ConnectionError, KeyError):
             return False
 
     def get_service_account_token(self):
