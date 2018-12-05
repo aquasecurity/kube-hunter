@@ -10,7 +10,9 @@ from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExe
 
 """ Vulnerabilities """
 class ServerApiVersionEndPointAccess(Vulnerability, Event):
-    """ Accessing the server API within a compromised pod would help an attacker gain full control over the cluster"""
+    """ CVE-2018-1002105
+    Pod is vulnerable to critical CVE-2018-1002105
+"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Critical PrivilegedEscalation CVE", category=PrivilegeEscalation)
