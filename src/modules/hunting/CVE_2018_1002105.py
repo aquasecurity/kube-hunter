@@ -72,3 +72,5 @@ class IsVulnerableToCVEAttack(Hunter):
         if self.get_service_account_token():  # From within a Pod
             if self.access_api_server_version_end_point():
                 self.publish_event(ServerApiVersionEndPointAccess(self.api_server_evidence))
+        else:
+            self.publish_event(ServerApiVersionEndPointAccess(self.api_server_evidence))
