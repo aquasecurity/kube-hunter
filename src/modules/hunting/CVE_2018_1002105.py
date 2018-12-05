@@ -74,3 +74,4 @@ class IsVulnerableToCVEAttack(Hunter):
                 self.publish_event(ServerApiVersionEndPointAccess(self.api_server_evidence))
         else:
             self.publish_event(ServerApiVersionEndPointAccess(self.api_server_evidence))
+
