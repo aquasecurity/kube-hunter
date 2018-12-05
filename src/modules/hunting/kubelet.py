@@ -20,17 +20,20 @@ class ExposedPodsHandler(Vulnerability, Event):
         Vulnerability.__init__(self, Kubelet, "Exposed Pods", category=InformationDisclosure)    
         self.count = count
         self.evidence = "count: {}".format(self.count)
-        
+
+
 class AnonymousAuthEnabled(Vulnerability, Event):
     """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet, without the need to authenticate"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Anonymous Authentication", category=RemoteCodeExec)
 
+
 class ExposedContainerLogsHandler(Vulnerability, Event):
     """Output logs from a running container are using the exposed /containerLogs endpoint"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed Container Logs", category=InformationDisclosure)    
-    
+
+
 class ExposedRunningPodsHandler(Vulnerability, Event):
     """Outputs a list of currently running pods, and some of their metadata, which can reveal sensitive information"""
     def __init__(self, count):
@@ -38,25 +41,30 @@ class ExposedRunningPodsHandler(Vulnerability, Event):
         self.count = count
         self.evidence = "{} running pods".format(self.count)
 
+
 class ExposedExecHandler(Vulnerability, Event):
     """An attacker could run arbitrary commands on a container"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed Exec On Container", category=RemoteCodeExec)    
+
 
 class ExposedRunHandler(Vulnerability, Event):
     """An attacker could run an arbitrary command inside a container"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec)    
 
+
 class ExposedPortForwardHandler(Vulnerability, Event):
     """An attacker could set port forwaring rule on a pod"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed Port Forward", category=RemoteCodeExec)    
 
+
 class ExposedAttachHandler(Vulnerability, Event):
     """Opens a websocket that could enable an attacker to attach to a running container"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed Attaching To Container", category=RemoteCodeExec)    
+
 
 class ExposedHealthzHandler(Vulnerability, Event):
     """By accessing the open /healthz handler, an attacker could get the cluster health state without authenticating"""
@@ -65,19 +73,30 @@ class ExposedHealthzHandler(Vulnerability, Event):
         self.status = status
         self.evidence = "status: {}".format(self.status)
 
+
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from logs in the /metrics endpoint"""
     def __init__(self, version):
         Vulnerability.__init__(self, Kubelet, "K8s Version Disclosure", category=InformationDisclosure)
         self.evidence = version
-    
+
+
 class PrivilegedContainers(Vulnerability, Event):
     """A Privileged container exist on a node. could expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
         Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=AccessRisk)
         self.containers = containers
         self.evidence = "pod: {}, container: {}".format(containers[0][0], containers[0][1])
-        
+
+
+class PrivilegeEscalation(Vulnerability, Event):
+    """Privilege escalation allows an attacker to grant root permissions and control the cluster"""
+
+    def __init__(self, containers):
+        Vulnerability.__init__(self, KubernetesCluster, "Privilege Escalation", category=PrivilegeEscalation)
+        self.containers = containers
+        self.evidence = "pod: {}, container: {}".format(containers[0][0], containers[0][1])
+
 
 """ dividing ports for seperate hunters """
 @handler.subscribe(ReadOnlyKubeletEvent)
