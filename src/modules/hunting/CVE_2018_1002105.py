@@ -65,7 +65,7 @@ class IsVulnerableToCVEAttack(Hunter):
             return False
 
     def execute(self):
-        self.get_service_account_token():  # From within a Pod we may have extra credentials
+        self.get_service_account_token()  # From within a Pod we may have extra credentials
         if self.access_api_server_version_end_point():
             self.publish_event(ServerApiVersionEndPointAccess(self.api_server_evidence))
 
