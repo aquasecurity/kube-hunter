@@ -353,6 +353,31 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             self.publish_event(ApiServerPassiveHunterFinished(self.all_namespaces_names_evidence,
                                                               self.service_account_token_evidence,
                                                               self.event.host, self.event.port))
+        else:
+            logging.debug('No service account token found, verifiying anonymous access.')
+            if self.get_all_namespaces():
+                self.publish_event(ListAllNamespaces(self.all_namespaces_names_evidence))
+
+            if self.get_pods_list_under_requested_scope():
+                self.publish_event(ListPodUnderAllNamespaces(self.namespaces_and_their_pod_names))
+            else:
+                if self.get_pods_list_under_requested_scope(scope='namespaces/default'):
+                    self.publish_event(ListPodUnderDefaultNamespace(self.namespaces_and_their_pod_names))
+
+            if self.get_all_roles():
+                self.publish_event(ListAllRoles(self.all_roles_names_evidence))
+            else:
+                if self.get_roles_under_default_namespace():
+                    self.publish_event(ListAllRolesUnderDefaultNamespace(
+                                        self.roles_names_under_default_namespace_evidence))
+            if self.get_all_cluster_roles():
+                self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
+
+            # At this point we know we got the service_account_token, and we might got all of the namespaces
+            self.publish_event(ApiServerPassiveHunterFinished(self.all_namespaces_names_evidence,
+                                                              self.service_account_token_evidence,
+                                                              self.event.host, self.event.port))
+
 
 
 # Active Hunter
@@ -395,8 +420,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         privileged_value = ',"securityContext":{"privileged":true}' if is_privileged else ''
         json_pod = \
             """
-            
-                {{"apiVersion": "v1",            
+
+                {{"apiVersion": "v1",
                 "kind": "Pod",
                 "metadata": {{
                     "name": "{random_str}"
@@ -416,7 +441,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                     ]
                 }}
             }}
-            
+
             """.format(random_str=(str(uuid.uuid4()))[0:5], is_privileged_flag=privileged_value)
         headers = {
             'Content-Type': 'application/json',
