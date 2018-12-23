@@ -7,8 +7,10 @@ RUN apk add --update \
     wireshark
 
 RUN mkdir -p /kube-hunter 
+COPY ./requirements.txt /kube-hunter/.
+RUN pip install -r /kube-hunter/requirements.txt
+
 COPY . /kube-hunter
 WORKDIR /kube-hunter
-RUN pip install -r requirements.txt
 
 ENTRYPOINT ["python",  "kube-hunter.py"]
