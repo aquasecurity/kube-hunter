@@ -44,7 +44,7 @@ else:
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
 from src.modules.discovery import HostDiscovery
-from src.modules.discovery.hosts import HostScanEvent
+from src.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
 import src
 
 
@@ -117,7 +117,10 @@ def main():
         hunt_started = True
         hunt_started_lock.release()
         handler.publish_event(HuntStarted())
-        handler.publish_event(HostScanEvent())
+        if config.pod:
+            handler.publish_event(RunningAsPodEvent())
+        else:
+            handler.publish_event(HostScanEvent())
         
         # Blocking to see discovery output
         handler.join()
