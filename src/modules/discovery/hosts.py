@@ -32,7 +32,7 @@ class RunningAsPodEvent(Event):
         return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
 
 class AzureMetadataApi(Vulnerability, Event):
-    """Access to the Azure Metadata API exposes sensitive information about the machines associated with the cluster"""
+    """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
     def __init__(self, cidr):
         Vulnerability.__init__(self, Azure, "Azure Metadata Exposure", category=InformationDisclosure)
         self.cidr = cidr
@@ -47,7 +47,7 @@ class HostDiscoveryHelpers:
     @staticmethod
     def get_cloud(host):
         try:
-            logging.debug("Passive hunter is checking whether the cluster is deployed on azure's cloud")
+            logging.debug("Checking whether the cluster is deployed on azure's cloud")
             metadata = requests.get("http://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host)).text
         except requests.ConnectionError as e:
             logging.info("- unable to check cloud: {0}".format(e))
@@ -89,7 +89,7 @@ class FromPodHostDiscovery(Hunter):
             
     def is_azure_pod(self):
         try:
-            logging.debug("Attempting to access Azure Metadata API")
+            logging.debug("From pod attempting to access Azure Metadata API")
             if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}, timeout=5).status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
@@ -107,7 +107,7 @@ class FromPodHostDiscovery(Hunter):
 
     # quering azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
-        logging.debug("Passive hunter is attempting to pull azure's metadata")
+        logging.debug("From pod attempting to access azure's metadata")
         machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).text)
         address, subnet= "", ""
         subnets = list()
@@ -147,7 +147,7 @@ class HostDiscovery(Hunter):
     # for normal scanning
     def scan_interfaces(self):
         try:
-            logging.debug("Passive hunter is attempting to get external IP address")
+            logging.debug("HostDiscovery hunter attempting to get external IP address")
             external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
         except requests.ConnectionError as e:
             logging.debug("unable to determine local IP address: {0}".format(e))
