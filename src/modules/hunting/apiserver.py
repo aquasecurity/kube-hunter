@@ -317,7 +317,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
     def execute(self):
 
-        self.get_service_account_token():
+        self.get_service_account_token()
 
         if self.access_api_server():
             self.publish_event(ServerApiAccess(self.api_server_evidence))
