@@ -211,7 +211,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
     def __init__(self, event):
         self.event = event
-        self.headers = dict()
+        self.headers = {}
         self.path = "https://{}:{}".format(self.event.host, self.event.port)
 
         self.api_server_evidence = ''
@@ -363,6 +363,10 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         self.all_namespaces_names = set(event.all_namespaces_names)
         self.service_account_token = event.service_account_token
 
+        self.headers = {}
+        if self.service_account_token != '':
+            self.headers['Authorization'] = 'Bearer {token}'.format(token=self.service_account_token)
+
         # 12 Evidences:
         self.is_privileged_pod_created = False
         self.created_pod_name_evidence = ''
@@ -410,11 +414,9 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             }}
 
             """.format(random_str=(str(uuid.uuid4()))[0:5], is_privileged_flag=privileged_value)
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        if self.service_account_token != '':
-            headers['Authorization'] = 'Bearer {token}'.format(token=self.service_account_token)
+        headers = self.headers
+        headers['Content-Type'] = 'application/json'
+
         try:
             res = requests.post("{path}/api/v1/namespaces/{namespace}/pods".format(
                                 path=self.path, namespace=namespace),
@@ -430,10 +432,10 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         return True
 
     def delete_a_pod(self, namespace, pod_name):
-        try:
+        try:            
             res = requests.delete("{path}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                  path=self.path, name=pod_name, namespace=namespace),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                               headers=self.headers, verify=False)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content)
             self.deleted_newly_created_pod_evidence = parsed_content['metadata']['deletionTimestamp']
@@ -444,10 +446,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def patch_a_pod(self, namespace, pod_name):
         #  Initialize request variables:
         patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
-        headers = {
-            'Content-Type': 'application/json-patch+json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
-        }
+        headers = self.headers
+        headers['Content-Type'] = 'application/json-patch+json'
         try:
             res = requests.patch("{path}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                  path=self.path, namespace=namespace, name=pod_name),
@@ -463,10 +463,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def create_namespace(self):
         #  Initialize request variables:
         json_namespace = '{{"kind":"Namespace","apiVersion":"v1","metadata":{{"name":"{random_str}","labels":{{"name":"{random_str}"}}}}}}'.format(random_str=(str(uuid.uuid4()))[0:5])
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
-        }
+        headers = self.headers
+        headers['Content-Type'] = 'application/json'
         try:
             res = requests.post("{path}/api/v1/namespaces".format(
                 path=self.path),
@@ -482,9 +480,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     # 2 Namespaces methods:
     def delete_namespace(self):
         #  Initialize request header:
-        headers = {
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
-        }
+        headers = self.headers
         try:
             res = requests.delete("{path}/api/v1/namespaces/{name}".format(
                 path=self.path, name=self.created_new_namespace_name_evidence),
@@ -523,10 +519,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                             }}
                           ]
                         }}""".format(random_str=(str(uuid.uuid4()))[0:5], namespace=namespace)
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
-        }
+        headers = self.headers
+        headers['Content-Type'] = 'application/json'
         try:
             res = requests.post("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                 path=self.path, namespace=namespace),
@@ -562,10 +556,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                         }}
                       ]
                     }}""".format(random_str=(str(uuid.uuid4()))[0:5])
-        headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
-        }
+        headers = self.headers
+        headers['Content-Type'] = 'application/json'
         try:
             res = requests.post("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
                                path=self.path),
@@ -581,7 +573,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         try:
             res = requests.delete("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
                                  path=self.path, namespace=namespace, role=newly_created_role_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                               headers=self.headers, verify=False)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content)
             self.deleted_newly_created_role_evidence = parsed_content["status"]
@@ -593,7 +585,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         try:
             res = requests.delete("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
                                  path=self.path, name=newly_created_cluster_role_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                               headers=self.headers, verify=False)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content)
             self.deleted_newly_created_cluster_role_evidence = parsed_content["status"]
@@ -604,10 +596,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def patch_a_role(self, namespace, newly_created_role_name):
         #  Initialize request variables:
         patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
-        headers = {
-            'Content-Type': 'application/json-patch+json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
-        }
+        headers = self.headers
+        headers['Content-Type'] = 'application/json-patch+json'
         try:
             res = requests.patch("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}".format(
                                  path=self.path, name=newly_created_role_name,
@@ -624,10 +614,8 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def patch_a_cluster_role(self, newly_created_cluster_role_name):
 
         patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
-        headers = {
-            'Content-Type': 'application/json-patch+json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
-        }
+        headers = self.headers
+        headers['Content-Type'] = 'application/json-patch+json'
         try:
             res = requests.patch("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
                                  path=self.path, name=newly_created_cluster_role_name),
