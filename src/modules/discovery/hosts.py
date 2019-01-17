@@ -28,6 +28,7 @@ class RunningAsPodEvent(Event):
                 return token_file.read()
         except IOError:
             pass
+            
     def get_client_cert(self):
         return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
 
