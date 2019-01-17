@@ -19,15 +19,6 @@ class ServerApiAccess(Vulnerability, Event):
         self.evidence = evidence
 
 
-class ServiceAccountTokenAccess(Vulnerability, Event):
-    """ Accessing the pod service account token gives an attacker the option to use the server API """
-
-    def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Read access to pod's service account token",
-                               category=AccessRisk)
-        self.evidence = evidence
-
-
 class ListPodUnderDefaultNamespace(Vulnerability, Event):
     """ Accessing the pods list under default namespace might give an attacker valuable
      information to harm the cluster """
@@ -327,7 +318,6 @@ class AccessApiServerViaServiceAccountToken(Hunter):
     def execute(self):
 
         if self.get_service_account_token():
-            self.publish_event(ServiceAccountTokenAccess(self.service_account_token_evidence))
             if self.access_api_server():
                 self.publish_event(ServerApiAccess(self.api_server_evidence))
 
