@@ -643,7 +643,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def execute(self):
         logging.debug("Active Hunter attempting to write to API Server")
 
-        # if self.service_account_token != '':
         #  Namespaces Api Calls:
         if self.create_namespace():
             self.publish_event(CreateANamespace('new namespace name: {name}'.
