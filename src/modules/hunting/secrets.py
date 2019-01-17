@@ -11,6 +11,14 @@ from ...core.types import Hunter, KubernetesCluster, AccessRisk
 from ..discovery.hosts import RunningAsPodEvent
 
 """ Vulnerabilities """
+class ServiceAccountTokenAccess(Vulnerability, Event):
+    """ Accessing the pod service account token gives an attacker the option to use the server API """
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Read access to pod's service account token",
+                               category=AccessRisk)
+        self.evidence = evidence
+
 class SecretsAccess(Vulnerability, Event):
     """ Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
 
@@ -37,5 +45,7 @@ class AccessSecrets(Hunter):
         return True if (len(self.secrets_evidence) > 0) else False
 
     def execute(self):
+        if self.event.auth_token is not None:
+            self.publish_event(ServiceAccountTokenAccess(self.event.auth_token))
         if self.get_services():
             self.publish_event(SecretsAccess(self.secrets_evidence))

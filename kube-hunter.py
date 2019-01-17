@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security w
 parser.add_argument('--list', action="store_true", help="displays all tests in kubehunter (add --active flag to see active tests)")
 parser.add_argument('--internal', action="store_true", help="set hunting of all internal network interfaces")
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
+parser.add_argument('--quick', action="store_true", help="Prefer quick scan (subnet 24)")
 parser.add_argument('--cidr', type=str, help="set an ip range to scan, example: 192.168.0.0/16")
 parser.add_argument('--mapping', action="store_true", help="outputs only a mapping of the cluster's nodes")
 parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="one or more remote ip/dns to hunt")
@@ -43,7 +44,7 @@ else:
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
 from src.modules.discovery import HostDiscovery
-from src.modules.discovery.hosts import HostScanEvent
+from src.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
 import src
 
 
@@ -116,7 +117,10 @@ def main():
         hunt_started = True
         hunt_started_lock.release()
         handler.publish_event(HuntStarted())
-        handler.publish_event(HostScanEvent())
+        if config.pod:
+            handler.publish_event(RunningAsPodEvent())
+        else:
+            handler.publish_event(HostScanEvent())
         
         # Blocking to see discovery output
         handler.join()
