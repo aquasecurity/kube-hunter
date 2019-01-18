@@ -206,7 +206,8 @@ class ApiServerPassiveHunterFinished(Event):
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 443 or x.port == 6443)
 class AccessApiServerViaServiceAccountToken(Hunter):
     """ API Server Hunter
-    Accessing the API server within a compromised pod might grant an attacker full control over the cluster
+    Accessing the API server within a compromised pod might grant an attacker control over the cluster. 
+    The level of access depends on the service account associated with the pod. 
     """
 
     def __init__(self, event):
@@ -351,7 +352,8 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 @handler.subscribe(ApiServerPassiveHunterFinished)
 class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     """API server hunter
-    Accessing the api server might grant an attacker full control over the cluster
+    Accessing the API server might grant an attacker control over the cluster. 
+    The level of access depends on the service account associated wtih the pod. 
     """
 
     def __init__(self, event):
