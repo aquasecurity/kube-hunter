@@ -1,0 +1,36 @@
+# Test YAML for configuring a pod with admin access to the cluster
+# that can run all the active hunter tests inside a pod!
+# For testing purposes only!
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-hunter-test-admin
+---  
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kube-hunter-test-admin-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: admin
+subjects:
+- kind: ServiceAccount
+  name: kube-hunter-test-admin
+  namespace: default
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kube-hunter
+spec:
+  template:
+    spec:
+      serviceAccountName: kube-hunter-test-admin
+      containers:
+      - name: kube-hunter
+        image: aquasec/kube-hunter 
+        command: ["python", "kube-hunter.py"]
+        args: ["--pod","--active"]
+      restartPolicy: Never
+  backoffLimit: 4
