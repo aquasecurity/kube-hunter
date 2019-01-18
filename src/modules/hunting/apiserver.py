@@ -159,7 +159,7 @@ class CreateAPod(Vulnerability, Event):
     """ Creating a new pod allows an attacker to run custom code"""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Created A Pod",
+        Vulnerability.__init__(self, KubernetesCluster, name="Created a Pod",
                                category=AccessRisk)
         self.evidence = evidence
 
@@ -168,7 +168,7 @@ class CreateAPrivilegedPod(Vulnerability, Event):
     """ Creating a new PRIVILEGED pod would gain an attacker FULL CONTROL over the cluster"""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Created A PRIVILEGED Pod",
+        Vulnerability.__init__(self, KubernetesCluster, name="Created a PRIVILEGED Pod",
                                category=AccessRisk)
         self.evidence = evidence
 
@@ -177,7 +177,7 @@ class PatchAPod(Vulnerability, Event):
     """ Patching a pod allows an attacker to compromise and control it """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Patched A Pod",
+        Vulnerability.__init__(self, KubernetesCluster, name="Patched a Pod",
                                category=AccessRisk)
         self.evidence = evidence
 
@@ -186,7 +186,7 @@ class DeleteAPod(Vulnerability, Event):
     """ Deleting a pod allows an attacker to disturb applications on the cluster """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Deleted A Pod",
+        Vulnerability.__init__(self, KubernetesCluster, name="Deleted a Pod",
                                category=AccessRisk)
         self.evidence = evidence
 
