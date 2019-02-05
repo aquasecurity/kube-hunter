@@ -23,7 +23,7 @@ class SecretsAccess(Vulnerability, Event):
     """ Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Accessed to pod's secrets", category=AccessRisk)
+        Vulnerability.__init__(self, KubernetesCluster, name="Access to pod's secrets", category=AccessRisk)
         self.evidence = evidence
 
 
