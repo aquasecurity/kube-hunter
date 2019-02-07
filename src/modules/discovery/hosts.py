@@ -76,7 +76,15 @@ class FromPodHostDiscovery(Hunter):
     def execute(self):
         # Discover master API server from in-pod environment variable.
 
-        if self.is_azure_pod():
+        if config.cidr:
+            try:
+                ip, sn = config.cidr.split('/')
+            except ValueError as e:
+                logging.error("unable to parse cidr: {0}".format(e))
+                return
+            cloud = HostDiscoveryHelpers.get_cloud(ip)
+            subnets = [[ip, sn], ]
+        elif self.is_azure_pod():
             subnets, cloud =self.azure_metadata_discovery()
         else:
             subnets, cloud = self.traceroute_discovery()
