@@ -1,6 +1,7 @@
 import requests
 import logging
 
+from ...core.util import get_client_cert
 from ...core.types import Hunter
 from ...core.events import handler
 from ...core.events.types import OpenPortEvent, Service, Event
@@ -27,7 +28,7 @@ class ApiServerDiscovery(Hunter):
 
     def execute(self):
         logging.debug("Attempting to discover an Api server")
-        main_request = requests.get("https://{}:{}".format(self.event.host, self.event.port), verify=False).text
+        main_request = requests.get("https://{}:{}".format(self.event.host, self.event.port), verify=False, cert=get_client_cert()).text
         if "code" in main_request:
             self.event.role = "Master"
         self.publish_event(ApiServer())

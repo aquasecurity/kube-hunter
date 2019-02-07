@@ -1,6 +1,8 @@
 import logging
 import requests
 from collections import defaultdict
+
+from ...core.util import get_client_cert
 from ...core.types import Hunter
 
 from requests import get
@@ -26,10 +28,10 @@ class KubeProxy(Hunter):
     @property
     def accesible(self):
         logging.debug("Attempting to discover a proxy service")
-        r = requests.get("http://{host}:{port}/api/v1".format(host=self.host, port=self.port))
+        r = requests.get("http://{host}:{port}/api/v1".format(host=self.host, port=self.port), cert=get_client_cert())
         if r.status_code == 200 and "APIResourceList" in r.text:
             return True
 
     def execute(self):
         if self.accesible:
-            self.publish_event(KubeProxyEvent())        
+            self.publish_event(KubeProxyEvent())

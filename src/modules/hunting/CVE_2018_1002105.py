@@ -4,6 +4,7 @@ import requests
 import uuid
 import ast
 
+from ...core.util import get_client_cert
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, OpenPortEvent
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, PrivilegeEscalation
@@ -34,7 +35,7 @@ class IsVulnerableToCVEAttack(Hunter):
         logging.debug('Passive Hunter is attempting to access the API server /version end point using the pod\'s service account token')
         try:
             res = requests.get("{path}/version".format(path=self.path),
-                               headers=self.headers, verify=False)
+                               headers=self.headers, verify=False, cert=get_client_cert())
             self.api_server_evidence = res.content
             resDict = ast.literal_eval(res.content)
             version = resDict["gitVersion"].split('.')
@@ -68,4 +69,3 @@ class IsVulnerableToCVEAttack(Hunter):
         self.get_service_account_token()  # From within a Pod we may have extra credentials
         if self.access_api_server_version_end_point():
             self.publish_event(ServerApiVersionEndPointAccess(self.api_server_evidence))
-

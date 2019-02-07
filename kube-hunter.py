@@ -21,6 +21,8 @@ parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help=
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml")
+parser.add_argument('--clientkey', type=str,help="path to a client certificate key to authenticate to Kubernetes")
+parser.add_argument('--clientcert', type=str,help="path to a client certificate cert to authenticate to Kubernetes")
 
 import plugins
 
