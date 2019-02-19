@@ -19,7 +19,7 @@ You can also run kube-hunter in a pod within the cluster. This gives an indicati
 
 ### Scanning options
 
-**[Pre-requisites](#prerequisites)**
+First check the **[pre-requisites](#prerequisites)**
 
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
