@@ -18,6 +18,9 @@ You can run kube-hunter directly on a machine in the cluster, and select the opt
 You can also run kube-hunter in a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example).
 
 ### Scanning options
+
+First check the **[pre-requisites](#prerequisites)**
+
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
 1. **Remote scanning**
