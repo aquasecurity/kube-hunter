@@ -190,4 +190,8 @@ To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vul
 *Note that you can specify the 'evidence' attribute without active hunting*  
 
 ## Tests
-Although we haven't been rigorous about this in the past, please add tests to support your code changes. 
+Although we haven't been rigorous about this in the past, please add tests to support your code changes. Tests are executed like this: 
+
+```bash
+python runtest.py
+```
