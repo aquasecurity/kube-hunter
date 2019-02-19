@@ -12,17 +12,18 @@ class ApiServer(Service, Event):
         Service.__init__(self, name="API Server")
 
 
+# Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
+# A Kubernetes API server will respond with a JSON message that includes a "code" field for the HTTP status code
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port==443 or x.port==6443)
 class ApiServerDiscovery(Hunter):
     """Api Server Discovery
-    Checks for the existence of a an Api Server
+    Checks for the existence of a an API Server
     """
     def __init__(self, event):
         self.event = event
 
     def execute(self):
-        logging.debug("Attempting to discover an Api server")
+        logging.debug("Attempting to discover an API server")
         main_request = requests.get("https://{}:{}".format(self.event.host, self.event.port), verify=False).text
-        if "code" in main_request:
-            self.event.role = "Master"
-        self.publish_event(ApiServer())
+        if '"code"' in main_request:
+            self.publish_event(ApiServer())

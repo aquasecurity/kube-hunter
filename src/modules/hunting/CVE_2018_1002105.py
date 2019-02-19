@@ -5,7 +5,8 @@ import uuid
 import ast
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, OpenPortEvent
+from ...core.events.types import Vulnerability, Event
+from ..discovery.apiserver import ApiServer
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, PrivilegeEscalation
 
 """ Vulnerabilities """
@@ -17,7 +18,7 @@ class ServerApiVersionEndPointAccess(Vulnerability, Event):
         self.evidence = evidence
 
 # Passive Hunter
-@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 443 or x.port == 6443)
+@handler.subscribe(ApiServer)
 class IsVulnerableToCVEAttack(Hunter):
     """ Node is running a Kubernetes version vulnerable to critical CVE-2018-1002105 """
 
