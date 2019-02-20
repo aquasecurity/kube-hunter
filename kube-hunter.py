@@ -35,9 +35,12 @@ if config.log.lower() != "none":
 
 from src.modules.report.plain import PlainReporter
 from src.modules.report.yaml import YAMLReporter
+from src.modules.report.json_reporter import JSONReporter
 
 if config.report.lower() == "yaml":
     config.reporter = YAMLReporter()
+elif config.report.lower() == "json":
+    config.reporter = JSONReporter()
 else:
     config.reporter = PlainReporter()
 

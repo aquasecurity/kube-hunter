@@ -1,16 +1,12 @@
 import StringIO
-
-from ruamel.yaml import YAML
+import json
 from base import BaseReporter
 
-class YAMLReporter(BaseReporter):
+class JSONReporter(BaseReporter):
     def get_report(self):
-        yaml = YAML()
         report = {
             "nodes": self.get_nodes(),
             "services": self.get_services(),
             "vulnerabilities": self.get_vulenrabilities()
         }
-        output = StringIO.StringIO()
-        yaml.dump(report, output)
-        return output.getvalue()
+        return json.dumps(report)
