@@ -1,4 +1,3 @@
-# from mock import patch
 import requests_mock
 
 from apiserver import ApiServer, ApiServerDiscovery
