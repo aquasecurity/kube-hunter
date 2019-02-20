@@ -188,3 +188,10 @@ If another Hunter subscribes to the events that this Hunter publishes, if can  a
 The process of proving vulnerabilities, is the base concept of the Active Hunting.    
 To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vulnerability, and inside of the `execute`, specify the `evidence` attribute of the event.   
 *Note that you can specify the 'evidence' attribute without active hunting*  
+
+## Tests
+Although we haven't been rigorous about this in the past, please add tests to support your code changes. Tests are executed like this: 
+
+```bash
+python runtest.py
+```
