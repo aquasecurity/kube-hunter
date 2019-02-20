@@ -8,7 +8,7 @@ def test_ApiServer():
 
     with requests_mock.Mocker() as m:
         m.get('https://mockOther:443', text='elephant')
-        m.get('https://mockKubernetes:443', text='code')
+        m.get('https://mockKubernetes:443', text='{"code":403}')
 
         e = Event()
         e.port = 443
