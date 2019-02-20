@@ -74,18 +74,20 @@ class FromPodHostDiscovery(Hunter):
         self.event = event
 
     def execute(self):
-        # Discover master API server from in-pod environment variable.
-
+        # Discover cluster subnets, we'll scan all these hosts 
         if self.is_azure_pod():
-            subnets, cloud =self.azure_metadata_discovery()
+            subnets, cloud = self.azure_metadata_discovery()
         else:
             subnets, cloud = self.traceroute_discovery()
-
 
         for subnet in subnets:
             logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
             for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
                 self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+
+        # There may be other hosts to scan as well 
+        if config.remote or config.cidr:
+            self.publish_event(HostScanEvent())
             
     def is_azure_pod(self):
         try:
