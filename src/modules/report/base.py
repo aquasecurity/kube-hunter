@@ -22,7 +22,7 @@ class BaseReporter(object):
         services_lock.release()
         return services_data
 
-    def get_vulenrabilities(self):
+    def get_vulnerabilities(self):
         vulnerabilities_lock.acquire()
         vulnerabilities_data = [{"location": "{}:{}".format(vuln.host, vuln.port) if vuln.host else "",
                  "category": vuln.category.name,
