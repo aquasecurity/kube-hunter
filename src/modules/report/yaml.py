@@ -9,7 +9,7 @@ class YAMLReporter(BaseReporter):
         report = {
             "nodes": self.get_nodes(),
             "services": self.get_services(),
-            "vulnerabilities": self.get_vulenrabilities()
+            "vulnerabilities": self.get_vulnerabilities()
         }
         output = StringIO.StringIO()
         yaml.dump(report, output)
