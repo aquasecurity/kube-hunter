@@ -74,20 +74,21 @@ class FromPodHostDiscovery(Hunter):
         self.event = event
 
     def execute(self):
-        # Discover cluster subnets, we'll scan all these hosts 
-        if self.is_azure_pod():
-            subnets, cloud = self.azure_metadata_discovery()
-        else:
-            subnets, cloud = self.traceroute_discovery()
-
-        for subnet in subnets:
-            logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
-            for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
-                self.publish_event(NewHostEvent(host=ip, cloud=cloud))
-
-        # There may be other hosts to scan as well 
+        # Scan any hosts that the user specified
         if config.remote or config.cidr:
             self.publish_event(HostScanEvent())
+        else:
+            # Discover cluster subnets, we'll scan all these hosts 
+            if self.is_azure_pod():
+                subnets, cloud = self.azure_metadata_discovery()
+            else:
+                subnets, cloud = self.traceroute_discovery()
+
+            for subnet in subnets:
+                logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
+                for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
+                    self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+
             
     def is_azure_pod(self):
         try:
@@ -118,7 +119,7 @@ class FromPodHostDiscovery(Hunter):
             logging.debug("From pod discovered subnet {0}/{1}".format(address, subnet if not config.quick else "24"))
             subnets.append([address,subnet if not config.quick else "24"])
 
-        self.publish_event(AzureMetadataApi(cidr="{}/{}".format(address, subnet)))
+            self.publish_event(AzureMetadataApi(cidr="{}/{}".format(address, subnet)))
 
         return subnets, "Azure"
 
