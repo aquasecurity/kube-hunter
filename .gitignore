@@ -1,3 +1,4 @@
 *.pyc
 .dockerignore
 *aqua*
+.idea/
