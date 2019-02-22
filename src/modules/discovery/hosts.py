@@ -24,12 +24,12 @@ class RunningAsPodEvent(Event):
         
     def get_auth_token(self):
         try:
-            with open("/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
+            with open("/var/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
                 return token_file.read()
         except IOError:
             pass
     def get_client_cert(self):
-        return "/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
+        return "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
 
 class AzureMetadataApi(Vulnerability, Event):
     """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
