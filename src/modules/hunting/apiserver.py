@@ -193,14 +193,11 @@ class DeleteAPod(Vulnerability, Event):
 
 
 class ApiServerPassiveHunterFinished(Event):
-    def __init__(self, all_namespaces_names, service_account_token, host, port):
-        self.host = host
-        self.port = port
+    def __init__(self, all_namespaces_names):
         self.all_namespaces_names = all_namespaces_names
-        self.service_account_token = service_account_token
 
     def __str__(self):
-        return str(self.service_account_token)
+        return str(self.event.auth_token)
 
 
 # Passive Hunter
@@ -216,7 +213,6 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         self.path = "https://{}:{}".format(self.event.host, self.event.port)
 
         self.api_server_evidence = ''
-        self.service_account_token_evidence = ''
         self.pod_list_under_default_namespace_evidence = ''
         self.pod_list_under_all_namespaces_evidence = ''
 
@@ -238,16 +234,8 @@ class AccessApiServerViaServiceAccountToken(Hunter):
             return False
 
     def get_service_account_token(self):
-        logging.debug(self.event.host)
-        logging.debug('Passive Hunter is attempting to access pod\'s service account token')
-        try:
-            with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as token:
-                data = token.read()
-                self.service_account_token_evidence = data
-                self.headers = {'Authorization': 'Bearer ' + self.service_account_token_evidence}
-                return True
-        except IOError:  # Couldn't read file
-            return False
+        if self.event.auth_token != '':
+            self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
 
     # 1 Pods Method:
     def get_pods_list_under_requested_scope(self, scope=None):
@@ -341,10 +329,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         if self.get_all_cluster_roles():
             self.publish_event(ListAllClusterRoles(self.all_cluster_roles_names_evidence))
 
-        # At this point we know we got the service_account_token, and we might got all of the namespaces
-        self.publish_event(ApiServerPassiveHunterFinished(self.all_namespaces_names_evidence,
-                                                          self.service_account_token_evidence,
-                                                          self.event.host, self.event.port))
+        self.publish_event(ApiServerPassiveHunterFinished(self.all_namespaces_names_evidence))
 
 
 # Active Hunter
@@ -361,7 +346,6 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         # Getting Passive hunter's data:
         self.namespaces_and_their_pod_names = dict()
         self.all_namespaces_names = set(event.all_namespaces_names)
-        self.service_account_token = event.service_account_token
 
         # 12 Evidences:
         self.is_privileged_pod_created = False
@@ -412,7 +396,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
             """.format(random_str=(str(uuid.uuid4()))[0:5], is_privileged_flag=privileged_value)
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.post("{path}/api/v1/namespaces/{namespace}/pods".format(
@@ -432,7 +416,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         try:
             res = requests.delete("{path}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                  path=self.path, name=pod_name, namespace=namespace),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                               headers={'Authorization': 'Bearer ' + self.event.auth_token}, verify=False)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content)
             self.deleted_newly_created_pod_evidence = parsed_content['metadata']['deletionTimestamp']
@@ -445,7 +429,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
         headers = {
             'Content-Type': 'application/json-patch+json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.patch("{path}/api/v1/namespaces/{namespace}/pods/{name}".format(
@@ -464,7 +448,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         json_namespace = '{{"kind":"Namespace","apiVersion":"v1","metadata":{{"name":"{random_str}","labels":{{"name":"{random_str}"}}}}}}'.format(random_str=(str(uuid.uuid4()))[0:5])
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.post("{path}/api/v1/namespaces".format(
@@ -482,7 +466,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
     def delete_namespace(self):
         #  Initialize request header:
         headers = {
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.delete("{path}/api/v1/namespaces/{name}".format(
@@ -524,7 +508,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                         }}""".format(random_str=(str(uuid.uuid4()))[0:5], namespace=namespace)
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.post("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
@@ -563,7 +547,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
                     }}""".format(random_str=(str(uuid.uuid4()))[0:5])
         headers = {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.post("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
@@ -580,7 +564,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         try:
             res = requests.delete("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
                                  path=self.path, namespace=namespace, role=newly_created_role_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                               headers={'Authorization': 'Bearer ' + self.event.auth_token}, verify=False)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content)
             self.deleted_newly_created_role_evidence = parsed_content["status"]
@@ -592,7 +576,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         try:
             res = requests.delete("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
                                  path=self.path, name=newly_created_cluster_role_name),
-                               headers={'Authorization': 'Bearer ' + self.service_account_token}, verify=False)
+                               headers={'Authorization': 'Bearer ' + self.event.auth_token}, verify=False)
             if res.status_code not in [200, 201, 202]: return False
             parsed_content = json.loads(res.content)
             self.deleted_newly_created_cluster_role_evidence = parsed_content["status"]
@@ -605,7 +589,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
         headers = {
             'Content-Type': 'application/json-patch+json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.patch("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}".format(
@@ -625,7 +609,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         patch_data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
         headers = {
             'Content-Type': 'application/json-patch+json',
-            'Authorization': 'Bearer {token}'.format(token=self.service_account_token)
+            'Authorization': 'Bearer {token}'.format(token=self.event.auth_token)
         }
         try:
             res = requests.patch("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}".format(
@@ -640,7 +624,7 @@ class AccessApiServerViaServiceAccountTokenActive(ActiveHunter):
         return True
 
     def execute(self):
-        if self.service_account_token != '':
+        if self.event.auth_token != '':
             #  Namespaces Api Calls:
             if self.create_namespace():
                 self.publish_event(CreateANamespace('new namespace name: {name}'.
