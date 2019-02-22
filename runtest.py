@@ -16,7 +16,7 @@ parser.add_argument('--report', type=str, default='plain', help="set report type
 config = parser.parse_args()
 
 def main():
-    pytest.main(['.'])
+    exit(pytest.main(['.']))
 
 
 if __name__ == '__main__':
