@@ -3,7 +3,7 @@ language: python
 cache: pip
 matrix:
   allow_failures:
-    # Python 3 tests are gailing due to an import error
+    # Python 3 tests are failing due to an import error
     - python: 3.6
   include:
     - python: 2.7
