@@ -1,4 +1,4 @@
-from collector import services, vulnerabilities, services_lock, vulnerabilities_lock
+from .collector import services, vulnerabilities, services_lock, vulnerabilities_lock
 
 class BaseReporter(object):
     def get_nodes(self):

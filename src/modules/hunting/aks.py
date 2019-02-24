@@ -3,7 +3,7 @@ import logging
 
 import requests
 
-from kubelet import ExposedRunHandler
+from .kubelet import ExposedRunHandler
 
 from ...core.events import handler
 from ...core.events.types import Event, Vulnerability
