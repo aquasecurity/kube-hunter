@@ -26,4 +26,5 @@ class ApiServerDiscovery(Hunter):
         logging.debug("Attempting to discover an API server")
         main_request = requests.get("https://{}:{}".format(self.event.host, self.event.port), verify=False).text
         if '"code"' in main_request:
+            self.event.role = "Master"
             self.publish_event(ApiServer())
