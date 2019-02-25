@@ -4,7 +4,8 @@ import requests
 import uuid
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, OpenPortEvent
+from ...core.events.types import Vulnerability, Event
+from ..discovery.apiserver import ApiServer
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure
 
 
@@ -203,7 +204,7 @@ class ApiServerPassiveHunterFinished(Event):
 
 
 # Passive Hunter
-@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 443 or x.port == 6443)
+@handler.subscribe(ApiServer)
 class AccessApiServerViaServiceAccountToken(Hunter):
     """ API Server Hunter
     Accessing the API server within a compromised pod might grant an attacker full control over the cluster
