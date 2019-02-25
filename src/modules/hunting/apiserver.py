@@ -233,7 +233,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
         except requests.exceptions.ConnectionError:
             return False
 
-    def get_service_account_token(self):
+    def add_token_to_headers(self):
         if self.event.auth_token != '':
             self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
 
@@ -306,7 +306,7 @@ class AccessApiServerViaServiceAccountToken(Hunter):
 
     def execute(self):
 
-        self.get_service_account_token()
+        self.add_token_to_headers()
 
         if self.access_api_server():
             self.publish_event(ServerApiAccess(self.api_server_evidence))
