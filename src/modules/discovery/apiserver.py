@@ -9,12 +9,12 @@ from ...core.events.types import OpenPortEvent, Service, Event
 class ApiServer(Service, Event):
     """The API server is in charge of all operations on the cluster."""
     def __init__(self):
-        Service.__init__(self, name="Accessing API Server")
+        Service.__init__(self, name="API Server")
 
 class ApiServerWithServiceAccountToken(Service, Event):
     """The API server is in charge of all operations on the cluster."""
     def __init__(self):
-        Service.__init__(self, name="Accessing API Server using service account token")
+        Service.__init__(self, name="API Server accessed using service account token")
 
 
 # Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
