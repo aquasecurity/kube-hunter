@@ -19,17 +19,16 @@ from ...core.types import Hunter, InformationDisclosure, Azure
 class RunningAsPodEvent(Event):
     def __init__(self):
         self.name = 'Running from within a pod'
-        self.auth_token = self.get_auth_token()
-        self.client_cert = self.get_client_cert()
-        
-    def get_auth_token(self):
+        self.auth_token = self.get_service_account_file("token")
+        self.client_cert = self.get_service_account_file("ca.crt")
+        self.namespace = self.get_service_account_file("namespace")
+
+    def get_service_account_file(self, file):
         try:
-            with open("/var/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
-                return token_file.read()
+            with open("/var/run/secrets/kubernetes.io/serviceaccount/{file}".format(file=file)) as f:
+                return f.read()
         except IOError:
             pass
-    def get_client_cert(self):
-        return "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt" 
 
 class AzureMetadataApi(Vulnerability, Event):
     """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
