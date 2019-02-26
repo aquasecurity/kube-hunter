@@ -9,7 +9,12 @@ from ...core.events.types import OpenPortEvent, Service, Event
 class ApiServer(Service, Event):
     """The API server is in charge of all operations on the cluster."""
     def __init__(self):
-        Service.__init__(self, name="API Server")
+        Service.__init__(self, name="Accessing API Server")
+
+class ApiServerWithServiceAccountToken(Service, Event):
+    """The API server is in charge of all operations on the cluster."""
+    def __init__(self):
+        Service.__init__(self, name="Accessing API Server using service account token")
 
 
 # Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
@@ -28,3 +33,6 @@ class ApiServerDiscovery(Hunter):
         if '"code"' in main_request:
             self.event.role = "Master"
             self.publish_event(ApiServer())
+
+            if self.event.auth_token:
+                self.publish_event(ApiServerWithServiceAccountToken())
