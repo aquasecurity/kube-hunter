@@ -2,9 +2,9 @@ import requests_mock
 import time
 from Queue import Empty
 
-from hosts import FromPodHostDiscovery, RunningAsPodEvent, HostScanEvent, AzureMetadataApi
-from ...core.events.types import Event, NewHostEvent
-from ...core.events import handler
+from src.modules.discovery.hosts import FromPodHostDiscovery, RunningAsPodEvent, HostScanEvent, AzureMetadataApi
+from src.core.events.types import Event, NewHostEvent
+from src.core.events import handler
 from __main__ import config
 
 def test_FromPodHostDiscovery():

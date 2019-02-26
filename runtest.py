@@ -15,6 +15,8 @@ parser.add_argument('--report', type=str, default='plain', help="set report type
 
 config = parser.parse_args()
 
+import tests
+
 def main():
     exit(pytest.main(['.']))
 
