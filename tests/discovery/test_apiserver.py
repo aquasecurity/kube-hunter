@@ -1,8 +1,8 @@
 import requests_mock
 
-from apiserver import ApiServer, ApiServerDiscovery
-from ...core.events.types import Event
-from ...core.events import handler
+from src.modules.discovery.apiserver import ApiServer, ApiServerDiscovery
+from src.core.events.types import Event
+from src.core.events import handler
 
 def test_ApiServer():
 
