@@ -48,5 +48,7 @@ class AccessRisk(object):
 class PrivilegeEscalation(KubernetesCluster):
     name = "Privilege Escalation"
 
+class DenialOfService(object):
+    name = "Denial of Service"
 
 from events import handler # import is in the bottom to break import loops
