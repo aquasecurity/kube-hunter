@@ -115,7 +115,7 @@ class IsVulnerableToCVEAttack(Hunter):
             if self.check_cve_2018_1002105(api_version):
                 self.publish_event(ServerApiVersionEndPointAccessPE(self.api_server_evidence))
 
-            elif self.check_cve_2019_1002100(api_version):
+            if self.check_cve_2019_1002100(api_version):
                 self.publish_event(ServerApiVersionEndPointAccessDos(self.api_server_evidence))
 
 
