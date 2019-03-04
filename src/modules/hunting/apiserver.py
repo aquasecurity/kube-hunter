@@ -23,7 +23,7 @@ class ServerApiAccess(Vulnerability, Event):
 
 
 class ListPodsAndNamespaces(Vulnerability, Event):
-    """ Accessing the pods list under ALL of the namespaces might give an attacker valuable information"""
+    """ Accessing pods might give an attacker valuable information"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Listing pods",
@@ -31,29 +31,29 @@ class ListPodsAndNamespaces(Vulnerability, Event):
         self.evidence = evidence
 
 
-class ListAllNamespaces(Vulnerability, Event):
-    """ Accessing all of the namespaces might give an attacker valuable information """
+class ListNamespaces(Vulnerability, Event):
+    """ Accessing namespaces might give an attacker valuable information """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all namespaces",
+        Vulnerability.__init__(self, KubernetesCluster, name="Listing namespaces",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
-class ListAllRoles(Vulnerability, Event):
-    """ Accessing all of the roles might give an attacker valuable information """
+class ListRoles(Vulnerability, Event):
+    """ Accessing roles might give an attacker valuable information """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all roles",
+        Vulnerability.__init__(self, KubernetesCluster, name="Listing roles",
                                category=InformationDisclosure)
         self.evidence = evidence
 
 
-class ListAllClusterRoles(Vulnerability, Event):
-    """ Accessing all of the cluster roles might give an attacker valuable information """
+class ListClusterRoles(Vulnerability, Event):
+    """ Accessing cluster roles might give an attacker valuable information """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all cluster roles",
+        Vulnerability.__init__(self, KubernetesCluster, name="Listing cluster roles",
                                category=InformationDisclosure)
         self.evidence = evidence
 
@@ -238,13 +238,13 @@ class AccessApiServer(Hunter):
             pass
         return None
 
-    def get_all_namespaces(self):
+    def get_namespaces(self):
         return self.get_items("{path}/api/v1/namespaces".format(path=self.path))
 
-    def get_all_cluster_roles(self):
+    def get_cluster_roles(self):
         return self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(path=self.path))
 
-    def get_all_roles(self):
+    def get_roles(self):
         return self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/roles".format(path=self.path))
 
     def execute(self):
@@ -252,21 +252,21 @@ class AccessApiServer(Hunter):
         if api:
             self.publish_event(ServerApiAccess(api, self.category))
 
-        namespaces = self.get_all_namespaces()
+        namespaces = self.get_namespaces()
         if namespaces:
-            self.publish_event(ListAllNamespaces(namespaces))
+            self.publish_event(ListNamespaces(namespaces))
 
         pods = self.get_pods()
         if pods:
             self.publish_event(ListPodsAndNamespaces(pods))
 
-        roles = self.get_all_roles()
+        roles = self.get_roles()
         if roles:
-            self.publish_event(ListAllRoles(roles))
+            self.publish_event(ListRoles(roles))
 
-        cluster_roles = self.get_all_cluster_roles()
+        cluster_roles = self.get_cluster_roles()
         if cluster_roles:
-            self.publish_event(ListAllClusterRoles(cluster_roles))
+            self.publish_event(ListClusterRoles(cluster_roles))
 
         # If we have a service account token, this event should get triggered twice - once with and once without
         # the token

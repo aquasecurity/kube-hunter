@@ -1,7 +1,8 @@
 import requests_mock
+import time
 
 from src.modules.hunting.apiserver import AccessApiServer, AccessApiServerWithToken, ServerApiAccess, AccessApiServerActive
-from src.modules.hunting.apiserver import ListAllNamespaces, ListPodsAndNamespaces, ListAllRoles, ListAllClusterRoles
+from src.modules.hunting.apiserver import ListNamespaces, ListPodsAndNamespaces, ListRoles, ListClusterRoles
 from src.modules.hunting.apiserver import ApiServerPassiveHunterFinished
 from src.modules.hunting.apiserver import CreateANamespace, DeleteANamespace
 from src.modules.discovery.apiserver import ApiServer
@@ -9,7 +10,11 @@ from src.core.events.types import Event
 from src.core.types import UnauthenticatedAccess, InformationDisclosure
 from src.core.events import handler
 
+counter = 0
+
 def test_ApiServerToken():
+    global counter 
+    counter = 0
 
     e = ApiServer()
     e.host = "1.2.3.4"
@@ -19,13 +24,19 @@ def test_ApiServerToken():
     h = AccessApiServerWithToken(e)
     assert h.event.auth_token == "my-secret-token"
 
+    # This test doesn't generate any events
+    time.sleep(0.01)
+    assert counter == 0
+
 def test_AccessApiServer():
+    global counter 
+    counter = 0
+
     e = ApiServer()
     e.host = "mockKubernetes"
     e.port = 443
 
     with requests_mock.Mocker() as m:
-        # TODO check that these responses reflect what Kubernetes does
         m.get('https://mockKubernetes:443/api', text='{}')
         m.get('https://mockKubernetes:443/api/v1/namespaces', text='{"items":[{"metadata":{"name":"hello"}}]}')
         m.get('https://mockKubernetes:443/api/v1/pods', 
@@ -37,6 +48,12 @@ def test_AccessApiServer():
         h = AccessApiServer(e)
         h.execute()
 
+        # We should see events for Server API Access, Namespaces, Pods, and the passive hunter finished
+        time.sleep(0.01)
+        assert counter == 4
+
+    # Try with an auth token
+    counter = 0
     with requests_mock.Mocker() as m:
         # TODO check that these responses reflect what Kubernetes does
         m.get('https://mockKubernetesToken:443/api', text='{}')
@@ -53,20 +70,27 @@ def test_AccessApiServer():
         h = AccessApiServerWithToken(e)
         h.execute()
 
+        # We should see the same set of events but with the addition of Cluster Roles
+        time.sleep(0.01)
+        assert counter == 5
 
-@handler.subscribe(ListAllNamespaces)
-class test_ListAllNamespaces(object):
+@handler.subscribe(ListNamespaces)
+class test_ListNamespaces(object):
     def __init__(self, event):
+        print("ListNamespaces")
         assert event.evidence == ['hello']
         if event.host == "mockKubernetesToken":
             assert event.auth_token == "so-secret"
         else:
             assert event.auth_token is None
+        global counter
+        counter += 1
         
 
 @handler.subscribe(ListPodsAndNamespaces)
 class test_ListPodsAndNamespaces(object):
     def __init__(self, event):
+        print("ListPodsAndNamespaces")
         assert len(event.evidence) == 2
         for pod in event.evidence:
             if pod["name"] == "podA":
@@ -77,33 +101,47 @@ class test_ListPodsAndNamespaces(object):
             assert event.auth_token == "so-secret"
         else:
             assert event.auth_token is None
+        global counter
+        counter += 1
 
 # Should never see this because the API call in the test returns 403 status code
-@handler.subscribe(ListAllRoles)
-class test_ListAllRoles(object):
+@handler.subscribe(ListRoles)
+class test_ListRoles(object):
     def __init__(self, event):
+        print("ListRoles")
         assert 0 
+        global counter
+        counter += 1
 
 # Should only see this when we have a token because the API call returns an empty list of items
 # in the test where we have no token
-@handler.subscribe(ListAllClusterRoles)
-class test_ListAllClusterRoles(object):
+@handler.subscribe(ListClusterRoles)
+class test_ListClusterRoles(object):
     def __init__(self, event):
+        print("ListClusterRoles")
         assert event.auth_token == "so-secret"
+        global counter
+        counter += 1
 
 @handler.subscribe(ServerApiAccess)
 class test_ServerApiAccess(object):
     def __init__(self, event):
+        print("ServerApiAccess")
         if event.category == UnauthenticatedAccess:
             assert event.auth_token is None
         else:
             assert event.category == InformationDisclosure
             assert event.auth_token is not None
+        global counter
+        counter += 1
 
 @handler.subscribe(ApiServerPassiveHunterFinished)
 class test_PassiveHunterFinished(object):
     def __init__(self, event):
+        print("PassiveHunterFinished")
         assert event.namespaces == ["hello"]
+        global counter
+        counter += 1
 
 def test_AccessApiServerActive():
     e = ApiServerPassiveHunterFinished(namespaces=["hello-namespace"])
@@ -111,7 +149,7 @@ def test_AccessApiServerActive():
     e.port = 443
 
     with requests_mock.Mocker() as m:
-        # TODO check that these responses reflect what Kubernetes does
+        # TODO more tests here with real responses
         m.post('https://mockKubernetes:443/api/v1/namespaces', text="""
 {
   "kind": "Namespace",
