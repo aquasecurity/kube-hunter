@@ -196,7 +196,6 @@ class AccessApiServer(Hunter):
         self.event = event
         self.path = "https://{}:{}".format(self.event.host, self.event.port)
         self.headers = {}
-        self.category = UnauthenticatedAccess
         self.with_token = False
 
     def access_api_server(self):
@@ -245,36 +244,27 @@ class AccessApiServer(Hunter):
             pass
         return None
 
-    def get_namespaces(self):
-        return self.get_items("{path}/api/v1/namespaces".format(path=self.path))
-
-    def get_cluster_roles(self):
-        return self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(path=self.path))
-
-    def get_roles(self):
-        return self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/roles".format(path=self.path))
-
     def execute(self):
         api = self.access_api_server()
         if api:
             self.publish_event(ServerApiAccess(api, self.with_token))
 
-        namespaces = self.get_namespaces()
+        namespaces = self.get_items("{path}/api/v1/namespaces".format(path=self.path))
         if namespaces:
             self.publish_event(ListNamespaces(namespaces, self.with_token))
+
+        roles = self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/roles".format(path=self.path))
+        if roles:
+            self.publish_event(ListRoles(roles, self.with_token))
+
+        cluster_roles = self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(path=self.path))
+        if cluster_roles:
+            self.publish_event(ListClusterRoles(cluster_roles, self.with_token))
 
         pods = self.get_pods()
         if pods:
             print pods
             self.publish_event(ListPodsAndNamespaces(pods, self.with_token))
-
-        roles = self.get_roles()
-        if roles:
-            self.publish_event(ListRoles(roles, self.with_token))
-
-        cluster_roles = self.get_cluster_roles()
-        if cluster_roles:
-            self.publish_event(ListClusterRoles(cluster_roles, self.with_token))
 
         # If we have a service account token, this event should get triggered twice - once with and once without
         # the token
