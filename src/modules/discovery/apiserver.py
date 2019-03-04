@@ -29,10 +29,13 @@ class ApiServerDiscovery(Hunter):
 
     def execute(self):
         logging.debug("Attempting to discover an API server")
+
+        # We can discover the API Server with or without the use of a service account token
         main_request = requests.get("https://{}:{}".format(self.event.host, self.event.port), verify=False).text
         if '"code"' in main_request:
             self.event.role = "Master"
             self.publish_event(ApiServer())
 
+            # But if we have a service account token we will try additional checks
             if self.event.auth_token:
                 self.publish_event(ApiServerWithServiceAccountToken())
