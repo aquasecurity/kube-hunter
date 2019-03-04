@@ -99,8 +99,12 @@ class test_ListPodsAndNamespaces(object):
                 assert pod["namespace"] == "namespaceB"                
         if event.host == "mockKubernetesToken":
             assert event.auth_token == "so-secret"
+            assert "token" in event.name
+            assert "anon" not in event.name
         else:
             assert event.auth_token is None
+            assert "token" not in event.name
+            assert "anon" in event.name
         global counter
         counter += 1
 
