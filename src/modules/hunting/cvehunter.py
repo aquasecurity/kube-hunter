@@ -22,10 +22,10 @@ class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
 
 
 class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
-    """Node is vulnerable to critical CVE-2019-1002100"""
+    """Users that are authorized to make patch requests to the Kubernetes API Server can send a specially crafted patch of type json-patch that consumes excessive resources while processing, causing a Denial of Service on the API Server. CVE-2019-1002100"""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Medium Denial of Service CVE", category=DenialOfService)
+        Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService)
         self.evidence = evidence
 
 
