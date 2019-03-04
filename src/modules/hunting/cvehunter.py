@@ -22,7 +22,7 @@ class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
 
 
 class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
-    """Users that are authorized to make patch requests to the Kubernetes API Server can send a specially crafted patch of type json-patch that consumes excessive resources while processing, causing a Denial of Service on the API Server. CVE-2019-1002100"""
+    """Node not patched for CVE-2019-1002100. Depending on your RBAC settings, a crafted json-patch could cause a Denial of Service."""
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService)
