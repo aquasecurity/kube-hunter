@@ -22,10 +22,10 @@ class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
 
 
 class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
-    """Node is vulnerable to critical CVE-2019-1002100"""
+    """Node not patched for CVE-2019-1002100. Depending on your RBAC settings, a crafted json-patch could cause a Denial of Service."""
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Medium Denial of Service CVE", category=DenialOfService)
+        Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService)
         self.evidence = evidence
 
 
