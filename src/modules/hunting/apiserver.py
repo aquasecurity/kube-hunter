@@ -49,15 +49,6 @@ class ListAllRoles(Vulnerability, Event):
         self.evidence = evidence
 
 
-class ListAllRolesUnderDefaultNamespace(Vulnerability, Event):
-    """ Accessing all of the roles under default namespace might give an attacker valuable information """
-
-    def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Listing all roles under default namespace",
-                               category=InformationDisclosure)
-        self.evidence = evidence
-
-
 class ListAllClusterRoles(Vulnerability, Event):
     """ Accessing all of the cluster roles might give an attacker valuable information """
 
@@ -250,9 +241,6 @@ class AccessApiServer(Hunter):
     def get_all_namespaces(self):
         return self.get_items("{path}/api/v1/namespaces".format(path=self.path))
 
-    def get_roles_under_default_namespace(self):
-        return self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/default/roles".format(path=self.path))
-
     def get_all_cluster_roles(self):
         return self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(path=self.path))
 
@@ -270,20 +258,11 @@ class AccessApiServer(Hunter):
 
         pods = self.get_pods()
         if pods:
-            # TODO!! Doesn't this give you all the pods you are entitles to read, irrespective of namespace?
             self.publish_event(ListPodsAndNamespaces(pods))
-        # else:
-        #     if self.get_pods_list_under_requested_scope(scope='namespaces/default'):
-        #         self.publish_event(ListPodUnderDefaultNamespace(self.namespaces_and_their_pod_names))
 
         roles = self.get_all_roles()
         if roles:
-            # TODO!! Doesn't this give you access to all the roles you're entitled to?
             self.publish_event(ListAllRoles(roles))
-        # else:
-        #     if self.get_roles_under_default_namespace():
-        #         self.publish_event(ListAllRolesUnderDefaultNamespace(
-        #                                 self.roles_names_under_default_namespace_evidence))
 
         cluster_roles = self.get_all_cluster_roles()
         if cluster_roles:
