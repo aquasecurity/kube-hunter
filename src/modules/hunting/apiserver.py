@@ -286,7 +286,7 @@ class AccessApiServerWithToken(AccessApiServer):
 
 # Active Hunter
 @handler.subscribe(ApiServerPassiveHunterFinished)
-class AccessApiServerActive(ActiveHunter, AccessApiServer):
+class AccessApiServerActive(ActiveHunter):
     """API server hunter
     Accessing the api server might grant an attacker full control over the cluster
     """
