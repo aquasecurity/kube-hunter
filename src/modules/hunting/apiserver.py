@@ -476,6 +476,7 @@ class AccessApiServerActive(ActiveHunter, AccessApiServer):
                                 data=data)
 
     def execute(self):
+        # Try creating cluster-wide objects
         namespace = self.create_namespace()
         if namespace:
             self.publish_event(CreateANamespace('new namespace name: {name}'.format(name=namespace)))
@@ -498,48 +499,48 @@ class AccessApiServerActive(ActiveHunter, AccessApiServer):
                                                         name=cluster_role, delete_timestamp=delete_timestamp)))
 
         #  Try attacking all the namespaces we know about
-        for namespace in self.event.namespaces:
-            # Try creating and deleting a privileged pod
-            pod_name = self.create_a_pod(namespace, True)
-            if pod_name:
-                self.publish_event(CreateAPrivilegedPod('Pod Name: {pod_name}  Namespace: {namespace}'.format(
-                                                pod_name=pod_name, namespace=namespace)))
-                delete_time = self.delete_a_pod(namespace, pod_name)
-                if delete_time:
-                    self.publish_event(DeleteAPod('Pod Name: {pod_name}  deletion time: {delete_time}'.format(
-                                                pod_name=pod_name, delete_evidence=delete_time)))
-            
-            # Try creating, patching and deleting an unprivileged pod
-            pod_name = self.create_a_pod(namespace, False)
-            if pod_name:
-                self.publish_event(CreateAPod('Pod Name: {pod_name}  Namespace: {namespace}'.format(
-                                                pod_name=pod_name, namespace=namespace)))
+        if self.event.namespaces:
+            for namespace in self.event.namespaces:
+                # Try creating and deleting a privileged pod
+                pod_name = self.create_a_pod(namespace, True)
+                if pod_name:
+                    self.publish_event(CreateAPrivilegedPod('Pod Name: {pod_name}  Namespace: {namespace}'.format(
+                                                    pod_name=pod_name, namespace=namespace)))
+                    delete_time = self.delete_a_pod(namespace, pod_name)
+                    if delete_time:
+                        self.publish_event(DeleteAPod('Pod Name: {pod_name}  deletion time: {delete_time}'.format(
+                                                    pod_name=pod_name, delete_evidence=delete_time)))
+                
+                # Try creating, patching and deleting an unprivileged pod
+                pod_name = self.create_a_pod(namespace, False)
+                if pod_name:
+                    self.publish_event(CreateAPod('Pod Name: {pod_name}  Namespace: {namespace}'.format(
+                                                    pod_name=pod_name, namespace=namespace)))
 
-                patch_evidence = self.patch_a_pod(namespace, pod_name)
-                if patch_evidence:
-                    self.publish_event(PatchAPod('Pod Name: {pod_name}  Namespace: {namespace}  Patch evidence: {patch_evidence}'.format(
-                                                    pod_name=pod_name, namespace=namespace,
-                                                    patch_evidence=patch_evidence)))
+                    patch_evidence = self.patch_a_pod(namespace, pod_name)
+                    if patch_evidence:
+                        self.publish_event(PatchAPod('Pod Name: {pod_name}  Namespace: {namespace}  Patch evidence: {patch_evidence}'.format(
+                                                        pod_name=pod_name, namespace=namespace,
+                                                        patch_evidence=patch_evidence)))
 
-                delete_time = self.delete_a_pod(namespace, pod_name)
-                if delete_time:
-                    self.publish_event(DeleteAPod('Pod Name: {pod_name}  Namespace: {namespace}  Delete time: {delete_time}'.format(
-                                                    pod_name=pod_name, namespace=namespace, delete_time=delete_time)))
+                    delete_time = self.delete_a_pod(namespace, pod_name)
+                    if delete_time:
+                        self.publish_event(DeleteAPod('Pod Name: {pod_name}  Namespace: {namespace}  Delete time: {delete_time}'.format(
+                                                        pod_name=pod_name, namespace=namespace, delete_time=delete_time)))
 
-            # Roles Api Calls:
-            role = self.create_a_role(namespace)
-            if role:
-                self.publish_event(CreateARole('Role name:  {name}'.format(name=role)))
+                role = self.create_a_role(namespace)
+                if role:
+                    self.publish_event(CreateARole('Role name:  {name}'.format(name=role)))
 
-                patch_evidence = self.patch_a_role(namespace, role)
-                if patch_evidence:
-                    self.publish_event(PatchARole('Patched Role Name: {name}  Namespace: {namespace}  Patch evidence: {patch_evidence}'.format(
-                        name=role, namespace=namespace, patch_evidence=patch_evidence)))
+                    patch_evidence = self.patch_a_role(namespace, role)
+                    if patch_evidence:
+                        self.publish_event(PatchARole('Patched Role Name: {name}  Namespace: {namespace}  Patch evidence: {patch_evidence}'.format(
+                            name=role, namespace=namespace, patch_evidence=patch_evidence)))
 
-                delete_time = self.delete_a_role(namespace, role)
-                if delete_time:
-                    self.publish_event(DeleteARole('Deleted role: {name}  Namespace: {namespace}  Delete time: {delete_time}'.format(
-                                                    name=role, namespace=namespace, delete_time=delete_time)))
+                    delete_time = self.delete_a_role(namespace, role)
+                    if delete_time:
+                        self.publish_event(DeleteARole('Deleted role: {name}  Namespace: {namespace}  Delete time: {delete_time}'.format(
+                                                        name=role, namespace=namespace, delete_time=delete_time)))
 
 
             #  Note: we are not binding any role or cluster role because
