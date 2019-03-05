@@ -1,6 +1,6 @@
 import requests_mock
 import time
-from Queue import Empty
+from queue import Empty
 
 from src.modules.discovery.hosts import FromPodHostDiscovery, RunningAsPodEvent, HostScanEvent, AzureMetadataApi
 from src.core.events.types import Event, NewHostEvent

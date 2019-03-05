@@ -51,4 +51,4 @@ class PrivilegeEscalation(KubernetesCluster):
 class DenialOfService(object):
     name = "Denial of Service"
 
-from events import handler # import is in the bottom to break import loops
+from .events import handler # import is in the bottom to break import loops

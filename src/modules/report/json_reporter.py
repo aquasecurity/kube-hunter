@@ -1,5 +1,5 @@
 import json
-from base import BaseReporter
+from .base import BaseReporter
 
 class JSONReporter(BaseReporter):
     def get_report(self):

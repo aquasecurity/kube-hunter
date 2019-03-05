@@ -1,2 +1,2 @@
-import core
-import modules
+from . import core
+from . import modules
