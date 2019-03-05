@@ -263,7 +263,6 @@ class AccessApiServer(Hunter):
 
         pods = self.get_pods()
         if pods:
-            print pods
             self.publish_event(ListPodsAndNamespaces(pods, self.with_token))
 
         # If we have a service account token, this event should get triggered twice - once with and once without
