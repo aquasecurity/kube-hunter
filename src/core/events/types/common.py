@@ -16,6 +16,17 @@ class Event(object):
             if name in event.__dict__:
                 return event.__dict__[name]
 
+    # Event's logical location to be used mainly for reports.
+    # If event don't implement it check previous event
+    # This is because events are composed (previous -> previous ...)
+    # and not inheritted 
+    def location(self):
+        location = None
+        if self.previous:
+            location = self.previous.location()
+
+        return location
+
     # returns the event history ordered from newest to oldest
     @property
     def history(self):
@@ -85,7 +96,10 @@ class NewHostEvent(Event):
 
     def __str__(self):
         return str(self.host)
-
+    
+    # Event's logical location to be used mainly for reports.
+    def location(self):
+        return str(self.host)
 
 class OpenPortEvent(Event):
     def __init__(self, port):
@@ -93,7 +107,14 @@ class OpenPortEvent(Event):
     
     def __str__(self):
         return str(self.port)
-
+    
+    # Event's logical location to be used mainly for reports.
+    def location(self):
+        if self.host:
+            location = str(self.host) + ":" + str(self.port)
+        else:
+            location = str(self.port)
+        return location
 
 class HuntFinished(Event):
     pass
