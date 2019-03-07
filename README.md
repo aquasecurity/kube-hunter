@@ -86,9 +86,8 @@ Install module dependencies:
 ~~~
 cd ./kube-hunter
 pip install -r requirements.txt
-
-In the case where you have python 3.x in the path as your default, and python2 refers to a python 2.7 executable, use "python2 -m pip install -r requirements.txt"
 ~~~
+
 Run:
 `./kube-hunter.py`
 
