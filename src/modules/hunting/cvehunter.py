@@ -37,26 +37,20 @@ class IsVulnerableToCVEAttack(Hunter):
     def __init__(self, event):
         self.event = event
         self.headers = dict()
+        # From within a Pod we may have extra credentials
+        if self.event.auth_token:
+            self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
         self.path = "https://{}:{}".format(self.event.host, self.event.port)
         self.service_account_token_evidence = ''
         self.api_server_evidence = ''
         self.k8sVersion = ''
 
-    def get_service_account_token(self):
-        logging.debug(self.event.host)
-        logging.debug('Passive Hunter is attempting to access pod\'s service account token')
-        try:
-            with open('/var/run/secrets/kubernetes.io/serviceaccount/token', 'r') as token:
-                data = token.read()
-                self.service_account_token_evidence = data
-                self.headers = {'Authorization': 'Bearer ' + self.service_account_token_evidence}
-                return True
-        except IOError:  # Couldn't read file
-            return False
-
     def get_api_server_version_end_point(self):
         logging.debug(self.event.host)
-        logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token')
+        if 'Authorization' in self.headers:
+            logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token: \t%s', str(self.headers))
+        else:
+            logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
         try:
             res = requests.get("{path}/version".format(path=self.path),
                                headers=self.headers, verify=False)
@@ -65,6 +59,7 @@ class IsVulnerableToCVEAttack(Hunter):
             version = resDict["gitVersion"].split('.')
             first_two_minor_digits = eval(version[1])
             last_two_minor_digits = eval(version[2])
+            logging.debug('Passive Hunter got version from the API server version end point: %d.%d', first_two_minor_digits, last_two_minor_digits)
             return [first_two_minor_digits, last_two_minor_digits]
 
         except (requests.exceptions.ConnectionError, KeyError):
@@ -108,7 +103,6 @@ class IsVulnerableToCVEAttack(Hunter):
         return False
 
     def execute(self):
-        self.get_service_account_token()  # From within a Pod we may have extra credentials
         api_version = self.get_api_server_version_end_point()
 
         if api_version:
