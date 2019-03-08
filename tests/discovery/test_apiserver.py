@@ -1,7 +1,7 @@
 import requests_mock
 import time
 
-from src.modules.discovery.apiserver import ApiServer, ApiServerDiscovery, ApiServerWithServiceAccountToken
+from src.modules.discovery.apiserver import ApiServer, ApiServerDiscovery
 from src.core.events.types import Event
 from src.core.events import handler
 
@@ -46,19 +46,18 @@ def test_ApiServerWithServiceAccountToken():
         time.sleep(0.1)
         assert counter == 1
 
-        # If we have a token this should create two events
         e.auth_token = "very_secret"
         a = ApiServerDiscovery(e)
         a.execute()
         time.sleep(0.1)
-        assert counter == 3
+        assert counter == 2
 
         # But we shouldn't generate an event if we don't see an error code
         e.host = 'mockOther'
         a = ApiServerDiscovery(e)
         a.execute()
         time.sleep(0.1)
-        assert counter == 3
+        assert counter == 2
 
 
 # We should only generate an ApiServer event for a response that looks like it came from a Kubernetes node
@@ -67,12 +66,4 @@ class testApiServer(object):
     def __init__(self, event):
         assert event.host == 'mockKubernetes'
         global counter
-        counter += 1
-
-@handler.subscribe(ApiServerWithServiceAccountToken)
-class testApiServerWithServiceAccountToken(object):
-    def __init__(self, event):
-        assert event.host == 'mockKubernetes'
-        assert event.auth_token == "very_secret"
-        global counter 
         counter += 1

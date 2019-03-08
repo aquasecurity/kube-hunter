@@ -135,7 +135,7 @@ class test_ServerApiAccess(object):
             assert event.auth_token is None
         else:
             assert event.category == InformationDisclosure
-            assert event.auth_token is not None
+            assert event.auth_token == "so-secret"
         global counter
         counter += 1
 
