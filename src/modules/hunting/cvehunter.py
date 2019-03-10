@@ -41,7 +41,6 @@ class IsVulnerableToCVEAttack(Hunter):
         if self.event.auth_token:
             self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
         self.path = "https://{}:{}".format(self.event.host, self.event.port)
-        self.service_account_token_evidence = ''
         self.api_server_evidence = ''
         self.k8sVersion = ''
 
