@@ -1,5 +1,7 @@
 ![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png)
 
+[![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
+
 Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster you don't own!**
 
 **Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you see and share the results online. You can also run the Python code yourself as described below.
@@ -72,7 +74,7 @@ You can run the kube-hunter python code directly on your machine.
 #### Prerequisites
 
 You will need the following installed:
-* python 2.7
+* python 2.7 or python 3.x
 * pip
 
 Clone the repository:
@@ -84,9 +86,8 @@ Install module dependencies:
 ~~~
 cd ./kube-hunter
 pip install -r requirements.txt
-
-In the case where you have python 3.x in the path as your default, and python2 refers to a python 2.7 executable, use "python2 -m pip install -r requirements.txt"
 ~~~
+
 Run:
 `./kube-hunter.py`
 

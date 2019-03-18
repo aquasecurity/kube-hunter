@@ -7,3 +7,4 @@ PrettyTable
 urllib3
 ruamel.yaml
 requests_mock
+future

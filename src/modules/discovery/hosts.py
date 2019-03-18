@@ -23,6 +23,14 @@ class RunningAsPodEvent(Event):
         self.client_cert = self.get_service_account_file("ca.crt")
         self.namespace = self.get_service_account_file("namespace")
 
+    # Event's logical location to be used mainly for reports.
+    def location(self):
+        location = "Local to Pod"
+        if 'HOSTNAME' in os.environ:
+            location += "(" + os.environ['HOSTNAME'] + ")"
+        
+        return location
+
     def get_service_account_file(self, file):
         try:
             with open("/var/run/secrets/kubernetes.io/serviceaccount/{file}".format(file=file)) as f:

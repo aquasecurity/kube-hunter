@@ -1,4 +1,4 @@
-from collector import services, vulnerabilities, services_lock, vulnerabilities_lock
+from .collector import services, vulnerabilities, services_lock, vulnerabilities_lock
 
 class BaseReporter(object):
     def get_nodes(self):
@@ -24,7 +24,7 @@ class BaseReporter(object):
 
     def get_vulnerabilities(self):
         vulnerabilities_lock.acquire()
-        vulnerabilities_data = [{"location": "{}:{}".format(vuln.host, vuln.port) if vuln.host else "",
+        vulnerabilities_data = [{"location": vuln.location(),
                  "category": vuln.category.name,
                  "vulnerability": vuln.get_name(),
                  "description": vuln.explain(),

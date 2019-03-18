@@ -3,7 +3,7 @@ from __future__ import print_function
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
-from collector import services, vulnerabilities, services_lock, vulnerabilities_lock
+from .collector import services, vulnerabilities, services_lock, vulnerabilities_lock
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
@@ -82,7 +82,7 @@ class PlainReporter(object):
 
         vulnerabilities_lock.acquire()
         for vuln in vulnerabilities:
-            row = ["{}:{}".format(vuln.host, vuln.port) if vuln.host else "", vuln.category.name, vuln.get_name(), vuln.explain()]
+            row = [vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain()]
             evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
             row.append(evidence)
             vuln_table.add_row(row)

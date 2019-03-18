@@ -1,2 +1,2 @@
-from handler import *
-import types
+from .handler import *
+from . import types

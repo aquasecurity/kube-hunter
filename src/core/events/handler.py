@@ -2,7 +2,7 @@ import logging
 import time
 from abc import ABCMeta
 from collections import defaultdict
-from Queue import Queue
+from queue import Queue
 from threading import Lock, Thread
 
 from __main__ import config
