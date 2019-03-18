@@ -22,6 +22,14 @@ class RunningAsPodEvent(Event):
         self.auth_token = self.get_auth_token()
         self.client_cert = self.get_client_cert()
         
+    # Event's logical location to be used mainly for reports.
+    def location(self):
+        location = "Local to Pod"
+        if 'HOSTNAME' in os.environ:
+            location += "(" + os.environ['HOSTNAME'] + ")"
+        
+        return location
+
     def get_auth_token(self):
         try:
             with open("/var/run/secrets/kubernetes.io/serviceaccount/token") as token_file:
