@@ -11,11 +11,6 @@ class ApiServer(Service, Event):
     def __init__(self):
         Service.__init__(self, name="API Server")
 
-class ApiServerWithServiceAccountToken(Service, Event):
-    """The API server is in charge of all operations on the cluster."""
-    def __init__(self):
-        Service.__init__(self, name="API Server accessed using service account token")
-
 
 # Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
 # A Kubernetes API server will respond with a JSON message that includes a "code" field for the HTTP status code
