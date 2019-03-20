@@ -6,7 +6,7 @@ import copy
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event
-from ..discovery.apiserver import ApiServer, ApiServerWithServiceAccountToken
+from ..discovery.apiserver import ApiServer
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster
 from ...core.types import RemoteCodeExec, AccessRisk, InformationDisclosure, UnauthenticatedAccess
 
