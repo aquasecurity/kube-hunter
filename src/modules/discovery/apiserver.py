@@ -28,3 +28,4 @@ class ApiServerDiscovery(Hunter):
         if '"code"' in main_request:
             self.event.role = "Master"
             self.publish_event(ApiServer())
+
