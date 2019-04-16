@@ -1,7 +1,6 @@
 netaddr
 netifaces
-enum34
-scapy
+scapy==2.4.3rc1
 requests
 PrettyTable
 urllib3
