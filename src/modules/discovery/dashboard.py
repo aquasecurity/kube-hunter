@@ -5,7 +5,7 @@ import requests
 
 from ...core.events import handler
 from ...core.events.types import Event, OpenPortEvent, Service
-from ...core.types import Hunter
+from ...core.types import Discovery
 
 
 class KubeDashboardEvent(Service, Event):
@@ -14,7 +14,7 @@ class KubeDashboardEvent(Service, Event):
         Service.__init__(self, name="Kubernetes Dashboard", **kargs)     
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
-class KubeDashboard(Hunter):
+class KubeDashboard(Discovery):
     """K8s Dashboard Discovery
     Checks for the existence of a Dashboard
     """

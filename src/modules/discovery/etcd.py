@@ -5,7 +5,7 @@ import requests
 
 from ...core.events import handler
 from ...core.events.types import Event, OpenPortEvent, Service
-from ...core.types import Hunter
+from ...core.types import Discovery
 
 # Service:
 
@@ -17,7 +17,7 @@ class EtcdAccessEvent(Service, Event):
 
 
 @handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
-class EtcdRemoteAccess(Hunter):
+class EtcdRemoteAccess(Discovery):
     """Etcd service
     check for the existence of etcd service
     """

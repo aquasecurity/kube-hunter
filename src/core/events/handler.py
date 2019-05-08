@@ -7,7 +7,7 @@ from threading import Lock, Thread
 
 from __main__ import config
 
-from ..types import ActiveHunter, Hunter
+from ..types import ActiveHunter, Hunter, HunterBase
 
 from ...core.events.types import HuntFinished
 import threading
@@ -21,6 +21,7 @@ class EventQueue(Queue, object):
         super(EventQueue, self).__init__()
         self.passive_hunters = dict()
         self.active_hunters = dict()
+        self.all_hunters = dict()
 
         self.hooks = defaultdict(list)
         self.running = True
@@ -50,8 +51,11 @@ class EventQueue(Queue, object):
                 return
             else:
                 self.active_hunters[hook] = hook.__doc__
-        elif Hunter in hook.__mro__:
+        elif HunterBase in hook.__mro__:
             self.passive_hunters[hook] = hook.__doc__
+
+        if HunterBase in hook.__mro__:
+            self.all_hunters[hook] = hook.__doc__
 
         if hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
@@ -68,6 +72,10 @@ class EventQueue(Queue, object):
 
                     if caller:
                         event.previous = caller.event
+
+                    if HunterBase in hook.__mro__:
+                        hook.publishedEvents += 1
+
                     self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon

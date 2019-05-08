@@ -1,7 +1,7 @@
 import logging
 import requests
 from collections import defaultdict
-from ...core.types import Hunter
+from ...core.types import Discovery
 
 from requests import get
 
@@ -14,7 +14,7 @@ class KubeProxyEvent(Event, Service):
         Service.__init__(self, name="Kubernetes Proxy") 
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 8001)
-class KubeProxy(Hunter):
+class KubeProxy(Discovery):
     """Proxy Discovery
     Checks for the existence of a an open Proxy service
     """
