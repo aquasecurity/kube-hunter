@@ -14,6 +14,9 @@ global vulnerabilities_lock
 vulnerabilities_lock = threading.Lock()
 vulnerabilities = list()
 
+global hunters_lock
+hunters_lock = threading.Lock()
+hunters = handler.all_hunters
 
 def console_trim(text, prefix=' '):
     a = text.split(" ")

@@ -3,13 +3,14 @@ from __future__ import print_function
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
-from .collector import services, vulnerabilities, services_lock, vulnerabilities_lock
+from .collector import services, vulnerabilities, hunters, handler, services_lock, vulnerabilities_lock, hunters_lock
+from .base import BaseReporter
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
 
 
-class PlainReporter(object):
+class PlainReporter(BaseReporter):
 
     def get_report(self):
         """generates report tables"""
@@ -19,6 +20,10 @@ class PlainReporter(object):
         vulnerabilities_len = len(vulnerabilities)
         vulnerabilities_lock.release()
 
+        hunters_lock.acquire()
+        hunters_len = len(hunters.items())
+        hunters_lock.release()
+
         services_lock.acquire()
         services_len = len(services)
         services_lock.release()
@@ -27,6 +32,10 @@ class PlainReporter(object):
             output += self.nodes_table()
             if not config.mapping:
                 output += self.services_table()
+                if hunters_len:
+                    output += self.hunters_table()
+                else:
+                    output += "\nNo hunters were found"
                 if vulnerabilities_len:
                     output += self.vulns_table()
                 else:
@@ -88,3 +97,18 @@ class PlainReporter(object):
             vuln_table.add_row(row)
         vulnerabilities_lock.release()
         return "\nVulnerabilities\n{}\n".format(vuln_table)
+
+    def hunters_table(self):
+        column_names = ["Name", "Description", "Events"]
+        hunters_table = PrettyTable(column_names, hrules=ALL)
+        hunters_table.align = "l"
+        hunters_table.max_width = MAX_TABLE_WIDTH
+        hunters_table.sortby = "Name"
+        hunters_table.reversesort = True
+        hunters_table.padding_width = 1
+        hunters_table.header_style = "upper"
+
+        hunter_statistics = self.get_hunting_hunters_statistics()
+        for item in hunter_statistics:
+            hunters_table.add_row([item.get("name"), item.get("description"), item.get("events")])
+        return "\nHunting Hunters Statistics\n{}\n".format(hunters_table)

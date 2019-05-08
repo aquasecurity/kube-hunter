@@ -14,7 +14,7 @@ from netifaces import AF_INET, ifaddresses, interfaces
 
 from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent, Vulnerability
-from ...core.types import Hunter, InformationDisclosure, Azure
+from ...core.types import DiscoveryHunter, InformationDisclosure, Azure
 
 class RunningAsPodEvent(Event):
     def __init__(self):
@@ -73,7 +73,7 @@ class HostDiscoveryHelpers:
 
 
 @handler.subscribe(RunningAsPodEvent)
-class FromPodHostDiscovery(Hunter):
+class FromPodHostDiscovery(DiscoveryHunter):
     """Host Discovery when running as pod
     Generates ip adresses to scan, based on cluster/scan type
     """
@@ -131,7 +131,7 @@ class FromPodHostDiscovery(Hunter):
         return subnets, "Azure"
 
 @handler.subscribe(HostScanEvent)
-class HostDiscovery(Hunter):
+class HostDiscovery(DiscoveryHunter):
     """Host Discovery
     Generates ip adresses to scan, based on cluster/scan type
     """

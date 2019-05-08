@@ -3,7 +3,8 @@ netifaces
 scapy==2.4.3rc1
 requests
 PrettyTable
-urllib3
+urllib3==1.22
+chardet==3.0.2
 ruamel.yaml
 requests_mock
 future
