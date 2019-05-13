@@ -27,6 +27,15 @@ class ServerApiAccess(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name=name, category=category)
         self.evidence = evidence
 
+class ServerApiHTTPAccess(Vulnerability, Event):
+    """ The API Server port is accessible over HTTP, and therefore unencrypted. Depending on your RBAC settings this could expose access to or control of your cluster. """
+ 
+    def __init__(self, evidence):
+        name = "Insecure (HTTP) access to API"
+        category = UnauthenticatedAccess
+        Vulnerability.__init__(self, KubernetesCluster, name=name, category=category)
+        self.evidence = evidence
+
 class ApiInfoDisclosure(Vulnerability, Event):
     def __init__(self, evidence, using_token, name):
         if using_token: 
@@ -195,13 +204,12 @@ class AccessApiServer(Hunter):
 
     def __init__(self, event):
         self.event = event
-        self.path = "https://{}:{}".format(self.event.host, self.event.port)
+        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
         self.headers = {}
         self.with_token = False
 
     def access_api_server(self):
-        logging.debug('Passive Hunter is attempting to access the API at {host}:{port}'.format(host=self.event.host, 
-            port=self.event.port))
+        logging.debug('Passive Hunter is attempting to access the API at {}'.format(self.path))
         try:
             r = requests.get("{path}/api".format(path=self.path), headers=self.headers, verify=False)
             if r.status_code == 200 and r.content != '':
@@ -248,7 +256,10 @@ class AccessApiServer(Hunter):
     def execute(self):
         api = self.access_api_server()
         if api:
-            self.publish_event(ServerApiAccess(api, self.with_token))
+            if self.event.protocol == "http":
+                self.publish_event(ServerApiHTTPAccess(api))
+            else:
+                self.publish_event(ServerApiAccess(api, self.with_token))
 
         namespaces = self.get_items("{path}/api/v1/namespaces".format(path=self.path))
         if namespaces:
@@ -293,7 +304,7 @@ class AccessApiServerActive(ActiveHunter):
 
     def __init__(self, event):
         self.event = event
-        self.path = "https://{}:{}".format(self.event.host, self.event.port)
+        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
 
     def create_item(self, path, name, data):
         headers = {
