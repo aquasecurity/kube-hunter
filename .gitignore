@@ -1,3 +1,5 @@
 *.pyc
 .dockerignore
 *aqua*
+.vscode
+.Python
