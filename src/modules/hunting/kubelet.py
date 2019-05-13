@@ -50,8 +50,8 @@ class ExposedExecHandler(Vulnerability, Event):
 
 class ExposedRunHandler(Vulnerability, Event):
     """An attacker could run an arbitrary command inside a container"""
-    def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec)    
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec, evidence=evidence)    
 
 
 class ExposedPortForwardHandler(Vulnerability, Event):
@@ -221,8 +221,11 @@ class SecureKubeletPortHunter(Hunter):
                 containerName=self.pod["container"],
                 cmd = ""
             )
-            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code 
-            return (status_code != 404 and status_code != 401)
+            r = requests.post(run_url, allow_redirects=False, verify=False)
+            if r.status_code not in [200, 201, 202]:
+                return None
+
+            return r.text
 
         # returns list of currently running pods
         def test_running_pods(self):
@@ -285,8 +288,9 @@ class SecureKubeletPortHunter(Hunter):
                     self.publish_event(ExposedContainerLogsHandler())
                 if debug_handlers.test_exec_container():
                     self.publish_event(ExposedExecHandler())      
-                if debug_handlers.test_run_container():
-                    self.publish_event(ExposedRunHandler())
+                r = debug_handlers.test_run_container()
+                if r:
+                    self.publish_event(ExposedRunHandler(r))
                 if debug_handlers.test_port_forward():
                     self.publish_event(ExposedPortForwardHandler()) # not implemented            
                 if debug_handlers.test_attach_container():
