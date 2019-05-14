@@ -16,8 +16,8 @@ class ApiServer(Service, Event):
 # Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
 # A Kubernetes API server will respond with a JSON message that includes a "code" field for the HTTP status code
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port==443 or x.port==6443 or x.port==8080)
-class ApiServerDiscovery(Hunter):
-    """Api Server Discovery
+class ApiServerDiscovery(Discovery):
+    """API Server Discovery
     Checks for the existence of a an API Server
     """
     def __init__(self, event):
