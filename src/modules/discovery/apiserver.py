@@ -1,7 +1,7 @@
 import requests
 import logging
 
-from ...core.types import Hunter
+from ...core.types import Discovery
 from ...core.events import handler
 from ...core.events.types import OpenPortEvent, Service, Event
 

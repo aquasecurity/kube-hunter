@@ -200,6 +200,7 @@ class ApiServerPassiveHunterFinished(Event):
 @handler.subscribe(ApiServer)
 class AccessApiServer(Hunter):
     """ API Server Hunter
+    Checks if API server is accessible
     """
 
     def __init__(self, event):

@@ -1,7 +1,7 @@
 import json
 import logging
 from enum import Enum
-from ...core.types import Hunter, Kubelet
+from ...core.types import Discovery, Kubelet
 
 import requests
 import urllib3
@@ -30,7 +30,7 @@ class KubeletPorts(Enum):
     READ_ONLY = 10255
 
 @handler.subscribe(OpenPortEvent, predicate= lambda x: x.port == 10255 or x.port == 10250)
-class KubeletDiscovery(Hunter):
+class KubeletDiscovery(Discovery):
     """Kubelet Discovery
     Checks for the existence of a Kubelet service, and its open ports
     """
