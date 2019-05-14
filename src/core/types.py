@@ -1,11 +1,20 @@
-class ActiveHunter(object):    
+class HunterBase(object):
+    publishedEvents = 0
+
     def publish_event(self, event):
         handler.publish_event(event, caller=self)
+        
+
+class ActiveHunter(HunterBase):
+    pass
 
 
-class Hunter(object):
-    def publish_event(self, event):
-        handler.publish_event(event, caller=self)
+class Hunter(HunterBase):
+    pass
+
+
+class Discovery(HunterBase):
+    pass
 
 
 """Kubernetes Components"""

@@ -1,4 +1,5 @@
-from .collector import services, vulnerabilities, services_lock, vulnerabilities_lock
+from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
+from src.core.types import Discovery
 
 class BaseReporter(object):
     def get_nodes(self):
@@ -22,13 +23,42 @@ class BaseReporter(object):
         services_lock.release()
         return services_data
 
+    def get_severity(self, category):
+        severity = {
+            "Information Disclosure": "medium",
+            "Denial of Service": "medium",
+            "Remote Code Execution": "high",
+            "Identity Theft": "high",
+            "Privilege Escalation": "high",
+            "Access Risk": "low"
+        }
+        return severity.get(category, "low")
+
     def get_vulnerabilities(self):
         vulnerabilities_lock.acquire()
         vulnerabilities_data = [{"location": vuln.location(),
                  "category": vuln.category.name,
+                 "severity": self.get_severity(vuln.category.name),
                  "vulnerability": vuln.get_name(),
                  "description": vuln.explain(),
                  "evidence": str(vuln.evidence)}
                 for vuln in vulnerabilities]
         vulnerabilities_lock.release()
         return vulnerabilities_data
+
+    def get_hunter_statistics(self):
+        hunters_data = list()
+        for hunter, docs in hunters.items():
+            if not Discovery in hunter.__mro__:
+                name, docs = self.get_docs(hunter, docs)
+                hunters_data.append({"name": name, "description": docs, "events": hunter.publishedEvents})
+        return hunters_data
+
+    def get_docs(self, hunter, docs):
+        """returns tuple of (name, docs)"""
+        if not docs:
+            return hunter.__name__, "<no documentation>" 
+        docs = docs.strip().split('\n')
+        for i, line in enumerate(docs):
+            docs[i] = line.strip()
+        return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
