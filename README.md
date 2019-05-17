@@ -79,7 +79,7 @@ You will need the following installed:
 
 Clone the repository:
 ~~~
-git clone git@github.com:aquasecurity/kube-hunter.git
+git clone https://github.com/aquasecurity/kube-hunter.git
 ~~~
 
 Install module dependencies:
