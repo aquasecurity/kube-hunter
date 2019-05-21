@@ -21,6 +21,7 @@ parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help=
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml, json")
+parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
 
 import plugins
 
@@ -88,15 +89,15 @@ def interactive_set_config():
 
 def list_hunters():
     print("\nPassive Hunters:\n----------------")
-    for i, (hunter, docs) in enumerate(handler.passive_hunters.items()):
-        name, docs = config.reporter.get_docs(hunter, docs)
-        print("* {}\n  {}\n".format(name, docs))
+    for hunter, docs in handler.passive_hunters.items():
+        name, doc = hunter.parse_docs(docs)
+        print("* {}\n  {}\n".format(name, doc))
 
     if config.active:
         print("\n\nActive Hunters:\n---------------")
-        for i, (hunter, docs) in enumerate(handler.active_hunters.items()):
-            name, docs = config.reporter.get_docs(hunter, docs)
-            print("* {}\n  {}\n".format( name, docs))
+        for hunter, docs in handler.active_hunters.items():
+            name, doc = hunter.parse_docs(docs)
+            print("* {}\n  {}\n".format( name, doc))
 
 
 global hunt_started_lock

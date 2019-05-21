@@ -2,6 +2,7 @@ import logging
 import requests
 import json
 import threading
+from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess
 
 
 class Event(object):
@@ -59,6 +60,16 @@ class Service(object):
 
 
 class Vulnerability(object):
+    severity = dict({
+        InformationDisclosure: "medium",
+        DenialOfService: "medium",
+        RemoteCodeExec: "high",
+        IdentityTheft: "high",
+        PrivilegeEscalation: "high",
+        AccessRisk: "low",
+        UnauthenticatedAccess: "low"
+    })
+
     def __init__(self, component, name, category=None):
         self.component = component
         self.category = category
@@ -76,6 +87,8 @@ class Vulnerability(object):
     def explain(self):
         return self.__doc__
 
+    def get_severity(self):
+        return self.severity.get(self.category, "low")
 
 global event_id_count_lock
 event_id_count_lock = threading.Lock()

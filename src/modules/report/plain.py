@@ -30,14 +30,15 @@ class PlainReporter(BaseReporter):
             output += self.nodes_table()
             if not config.mapping:
                 output += self.services_table()
-                if hunters_len:
-                    output += self.hunters_table()
-                else:
-                    output += "\nNo hunters were found"
                 if vulnerabilities_len:
                     output += self.vulns_table()
                 else:
                     output += "\nNo vulnerabilities were found"
+                if config.statistics:
+                    if hunters_len:
+                        output += self.hunters_table()
+                    else:
+                        output += "\nNo hunters were found"
         else:
             print("\nKube Hunter couldn't find any clusters")
             # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
@@ -97,7 +98,7 @@ class PlainReporter(BaseReporter):
         return "\nVulnerabilities\n{}\n".format(vuln_table)
 
     def hunters_table(self):
-        column_names = ["Name", "Description", "Events"]
+        column_names = ["Name", "Description", "Vulnerabilities"]
         hunters_table = PrettyTable(column_names, hrules=ALL)
         hunters_table.align = "l"
         hunters_table.max_width = MAX_TABLE_WIDTH
@@ -108,5 +109,5 @@ class PlainReporter(BaseReporter):
 
         hunter_statistics = self.get_hunter_statistics()
         for item in hunter_statistics:
-            hunters_table.add_row([item.get("name"), item.get("description"), item.get("events")])
+            hunters_table.add_row([item.get("name"), item.get("description"), item.get("vulnerabilities")])
         return "\nHunter Statistics\n{}\n".format(hunters_table)

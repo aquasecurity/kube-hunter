@@ -9,7 +9,7 @@ from __main__ import config
 
 from ..types import ActiveHunter, Hunter, HunterBase
 
-from ...core.events.types import HuntFinished
+from ...core.events.types import HuntFinished, Vulnerability
 import threading
 
 global queue_lock
@@ -73,8 +73,9 @@ class EventQueue(Queue, object):
                     if caller:
                         event.previous = caller.event
 
-                    if HunterBase in hook.__mro__:
-                        hook.publishedEvents += 1
+                    if config.statistics and caller:
+                        if Vulnerability in event.__class__.__mro__:
+                            caller.__class__.publishedVulnerabilities += 1
 
                     self.put(hook(event))
 
