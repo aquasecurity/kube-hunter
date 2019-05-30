@@ -23,22 +23,11 @@ class BaseReporter(object):
         services_lock.release()
         return services_data
 
-    def get_severity(self, category):
-        severity = {
-            "Information Disclosure": "medium",
-            "Denial of Service": "medium",
-            "Remote Code Execution": "high",
-            "Identity Theft": "high",
-            "Privilege Escalation": "high",
-            "Access Risk": "low"
-        }
-        return severity.get(category, "low")
-
     def get_vulnerabilities(self):
         vulnerabilities_lock.acquire()
         vulnerabilities_data = [{"location": vuln.location(),
                  "category": vuln.category.name,
-                 "severity": self.get_severity(vuln.category.name),
+                 "severity": vuln.get_severity(),
                  "vulnerability": vuln.get_name(),
                  "description": vuln.explain(),
                  "evidence": str(vuln.evidence)}
@@ -50,15 +39,6 @@ class BaseReporter(object):
         hunters_data = list()
         for hunter, docs in hunters.items():
             if not Discovery in hunter.__mro__:
-                name, docs = self.get_docs(hunter, docs)
-                hunters_data.append({"name": name, "description": docs, "events": hunter.publishedEvents})
+                name, doc = hunter.parse_docs(docs)
+                hunters_data.append({"name": name, "description": doc, "vulnerabilities": hunter.publishedVulnerabilities})
         return hunters_data
-
-    def get_docs(self, hunter, docs):
-        """returns tuple of (name, docs)"""
-        if not docs:
-            return hunter.__name__, "<no documentation>" 
-        docs = docs.strip().split('\n')
-        for i, line in enumerate(docs):
-            docs[i] = line.strip()
-        return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
