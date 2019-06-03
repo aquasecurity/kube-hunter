@@ -83,6 +83,13 @@ git clone https://github.com/aquasecurity/kube-hunter.git
 ~~~
 
 Install module dependencies:
+
+(python 2.x)
+~~~
+cd ./kube-hunter
+pip install -r requirements2.txt
+~~~
+(python 3.x)
 ~~~
 cd ./kube-hunter
 pip install -r requirements.txt
