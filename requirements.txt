@@ -1,4 +1,4 @@
-enum34
+enum34 ; python_version<='3.4'
 netaddr
 netifaces
 scapy==2.4.3rc1
