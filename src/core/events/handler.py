@@ -9,7 +9,7 @@ from __main__ import config
 
 from ..types import ActiveHunter, Hunter, HunterBase
 
-from ...core.events.types import HuntFinished, Vulnerability
+from ...core.events.types import HuntFinished, Vulnerability, EventFilterBase
 import threading
 
 global queue_lock
@@ -24,6 +24,7 @@ class EventQueue(Queue, object):
         self.all_hunters = dict()
 
         self.hooks = defaultdict(list)
+        self.filters = defaultdict(list)
         self.running = True
         self.workers = list()
 
@@ -57,27 +58,48 @@ class EventQueue(Queue, object):
         if HunterBase in hook.__mro__:
             self.all_hunters[hook] = hook.__doc__
 
-        if hook not in self.hooks[event]:
+        # registering filters
+        if EventFilterBase in hook.__mro__:
+            if hook not in self.filters[event]:
+                self.filters[event].append((hook, predicate))
+                logging.debug('{} filter subscribed to {}'.format(hook, event))
+
+        # registering hunters
+        elif hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
             logging.debug('{} subscribed to {}'.format(hook, event))
 
     # getting instantiated event object
     def publish_event(self, event, caller=None):
-        logging.debug('Event {} got published with {}'.format(event.__class__, event))
+        # setting event chain
+        if caller:
+            event.previous = caller.event
+            event.hunter = caller.__class__
+
+        # applying filters to event
+        for hooked_event in self.filters.keys():
+            if hooked_event in event.__class__.__mro__:
+                for filter_hook, predicate in self.filters[hooked_event]:
+                    if predicate and not predicate(event):
+                        continue
+
+                    logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
+                    if not filter_hook(event).execute():
+                        # filters the event, if returns None, does not proceed to publish it.
+                        return
+
+        # publishing to subscribers
         for hooked_event in self.hooks.keys():
             if hooked_event in event.__class__.__mro__:
                 for hook, predicate in self.hooks[hooked_event]:
                     if predicate and not predicate(event):
                         continue
 
-                    if caller:
-                        event.previous = caller.event
-                        event.hunter = caller.__class__
-
                     if config.statistics and caller:
                         if Vulnerability in event.__class__.__mro__:
                             caller.__class__.publishedVulnerabilities += 1
 
+                    logging.debug('Event {} got published with {}'.format(event.__class__, event))
                     self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon

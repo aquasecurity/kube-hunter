@@ -189,6 +189,29 @@ The process of proving vulnerabilities, is the base concept of the Active Huntin
 To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vulnerability, and inside of the `execute`, specify the `evidence` attribute of the event.   
 *Note that you can specify the 'evidence' attribute without active hunting*  
 
+## Filtering Events
+Sometimes, you may want to filter some events, based on a specific attribute.
+For example, if you only want to see vulnerabilities with an InformationDisclosure category you can create the following module, in the `src/modules/report/`
+```python
+from src.core.events import handler
+from src.core.types import InformationDisclosure
+from src.core.events.types import Vulnerability, EventFilterBase
+
+@handler.subscribe(Vulnerability)
+class InformationDisclosureFilter(EventFilterBase):
+    def __init__(self,event):
+        EventFilterBase.__init__(self, event)
+
+    # return None to filter out the event
+    def execute(self):
+        if self.event.category == InformationDisclosure:
+            return self.event
+        return None
+```
+The following filter will make sure any vulnerability with a category other than InformationDisclosure will not get published to Kube-Hunters Queue.
+That means other hunters that are subscribed to this vulnerability will not get triggered.
+That opens up a wide variety of possible operations, as this not only can filter out events, but you can actually change event's attributes. and return `self.event` to indicate you want to publish the changed event.
+
 ## Tests
 Although we haven't been rigorous about this in the past, please add tests to support your code changes. Tests are executed like this: 
 
