@@ -8,9 +8,9 @@ class EventFilterBase(object):
     def __init__(self, event):
         self.event = event
 
-    # Return event or None to skip
+    # Returns None to keep event, or True to entirely filter out event
     def execute(self):
-        return self.event
+        return None
 
 class Event(object):
     def __init__(self):
