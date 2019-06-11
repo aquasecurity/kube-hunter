@@ -32,8 +32,8 @@ class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
 # Passive Hunter
 @handler.subscribe(ApiServer)
 class IsVulnerableToCVEAttack(Hunter):
-    """CVE-2018-1002105 hunter
-    Checks if Node is running a Kubernetes version vulnerable to critical CVE-2018-1002105
+    """CVE hunter
+    Checks if Node is running a Kubernetes version vulnerable to critical CVEs
     """
 
     def __init__(self, event):
