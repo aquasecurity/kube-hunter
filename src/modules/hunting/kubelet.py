@@ -207,14 +207,15 @@ class SecureKubeletPortHunter(Hunter):
 
         # executes one command and returns output
         def test_run_container(self):
+            fake_container_name = "fake-container"
             run_url = self.path + self.Handlers.RUN.value.format(
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
-                containerName=self.pod["container"],
+                containerName=fake_container_name,
                 cmd = ""
             )
-            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code 
-            return (status_code != 404 and status_code != 401)
+            output = requests.post(run_url, allow_redirects=False, verify=False).text
+            return output == "container not found (\"{}\")".format(fake_container_name)
 
         # returns list of currently running pods
         def test_running_pods(self):
