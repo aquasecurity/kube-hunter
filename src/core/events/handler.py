@@ -72,6 +72,7 @@ class EventQueue(Queue, object):
 
                     if caller:
                         event.previous = caller.event
+                        event.hunter = caller.__class__
 
                     if config.statistics and caller:
                         if Vulnerability in event.__class__.__mro__:

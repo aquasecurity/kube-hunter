@@ -32,8 +32,8 @@ class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
 # Passive Hunter
 @handler.subscribe(ApiServer)
 class IsVulnerableToCVEAttack(Hunter):
-    """CVE-2018-1002105 hunter
-    Checks if Node is running a Kubernetes version vulnerable to critical CVE-2018-1002105
+    """CVE hunter
+    Checks if Node is running a Kubernetes version vulnerable to critical CVEs
     """
 
     def __init__(self, event):
@@ -42,7 +42,7 @@ class IsVulnerableToCVEAttack(Hunter):
         # From within a Pod we may have extra credentials
         if self.event.auth_token:
             self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
-        self.path = "https://{}:{}".format(self.event.host, self.event.port)
+        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
         self.api_server_evidence = ''
         self.k8sVersion = ''
 

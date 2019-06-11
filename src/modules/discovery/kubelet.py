@@ -38,8 +38,7 @@ class KubeletDiscovery(Discovery):
         self.event = event
 
     def get_read_only_access(self):
-        logging.debug(self.event.host)
-        logging.debug("Passive hunter is attempting to get kubelet read access")
+        logging.debug("Passive hunter is attempting to get kubelet read access at {}:{}".format(self.event.host, self.event.port))
         r = requests.get("http://{host}:{port}/pods".format(host=self.event.host, port=self.event.port))
         if r.status_code == 200:
             self.publish_event(ReadOnlyKubeletEvent())

@@ -86,16 +86,8 @@ class PrivilegedContainers(Vulnerability, Event):
     def __init__(self, containers):
         Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=AccessRisk)
         self.containers = containers
-        self.evidence = "pod: {}, container: {}".format(containers[0][0], containers[0][1])
+        self.evidence = "pod: {}, container: {}, count: {}".format(containers[0][0], containers[0][1], len(containers))
 
-
-class PrivilegeEscalation(Vulnerability, Event):
-    """Privilege escalation allows an attacker to grant root permissions and control the cluster"""
-
-    def __init__(self, containers):
-        Vulnerability.__init__(self, KubernetesCluster, "Privilege Escalation", category=PrivilegeEscalation)
-        self.containers = containers
-        self.evidence = "pod: {}, container: {}".format(containers[0][0], containers[0][1])
 
 
 """ dividing ports for seperate hunters """
