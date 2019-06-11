@@ -30,7 +30,8 @@ class BaseReporter(object):
                  "severity": vuln.get_severity(),
                  "vulnerability": vuln.get_name(),
                  "description": vuln.explain(),
-                 "evidence": str(vuln.evidence)}
+                 "evidence": str(vuln.evidence),
+                 "hunter": vuln.hunter.get_name()}
                 for vuln in vulnerabilities]
         vulnerabilities_lock.release()
         return vulnerabilities_data

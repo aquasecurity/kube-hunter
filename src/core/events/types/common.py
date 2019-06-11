@@ -8,6 +8,7 @@ from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExe
 class Event(object):
     def __init__(self):
         self.previous = None
+        self.hunter = None
 
     # newest attribute gets selected first
     def __getattr__(self, name):

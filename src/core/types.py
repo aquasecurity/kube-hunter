@@ -1,9 +1,7 @@
 class HunterBase(object):
     publishedVulnerabilities = 0
 
-    def publish_event(self, event):
-        handler.publish_event(event, caller=self)
-
+    @staticmethod
     def parse_docs(docs):
         """returns tuple of (name, docs)"""
         if not docs:
@@ -12,7 +10,15 @@ class HunterBase(object):
         for i, line in enumerate(docs):
             docs[i] = line.strip()
         return docs[0], ' '.join(docs[1:]) if len(docs[1:]) else "<no documentation>"
-        
+
+    @classmethod
+    def get_name(cls):
+        name, _ = cls.parse_docs(cls.__doc__)
+        return name
+
+    def publish_event(self, event):
+        handler.publish_event(event, caller=self)
+
 
 class ActiveHunter(HunterBase):
     pass
