@@ -70,8 +70,7 @@ class EventQueue(Queue, object):
             logging.debug('{} subscribed to {}'.format(hook, event))
 
     def apply_filter(self, event):
-        # filters a given event, if the event should be removed, returns True, 
-        status = None
+        new_event = event
         for hooked_event in self.filters.keys():
             if hooked_event in event.__class__.__mro__:
                 for filter_hook, predicate in self.filters[hooked_event]:
@@ -79,44 +78,42 @@ class EventQueue(Queue, object):
                         continue
 
                     logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
-                    status = filter_hook(event).execute()
-        return status
+                    new_event = filter_hook(new_event).execute()
+                    # If event is filtered out, stop
+                    if not new_event:
+                        return None
 
-    # getting instantiated event object
+        return new_event
+
+     # getting instantiated event object
     def publish_event(self, event, caller=None):
-        remove_event = False
-        apply_filter_original_code = self.apply_filter.__func__.__code__
-
         # setting event chain
         if caller:
             event.previous = caller.event
             event.hunter = caller.__class__
 
+        filter_executed = False
         # publishing to subscribers
         for hooked_event in self.hooks.keys():
-            if remove_event:
-                break
             if hooked_event in event.__class__.__mro__:
                 for hook, predicate in self.hooks[hooked_event]:
                     if predicate and not predicate(event):
                         continue
 
-                    # will run once for each event
-                    if self.apply_filter(event):
-                        remove_event = True
-                        break
-                    # formatting the apply_filter method, to not run next time again on the same event.
-                    self.apply_filter.__func__.__code__ = (lambda self, event: None).__code__
-   
+                    # We want to run filters only once and only if we gonna publish it
+                    if not filter_executed:
+                        event = self.apply_filter(event)
+                        filter_executed = True
+
                     if config.statistics and caller:
                         if Vulnerability in event.__class__.__mro__:
                             caller.__class__.publishedVulnerabilities += 1
 
                     logging.debug('Event {} got published with {}'.format(event.__class__, event))
                     self.put(hook(event))
-
-        # restoring original filter code, for next event publish
-        self.apply_filter.__func__.__code__ = apply_filter_original_code
+            # If the event was filtered out, stop
+            if not event:
+                break
 
     # executes callbacks on dedicated thread as a daemon
     def worker(self):

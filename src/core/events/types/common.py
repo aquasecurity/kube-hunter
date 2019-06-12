@@ -8,9 +8,11 @@ class EventFilterBase(object):
     def __init__(self, event):
         self.event = event
 
-    # Returns None to keep event, or True to entirely filter out event
+    # Returns self.event as default.
+    # If changes has been made, should return the new event that's been altered
+    # Return None to indicate throwing of event
     def execute(self):
-        return None
+        return self.event
 
 class Event(object):
     def __init__(self):

@@ -193,7 +193,9 @@ To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vul
 Sometimes, you may want to filter some events, based on a specific attribute.  
 Creating a filter is simple, the API is similar to creating an Hunter.  
 By inheriting from `EventFilterBase` in `src.core.events.types` module, you can create the filter class.  
-Then, use `@handler.subscribe(Event)` to filter a specific `Event`, kube-hunter's core, will make sure to run your filter on the event before publishing it.   
+Then, use `@handler.subscribe(Event)` to filter a specific `Event`, kube-hunter's core, will make sure to run your filter on the event before publishing it.
+_(You can filter a father event, such as Service or Vulnerability, to filter all services/vulnerabilities)_
+
 #### Similarities to the Hunter API:
 - You need to implement `self.execute(self)` method.
 - to access the event that's being filtered, use `self.event` in your filter.  
@@ -202,26 +204,44 @@ Then, use `@handler.subscribe(Event)` to filter a specific `Event`, kube-hunter'
 * Remove/Prevent an event from being published
 * Altering event attributes
 
-To prevent an event from being published, return `True` from the execute method of your filter.  
-To alter event attributes, alter the `self.event`, it will change the event itself before it is published.  
-__make sure to not return anything from the execute method if you just want to alter attributes__  
+To prevent an event from being published, return `None` from the execute method of your filter.  
+To alter event attributes, return a new event, based on the `self.event` after your modifications, it will replace the event itself before it is published.  
+__make sure to return the event from the execute method, or the event will not get publihshed__  
  
-For example, if you only want to see vulnerabilities with an InformationDisclosure category you can create the following module, in the `src/modules/report/`
+For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `src/modules/report/`
+```python
+from src.core.events import handler
+from src.core.events.types import Service, EventFilterBase
+
+@handler.subscribe(Service)
+class LocalHostFilter(EventFilterBase):
+    # return None to filter out event
+    def execute(self):
+        if self.event.host == "127.0.0.1":
+            return None
+        return self.event
+```
+The following filter will filter out any Service found on a localhost IP. Those Services will not get published to Kube-Hunter's Queue.
+That means other hunters that are subscribed to this Service will not get triggered.
+That opens up a wide variety of possible operations, as this not only can __filter out__ events, but you can actually change event's attributes, for example:
+
 ```python
 from src.core.events import handler
 from src.core.types import InformationDisclosure
 from src.core.events.types import Vulnerability, EventFilterBase
 
 @handler.subscribe(Vulnerability)
-class InformationDisclosureFilter(EventFilterBase):
-    # return True to filter out the event
+class CensorInformation(EventFilterBase):
+    # return None to filter out event
     def execute(self):
-        if self.event.category != InformationDisclosure:
-            return True
+        if self.event.category == InformationDisclosure:
+            new_event = self.event
+            new_event.evidence = "<classified information>"
+            return new_event
+        else:
+            return self.event
 ```
-The following filter will make sure any vulnerability with a category other than InformationDisclosure will not get published to Kube-Hunters Queue.
-That means other hunters that are subscribed to this vulnerability will not get triggered.
-That opens up a wide variety of possible operations, as this not only can filter out events, but you can actually change event's attributes. and __not__ returning something to indicate you want to keep the changed event.
+This will censor all vulnerabilities which can disclose information about a cluster. 
 
 ## Tests
 Although we haven't been rigorous about this in the past, please add tests to support your code changes. Tests are executed like this: 
