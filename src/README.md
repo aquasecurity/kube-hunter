@@ -191,7 +191,7 @@ To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vul
 
 ## Filtering Events
 Sometimes, you may want to filter some events, based on a specific attribute.  
-Creating a filter is simple, the API is similar to creating an Hunter.  
+Creating a filter is simple, the API is similar to creating a Hunter.  
 By inheriting from `EventFilterBase` in `src.core.events.types` module, you can create the filter class.  
 Then, use `@handler.subscribe(Event)` to filter a specific `Event`, kube-hunter's core, will make sure to run your filter on the event before publishing it.
 _(You can filter a father event, such as Service or Vulnerability, to filter all services/vulnerabilities)_
