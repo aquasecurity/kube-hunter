@@ -299,12 +299,14 @@ class SecureKubeletPortHunter(Hunter):
             if not pod_data:
                 pod_data = next((pod_data for pod_data in pods_data if is_kubesystem_pod(pod_data)), None)
             
-            container_data = (container_data for container_data in pod_data["spec"]["containers"]).next()
-            return {
-                "name": pod_data["metadata"]["name"],
-                "container": container_data["name"],
-                "namespace": pod_data["metadata"]["namespace"]
-            }
+            if pod_data:
+                container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
+                if container_data:
+                    return {
+                        "name": pod_data["metadata"]["name"],
+                        "container": container_data["name"],
+                        "namespace": pod_data["metadata"]["namespace"]
+                    }
 
 @handler.subscribe(ExposedRunHandler)
 class ProveRunHandler(ActiveHunter):
