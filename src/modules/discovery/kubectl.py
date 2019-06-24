@@ -13,6 +13,9 @@ class KubectlClientEvent(Event):
     def __init__(self, version):
         self.version = version
 
+    def location(self):
+        return "local machine"
+
 # Will be triggered on start of every hunt 
 @handler.subscribe(HuntStarted)
 class KubectlClientDiscovery(Discovery):
