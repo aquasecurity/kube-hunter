@@ -26,20 +26,24 @@ class PlainReporter(BaseReporter):
         services_len = len(services)
         services_lock.release()
 
-        output += self.nodes_table()
-        if not config.mapping:
-            output += self.services_table()
+        if services_len:
+            output += self.nodes_table()
+            if not config.mapping:
+                output += self.services_table()
+                if vulnerabilities_len:
+                    output += self.vulns_table()
+                else:
+                    output += "\nNo vulnerabilities were found"
+                if config.statistics:
+                    if hunters_len:
+                        output += self.hunters_table()
+                    else:
+                        output += "\nNo hunters were found"
+        else:
             if vulnerabilities_len:
                 output += self.vulns_table()
-            else:
-                output += "\nNo vulnerabilities were found"
-            if config.statistics:
-                if hunters_len:
-                    output += self.hunters_table()
-                else:
-                    output += "\nNo hunters were found"
-        if not services_len:
-            print("\nKube Hunter couldn't find any clusters")
+            output += "\nKube Hunter couldn't find any clusters"
+            # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output
 
     def nodes_table(self):
