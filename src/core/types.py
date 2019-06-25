@@ -38,7 +38,7 @@ class KubernetesCluster():
     name = "Kubernetes Cluster"
 
 class KubectlClient():
-    """The kubectl client binary is used by the user, to interact with the cluster"""
+    """The kubectl client binary is used by the user to interact with the cluster"""
     name = "Kubectl Client"
 
 class Kubelet(KubernetesCluster):
