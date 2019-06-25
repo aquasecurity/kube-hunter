@@ -12,8 +12,6 @@ from ..types import ActiveHunter, Hunter, HunterBase
 from ...core.events.types import HuntFinished, Vulnerability
 import threading
 
-global queue_lock
-queue_lock = Lock()
 
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue, object):
