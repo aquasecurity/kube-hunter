@@ -44,7 +44,7 @@ class KubectlCopyHunter(Hunter):
         # if version is smaller than smaller fix version
         if not vulnerable and LooseVersion(binary_v) < LooseVersion(self.fixed_versions[0]):
             vulnerable = True
-        logging.debug("Could not match kubectl with known fix versions, determining vulnerable to kubectl cp vuln")
+
         return vulnerable
 
     def execute(self):
