@@ -213,8 +213,9 @@ class SecureKubeletPortHunter(Hunter):
                 containerName=self.pod["container"],
                 cmd = ""
             )
-            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code 
-            return (status_code != 404 and status_code != 401)
+            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code
+            # check if return value is 4xx
+            return not 400 <= status_code < 500
 
         # returns list of currently running pods
         def test_running_pods(self):
