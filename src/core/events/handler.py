@@ -12,8 +12,6 @@ from ..types import ActiveHunter, Hunter, HunterBase
 from ...core.events.types import HuntFinished, Vulnerability
 import threading
 
-global queue_lock
-queue_lock = Lock()
 
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue, object):
@@ -32,6 +30,7 @@ class EventQueue(Queue, object):
             t.daemon = True
             t.start()
             self.workers.append(t)
+
         t = Thread(target=self.notifier)
         t.daemon = True
         t.start()
@@ -83,21 +82,23 @@ class EventQueue(Queue, object):
     # executes callbacks on dedicated thread as a daemon
     def worker(self):
         while self.running:
-            queue_lock.acquire()
-            hook = self.get()
-            queue_lock.release()
             try:
+                hook = self.get()
                 hook.execute()
             except Exception as ex:
                 logging.debug("Exception: {} - {}".format(hook.__class__, ex))
-            self.task_done()
+            finally:
+                self.task_done()
         logging.debug("closing thread...")
 
     def notifier(self):
         time.sleep(2)
+        # should consider locking on unfinished_tasks
         while self.unfinished_tasks > 0:
             logging.debug("{} tasks left".format(self.unfinished_tasks))
             time.sleep(3)
+            if self.unfinished_tasks == 1:
+                logging.debug("final hook is hanging")
 
     # stops execution of all daemons
     def free(self):
