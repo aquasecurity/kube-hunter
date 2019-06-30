@@ -61,7 +61,7 @@ class CloudTypes(Enum):
 class HostDiscoveryUtils:
     """ Static class containes util functions for Host discovery processes """
     @classmethod
-    def get_cloud(cls, ip=None):
+    def get_cloud(cls, host=None):
         """ Returns cloud for a given ip address, defaults to the external ip"""
         if not host:
             host = cls._get_external_ip()
