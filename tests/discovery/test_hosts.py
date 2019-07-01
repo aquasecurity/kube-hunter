@@ -17,15 +17,13 @@ def test_FromPodHostDiscovery():
         config.cidr = None
         m.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", status_code=404)
         f = FromPodHostDiscovery(e)
-        assert not f.is_azure_pod()
-        # TODO For now we don't test the traceroute discovery version
-        # f.execute()
+        assert not f.is_azure_api()
 
         # Test that we generate NewHostEvent for the addresses reported by the Azure Metadata API
         config.azure = True
         m.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", \
             text='{"network":{"interface":[{"ipv4":{"subnet":[{"address": "3.4.5.6", "prefix": "255.255.255.252"}]}}]}}')
-        assert f.is_azure_pod()
+        assert f.is_azure_api()
         f.execute()
 
         # Test that we don't trigger a HostScanEvent unless either config.remote or config.cidr are configured
