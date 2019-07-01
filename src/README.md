@@ -190,20 +190,19 @@ To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vul
 *Note that you can specify the 'evidence' attribute without active hunting*  
 
 ## Filtering Events
-Sometimes, you may want to filter some events, based on a specific attribute.  
-Creating a filter is simple, the API is similar to creating a Hunter.  
-By inheriting from `EventFilterBase` in `src.core.events.types` module, you can create the filter class.  
-Then, use `@handler.subscribe(Event)` to filter a specific `Event`, kube-hunter's core, will make sure to run your filter on the event before publishing it.
+A filter can change an event's attribute or remove it completely, before it's getting published to hunters.
+
+To create a filter:
+* create a class that inherits from `EventFilterBase` (from `src.core.events.types`)   
+* use `@handler.subscribe(Event)` to filter a specific `Event`
+* define a `__init__(self, event)` method, and save the event in your class  
+* implement `self.execute(self)` method, __returns a new event, or None to remove event__  
 _(You can filter a father event, such as Service or Vulnerability, to filter all services/vulnerabilities)_
-
-#### Similarities to the Hunter API:
-- You need to implement `self.execute(self)` method.
-- to access the event that's being filtered, use `self.event` in your filter.  
-
-#### Options for filtering:
-* Remove/Prevent an event from being published
-* Altering event attributes
-
+  
+#### Options for filtering:  
+* Remove/Prevent an event from being published 
+* Altering event attributes 
+  
 To prevent an event from being published, return `None` from the execute method of your filter.  
 To alter event attributes, return a new event, based on the `self.event` after your modifications, it will replace the event itself before it is published.  
 __make sure to return the event from the execute method, or the event will not get publihshed__  
@@ -223,7 +222,7 @@ class LocalHostFilter(EventFilterBase):
 ```
 The following filter will filter out any Service found on a localhost IP. Those Services will not get published to Kube-Hunter's Queue.
 That means other hunters that are subscribed to this Service will not get triggered.
-That opens up a wide variety of possible operations, as this not only can __filter out__ events, but you can actually change event's attributes, for example:
+That opens up a wide variety of possible operations, as this not only can __filter out__ events, but you can actually __change event's attributes__, for example:
 
 ```python
 from src.core.events import handler
