@@ -1,3 +1,5 @@
+from enum import Enum
+
 class HunterBase(object):
     publishedVulnerabilities = 0
 
@@ -30,6 +32,19 @@ class Hunter(HunterBase):
 
 class Discovery(HunterBase):
     pass
+
+
+""" Clouds Enum """
+class CloudTypes(Enum):
+    """Values are as defined in azurespeed"""
+    AKS = "Azure"
+    EKS = "AWS"
+    ACK = "AliCloud"
+    NO_CLOUD = "No Cloud"
+
+    @classmethod
+    def get_enum(cls, value):
+        return {item.value: item for item in cls}.get(value, cls.NO_CLOUD)
 
 
 """Kubernetes Components"""
@@ -77,5 +92,6 @@ class PrivilegeEscalation(KubernetesCluster):
 
 class DenialOfService(object):
     name = "Denial of Service"
+
 
 from .events import handler # import is in the bottom to break import loops
