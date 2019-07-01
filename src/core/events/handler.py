@@ -69,22 +69,6 @@ class EventQueue(Queue, object):
             self.hooks[event].append((hook, predicate))
             logging.debug('{} subscribed to {}'.format(hook, event))
 
-    def apply_filter(self, event):
-        new_event = event
-        for hooked_event in self.filters.keys():
-            if hooked_event in event.__class__.__mro__:
-                for filter_hook, predicate in self.filters[hooked_event]:
-                    if predicate and not predicate(event):
-                        continue
-
-                    logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
-                    new_event = filter_hook(new_event).execute()
-                    # If event is filtered out, stop
-                    if not new_event:
-                        return None
-
-        return new_event
-
      # getting instantiated event object
     def publish_event(self, event, caller=None):
         # setting event chain
@@ -92,28 +76,30 @@ class EventQueue(Queue, object):
             event.previous = caller.event
             event.hunter = caller.__class__
 
-        filter_executed = False
-        # publishing to subscribers
-        for hooked_event in self.hooks.keys():
+        # if filters are subscribed, apply them in the event 
+        for hooked_event in self.filters.keys():
             if hooked_event in event.__class__.__mro__:
-                for hook, predicate in self.hooks[hooked_event]:
+                for filter_hook, predicate in self.filters[hooked_event]:
                     if predicate and not predicate(event):
                         continue
 
-                    # We want to run filters only once and only if we gonna publish it
-                    if not filter_executed:
-                        event = self.apply_filter(event)
-                        filter_executed = True
+                    logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
+                    event = filter_hook(event).execute()
 
-                    if config.statistics and caller:
-                        if Vulnerability in event.__class__.__mro__:
-                            caller.__class__.publishedVulnerabilities += 1
+        # publishing to subscribers
+        if event:
+            for hooked_event in self.hooks.keys():
+                if hooked_event in event.__class__.__mro__:
+                    for hook, predicate in self.hooks[hooked_event]:
+                        if predicate and not predicate(event):
+                            continue
 
-                    logging.debug('Event {} got published with {}'.format(event.__class__, event))
-                    self.put(hook(event))
-            # If the event was filtered out, stop
-            if not event:
-                break
+                        if config.statistics and caller:
+                            if Vulnerability in event.__class__.__mro__:
+                                caller.__class__.publishedVulnerabilities += 1
+
+                        logging.debug('Event {} got published with {}'.format(event.__class__, event))
+                        self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon
     def worker(self):
