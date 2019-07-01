@@ -35,6 +35,7 @@ def test_AccessApiServer():
     e = ApiServer()
     e.host = "mockKubernetes"
     e.port = 443
+    e.protocol = "https"
 
     with requests_mock.Mocker() as m:
         m.get('https://mockKubernetes:443/api', text='{}')
@@ -151,6 +152,7 @@ def test_AccessApiServerActive():
     e = ApiServerPassiveHunterFinished(namespaces=["hello-namespace"])
     e.host = "mockKubernetes"
     e.port = 443
+    e.protocol = "https"
 
     with requests_mock.Mocker() as m:
         # TODO more tests here with real responses
