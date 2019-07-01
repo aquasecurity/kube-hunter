@@ -7,7 +7,7 @@ from .kubelet import ExposedRunHandler
 
 from ...core.events import handler
 from ...core.events.types import Event, Vulnerability
-from ...core.types import Hunter, ActiveHunter, IdentityTheft, Azure
+from ...core.types import Hunter, ActiveHunter, IdentityTheft, Azure, CloudTypes
 
 
 class AzureSpnExposure(Vulnerability, Event):
@@ -16,7 +16,7 @@ class AzureSpnExposure(Vulnerability, Event):
         Vulnerability.__init__(self, Azure, "Azure SPN Exposure", category=IdentityTheft)
         self.container = container
 
-@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud=="Azure")
+@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud==CloudTypes.AZURE)
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
