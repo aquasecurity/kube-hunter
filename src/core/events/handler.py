@@ -88,6 +88,11 @@ class EventQueue(Queue, object):
 
         # publishing to subscribers
         if event:
+            # If event was rewritten, make sure it linked to its parent ('previous') event
+            if caller:
+                event.previous = caller.event
+                event.hunter = caller.__class__
+
             for hooked_event in self.hooks.keys():
                 if hooked_event in event.__class__.__mro__:
                     for hook, predicate in self.hooks[hooked_event]:
