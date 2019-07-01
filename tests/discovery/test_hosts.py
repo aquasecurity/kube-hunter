@@ -27,6 +27,7 @@ def test_FromPodHostDiscovery():
         f.execute()
 
         # Test that we don't trigger a HostScanEvent unless either config.remote or config.cidr are configured
+        m.get("http://canhazip.com/", text="10.10.10.10")
         config.remote = "1.2.3.4"
         f.execute()
 
