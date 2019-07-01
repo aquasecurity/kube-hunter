@@ -4,6 +4,7 @@ from enum import Enum
 
 import requests
 import urllib3
+import uuid
 
 from __main__ import config
 from ...core.events import handler
@@ -207,7 +208,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # executes one command and returns output
         def test_run_container(self):
-            fake_container_name = "fake-container"
+            fake_container_name = "fake-container-{}".format(uuid.uuid4())
             run_url = self.path + self.Handlers.RUN.value.format(
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
