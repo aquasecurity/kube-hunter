@@ -42,7 +42,7 @@ class IsVulnerableToCVEAttack(Hunter):
         # From within a Pod we may have extra credentials
         if self.event.auth_token:
             self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
-        self.path = "https://{}:{}".format(self.event.host, self.event.port)
+        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
         self.api_server_evidence = ''
         self.k8sVersion = ''
 

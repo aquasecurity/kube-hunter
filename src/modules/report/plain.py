@@ -40,7 +40,9 @@ class PlainReporter(BaseReporter):
                     else:
                         output += "\nNo hunters were found"
         else:
-            print("\nKube Hunter couldn't find any clusters")
+            if vulnerabilities_len:
+                output += self.vulns_table()
+            output += "\nKube Hunter couldn't find any clusters"
             # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output
 

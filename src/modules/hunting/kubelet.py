@@ -213,8 +213,9 @@ class SecureKubeletPortHunter(Hunter):
                 containerName=self.pod["container"],
                 cmd = ""
             )
-            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code 
-            return (status_code != 404 and status_code != 401)
+            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code
+            # check if return value is 4xx
+            return not 400 <= status_code < 500
 
         # returns list of currently running pods
         def test_running_pods(self):
@@ -299,12 +300,14 @@ class SecureKubeletPortHunter(Hunter):
             if not pod_data:
                 pod_data = next((pod_data for pod_data in pods_data if is_kubesystem_pod(pod_data)), None)
             
-            container_data = (container_data for container_data in pod_data["spec"]["containers"]).next()
-            return {
-                "name": pod_data["metadata"]["name"],
-                "container": container_data["name"],
-                "namespace": pod_data["metadata"]["namespace"]
-            }
+            if pod_data:
+                container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
+                if container_data:
+                    return {
+                        "name": pod_data["metadata"]["name"],
+                        "container": container_data["name"],
+                        "namespace": pod_data["metadata"]["namespace"]
+                    }
 
 @handler.subscribe(ExposedRunHandler)
 class ProveRunHandler(ActiveHunter):

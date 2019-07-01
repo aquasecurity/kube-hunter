@@ -7,7 +7,7 @@ from ...core.events import handler
 from ...core.events.types import NewHostEvent, OpenPortEvent
 
 
-default_ports = [8001, 10250, 10255, 30000, 443, 6443, 2379]
+default_ports = [8001, 8080, 10250, 10255, 30000, 443, 6443, 2379]
 
 @handler.subscribe(NewHostEvent)
 class PortDiscovery(Discovery):
