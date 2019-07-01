@@ -15,7 +15,10 @@ class CapNetRawEnabled(Event, Vulnerability):
     
 
 @handler.subscribe(RunningAsPodEvent)
-class CapabilitiesHunter(Hunter):
+class PodCapabilitiesHunter(Hunter):
+    """Pod Capabilities Hunter
+    Checks for default enabled capabilities in a pod 
+    """
     def __init__(self, event):
         self.event = event        
 
