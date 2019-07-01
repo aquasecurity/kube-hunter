@@ -2,21 +2,24 @@ import requests_mock
 import time
 from queue import Empty
 
-from src.modules.discovery.hosts import FromPodHostDiscovery, RunningAsPodEvent, HostScanEvent, AzureMetadataApi
+from src.modules.discovery.aks import AzureHostDiscovery, AzureMetadataApi
+from src.modules.discovery.hosts import HostScanEvent, RunningPodOnCloud
 from src.core.events.types import Event, NewHostEvent
 from src.core.events import handler
+from src.core.types import CloudTypes
+
 from __main__ import config
 
-def test_FromPodHostDiscovery():
+def test_AzureHostDiscovery():
 
     with requests_mock.Mocker() as m:
-        e = RunningAsPodEvent()
+        e = RunningPodOnCloud(cloud=CloudTypes.AKS)
 
         config.azure = False
         config.remote = None
         config.cidr = None
         m.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", status_code=404)
-        f = FromPodHostDiscovery(e)
+        f = AzureHostDiscovery(e)
         assert not f.is_azure_api()
 
         # Test that we generate NewHostEvent for the addresses reported by the Azure Metadata API
@@ -26,15 +29,6 @@ def test_FromPodHostDiscovery():
         assert f.is_azure_api()
         f.execute()
 
-        # Test that we don't trigger a HostScanEvent unless either config.remote or config.cidr are configured
-        m.get("http://canhazip.com/", text="10.10.10.10")
-        config.remote = "1.2.3.4"
-        f.execute()
-
-        config.azure = False
-        config.remote = None 
-        config.cidr = "1.2.3.4/24"
-        f.execute()
 
 
 # In this set of tests we should only trigger HostScanEvent when remote or cidr are set
