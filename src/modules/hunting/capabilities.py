@@ -30,7 +30,10 @@ class PodCapabilitiesHunter(Hunter):
             s.close()
             logging.debug("Passive hunter's closing RAW socket")
             return True
-        except PermissionError:
+        # python2 does not support PermissionError, should be sufficiant to say that 
+        # NET_RAW is disabled by catching all exception. after we stop support for
+        # python2, should replace to except PermissionError explicitly
+        except:
             logging.debug("CAP_NET_RAW not enabled")
 
     def execute(self):
