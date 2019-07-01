@@ -5,7 +5,7 @@ from ..discovery.hosts import RunningAsPodEvent
 
 from ...core.events import handler
 from ...core.events.types import Event, Vulnerability
-from ...core.types import Discovery, AccessRisk, KubernetesCluster
+from ...core.types import Hunter, AccessRisk, KubernetesCluster
 
 
 class CapNetRawEnabled(Event, Vulnerability):
@@ -15,7 +15,7 @@ class CapNetRawEnabled(Event, Vulnerability):
     
 
 @handler.subscribe(RunningAsPodEvent)
-class CapabilitiesDiscovery(Discovery):
+class CapabilitiesHunter(Hunter):
     def __init__(self, event):
         self.event = event        
 
