@@ -68,14 +68,9 @@ class EventQueue(Queue, object):
             self.hooks[event].append((hook, predicate))
             logging.debug('{} subscribed to {}'.format(hook, event))
 
-     # getting instantiated event object
-    def publish_event(self, event, caller=None):
-        # setting event chain
-        if caller:
-            event.previous = caller.event
-            event.hunter = caller.__class__
 
-        # if filters are subscribed, apply them in the event 
+    def apply_filters(self, event):
+        # if filters are subscribed, apply them on the event 
         for hooked_event in self.filters.keys():
             if hooked_event in event.__class__.__mro__:
                 for filter_hook, predicate in self.filters[hooked_event]:
@@ -84,10 +79,23 @@ class EventQueue(Queue, object):
 
                     logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
                     event = filter_hook(event).execute()
+                    # if filter decided to remove event, returning None
+                    if not event:
+                        return None
+        return event
 
-        # publishing to subscribers
+     # getting instantiated event object
+    def publish_event(self, event, caller=None):
+        # setting event chain
+        if caller:
+            event.previous = caller.event
+            event.hunter = caller.__class__
+
+        # applying filters on the event, before publishing it to subscribers. 
+        # if filter returned None, not proceeding to publish
+        event = self.apply_filters(event)
         if event:
-            # If event was rewritten, make sure it linked to its parent ('previous') event
+            # If event was rewritten, make sure it's linked to its parent ('previous') event
             if caller:
                 event.previous = caller.event
                 event.hunter = caller.__class__
