@@ -242,6 +242,8 @@ class CensorInformation(EventFilterBase):
 ```
 This will censor all vulnerabilities which can disclose information about a cluster. 
 
+__Note: in filters, you should not change attributes in the event.previous, this will result in unexpected behaviour__
+
 ## Tests
 Although we haven't been rigorous about this in the past, please add tests to support your code changes. Tests are executed like this: 
 
