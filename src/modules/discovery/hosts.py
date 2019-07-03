@@ -50,8 +50,8 @@ class InterfaceTypes(Enum):
 
 class HostDiscoveryUtils:
     """ Static class containes util functions for Host discovery processes """
-    @classmethod
-    def get_cloud(cls, host):
+    @staticmethod
+    def get_cloud(host):
         """ Returns cloud for a given ip address, defaults to NO_CLOUD """
         cloud = ""
         try:
