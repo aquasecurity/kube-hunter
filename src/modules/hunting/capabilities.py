@@ -9,7 +9,7 @@ from ...core.types import Hunter, AccessRisk, KubernetesCluster
 
 
 class CapNetRawEnabled(Event, Vulnerability):
-    """CAP_NET_RAW is enabled by default for pods, an attacker could potentially perform network attacks on other pods running on the same node"""
+    """CAP_NET_RAW is enabled by default for pods. If an attacker manages to compromise a pod, they could potentially take advantage of this capability to perform network attacks on other pods running on the same node"""
     def __init__(self):
         Vulnerability.__init__(self, KubernetesCluster, name="CAP_NET_RAW Enabled", category=AccessRisk)
     
