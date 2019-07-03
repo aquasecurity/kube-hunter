@@ -190,14 +190,14 @@ To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vul
 *Note that you can specify the 'evidence' attribute without active hunting*  
 
 ## Filtering Events
-A filter can change an event's attribute or remove it completely, before it's getting published to hunters.
+A filter can change an event's attribute or remove it completely, before it gets published to hunters.
 
 To create a filter:
 * create a class that inherits from `EventFilterBase` (from `src.core.events.types`)   
 * use `@handler.subscribe(Event)` to filter a specific `Event`
 * define a `__init__(self, event)` method, and save the event in your class  
 * implement `self.execute(self)` method, __returns a new event, or None to remove event__  
-_(You can filter a father event, such as Service or Vulnerability, to filter all services/vulnerabilities)_
+_(You can filter a parent event class, such as Service or Vulnerability, to filter all services/vulnerabilities)_
   
 #### Options for filtering:  
 * Remove/Prevent an event from being published 
@@ -205,7 +205,7 @@ _(You can filter a father event, such as Service or Vulnerability, to filter all
   
 To prevent an event from being published, return `None` from the execute method of your filter.  
 To alter event attributes, return a new event, based on the `self.event` after your modifications, it will replace the event itself before it is published.  
-__make sure to return the event from the execute method, or the event will not get publihshed__  
+__Make sure to return the event from the execute method, or the event will not get publihshed__  
  
 For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `src/modules/report/`
 ```python
