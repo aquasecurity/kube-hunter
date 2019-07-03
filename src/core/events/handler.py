@@ -84,7 +84,7 @@ class EventQueue(Queue, object):
                         return None
         return event
 
-     # getting instantiated event object
+    # getting instantiated event object
     def publish_event(self, event, caller=None):
         # setting event chain
         if caller:
