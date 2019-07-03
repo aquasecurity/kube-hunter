@@ -52,7 +52,7 @@ class HostDiscoveryUtils:
     """ Static class containes util functions for Host discovery processes """
     @classmethod
     def get_cloud(cls, host):
-        """ Returns cloud for a given ip address, defaults to the external ip"""
+        """ Returns cloud for a given ip address, defaults to NO_CLOUD """
         cloud = ""
         try:
             if host:
