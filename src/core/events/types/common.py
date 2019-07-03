@@ -10,7 +10,7 @@ class EventFilterBase(object):
 
     # Returns self.event as default.
     # If changes has been made, should return the new event that's been altered
-    # Return None to indicate throwing of event
+    # Return None to indicate the event should be discarded
     def execute(self):
         return self.event
 
