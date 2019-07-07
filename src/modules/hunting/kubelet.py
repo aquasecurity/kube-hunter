@@ -167,7 +167,7 @@ class SecureKubeletPortHunter(Hunter):
             RUN = "run/{podNamespace}/{podID}/{containerName}?cmd={cmd}"                                  # POST, For legacy reasons, it uses different query param than exec.
             PORTFORWARD = "portForward/{podNamespace}/{podID}?port={port}"                                # GET/POST
             ATTACH = "attach/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1" # GET -> WebSocket
-            PPROF_CMDLINE = "/debug/pprof/cmdline"
+            PPROF_CMDLINE = "debug/pprof/cmdline"
 
         def __init__(self, path, pod, session=None):
             self.path = path
