@@ -92,7 +92,7 @@ class PrivilegedContainers(Vulnerability, Event):
 class ExposedKubeletCmdline(Vulnerability, Event):
     """Commandline flags that were passed to the kubelet can be obtained from the pprof endpoints"""
     def __init__(self, cmdline):
-        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=InformationDisclosure)
+        Vulnerability.__init__(self, Kubelet, "Exposed Kubelet Cmdline", category=InformationDisclosure)
         self.cmdline = cmdline
         self.evidence = "cmdline: {}".format(self.cmdline)
 
