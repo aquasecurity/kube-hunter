@@ -53,10 +53,9 @@ class Collector(object):
             services.append(self.event)
             services_lock.release()
             import datetime
-            logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  host: {host}:{port}".format(
-                host=self.event.host,
-                port=self.event.port,
+            logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  location: {location}".format(
                 name=self.event.get_name(),
+                location=self.event.location(),
                 time=datetime.time()
             ))
 
@@ -65,10 +64,9 @@ class Collector(object):
             vulnerabilities.append(self.event)
             vulnerabilities_lock.release()
             logging.info(
-                "|\n| {name}:\n|   type: vulnerability\n|   host: {host}:{port}\n|   description: \n{desc}".format(
+                "|\n| {name}:\n|   type: vulnerability\n|   location: {location}\n|   description: \n{desc}".format(
                     name=self.event.get_name(),
-                    host=self.event.host,
-                    port=self.event.port,
+                    location=self.event.location(),
                     desc=wrap_last_line(console_trim(self.event.explain(), '|     '))
                 ))
 
