@@ -9,7 +9,7 @@ from __main__ import config
 
 from ..types import ActiveHunter, Hunter, HunterBase
 
-from ...core.events.types import HuntFinished, Vulnerability
+from ...core.events.types import HuntFinished, Vulnerability, EventFilterBase
 import threading
 
 
@@ -22,6 +22,7 @@ class EventQueue(Queue, object):
         self.all_hunters = dict()
 
         self.hooks = defaultdict(list)
+        self.filters = defaultdict(list)
         self.running = True
         self.workers = list()
 
@@ -56,28 +57,61 @@ class EventQueue(Queue, object):
         if HunterBase in hook.__mro__:
             self.all_hunters[hook] = hook.__doc__
 
-        if hook not in self.hooks[event]:
+        # registering filters
+        if EventFilterBase in hook.__mro__:
+            if hook not in self.filters[event]:
+                self.filters[event].append((hook, predicate))
+                logging.debug('{} filter subscribed to {}'.format(hook, event))
+
+        # registering hunters
+        elif hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
             logging.debug('{} subscribed to {}'.format(hook, event))
 
-    # getting instantiated event object
-    def publish_event(self, event, caller=None):
-        logging.debug('Event {} got published with {}'.format(event.__class__, event))
-        for hooked_event in self.hooks.keys():
+
+    def apply_filters(self, event):
+        # if filters are subscribed, apply them on the event 
+        for hooked_event in self.filters.keys():
             if hooked_event in event.__class__.__mro__:
-                for hook, predicate in self.hooks[hooked_event]:
+                for filter_hook, predicate in self.filters[hooked_event]:
                     if predicate and not predicate(event):
                         continue
 
-                    if caller:
-                        event.previous = caller.event
-                        event.hunter = caller.__class__
+                    logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
+                    event = filter_hook(event).execute()
+                    # if filter decided to remove event, returning None
+                    if not event:
+                        return None
+        return event
 
-                    if config.statistics and caller:
-                        if Vulnerability in event.__class__.__mro__:
-                            caller.__class__.publishedVulnerabilities += 1
+    # getting instantiated event object
+    def publish_event(self, event, caller=None):
+        # setting event chain
+        if caller:
+            event.previous = caller.event
+            event.hunter = caller.__class__
 
-                    self.put(hook(event))
+        # applying filters on the event, before publishing it to subscribers. 
+        # if filter returned None, not proceeding to publish
+        event = self.apply_filters(event)
+        if event:
+            # If event was rewritten, make sure it's linked to its parent ('previous') event
+            if caller:
+                event.previous = caller.event
+                event.hunter = caller.__class__
+
+            for hooked_event in self.hooks.keys():
+                if hooked_event in event.__class__.__mro__:
+                    for hook, predicate in self.hooks[hooked_event]:
+                        if predicate and not predicate(event):
+                            continue
+
+                        if config.statistics and caller:
+                            if Vulnerability in event.__class__.__mro__:
+                                caller.__class__.publishedVulnerabilities += 1
+
+                        logging.debug('Event {} got published with {}'.format(event.__class__, event))
+                        self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon
     def worker(self):
