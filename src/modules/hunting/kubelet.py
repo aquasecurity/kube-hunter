@@ -244,7 +244,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # returns the cmd line used to run the kubelet
         def test_pprof_cmdline(self):
-            cmd = self.session.get(self.path + self.Handlers.PPROF_CMDLINE.value)
+            cmd = self.session.get(self.path + self.Handlers.PPROF_CMDLINE.value, verify=False)
             return cmd.text if cmd.status_code == 200 else None
 
     def __init__(self, event):
