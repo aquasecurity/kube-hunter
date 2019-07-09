@@ -2,6 +2,7 @@ import json
 import logging
 from enum import Enum
 
+import re
 import requests
 import urllib3
 
@@ -89,6 +90,22 @@ class PrivilegedContainers(Vulnerability, Event):
         self.evidence = "pod: {}, container: {}, count: {}".format(containers[0][0], containers[0][1], len(containers))
 
 
+class ExposedSystemLogs(Vulnerability, Event):
+    """System logs are exposed from the /logs endpoint on the kubelet"""
+    def __init__(self):
+        Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure)
+
+""" Enum containing all of the kubelet handlers """
+class KubeletHandlers(Enum):
+    PODS = "pods"                                                                                 # GET
+    CONTAINERLOGS = "containerLogs/{podNamespace}/{podID}/{containerName}"                        # GET
+    RUNNINGPODS = "runningpods"                                                                   # GET
+    EXEC = "exec/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1"     # GET -> WebSocket 
+    RUN = "run/{podNamespace}/{podID}/{containerName}?cmd={cmd}"                                  # POST, For legacy reasons, it uses different query param than exec.
+    PORTFORWARD = "portForward/{podNamespace}/{podID}?port={port}"                                # GET/POST
+    ATTACH = "attach/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1" # GET -> WebSocket
+    LOGS = "logs/{path}"                                                                          # GET
+
 
 """ dividing ports for seperate hunters """
 @handler.subscribe(ReadOnlyKubeletEvent)
@@ -146,6 +163,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         if self.pods_endpoint_data:
             self.publish_event(ExposedPodsHandler(count=len(self.pods_endpoint_data["items"])))
 
+
 @handler.subscribe(SecureKubeletEvent)        
 class SecureKubeletPortHunter(Hunter):
     """Kubelet Secure Ports Hunter
@@ -153,14 +171,6 @@ class SecureKubeletPortHunter(Hunter):
     """
     class DebugHandlers(object):    
         """ all methods will return the handler name if successfull """
-        class Handlers(Enum):
-            CONTAINERLOGS = "containerLogs/{podNamespace}/{podID}/{containerName}"                        # GET
-            RUNNINGPODS = "runningpods"                                                                   # GET
-            EXEC = "exec/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1"     # GET -> WebSocket 
-            RUN = "run/{podNamespace}/{podID}/{containerName}?cmd={cmd}"                                  # POST, For legacy reasons, it uses different query param than exec.
-            PORTFORWARD = "portForward/{podNamespace}/{podID}?port={port}"                                # GET/POST
-            ATTACH = "attach/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1" # GET -> WebSocket
-
         def __init__(self, path, pod, session=None):
             self.path = path
             self.session = session if session else requests.Session()
@@ -168,7 +178,7 @@ class SecureKubeletPortHunter(Hunter):
             
         # outputs logs from a specific container
         def test_container_logs(self):
-            logs_url = self.path + self.Handlers.CONTAINERLOGS.value.format(
+            logs_url = self.path + KubeletHandlers.CONTAINERLOGS.value.format(
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 containerName=self.pod["container"]
@@ -179,7 +189,7 @@ class SecureKubeletPortHunter(Hunter):
         def test_exec_container(self):
             # opens a stream to connect to using a web socket
             headers={"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
-            exec_url = self.path + self.Handlers.EXEC.value.format(
+            exec_url = self.path + KubeletHandlers.EXEC.value.format(
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 containerName=self.pod["container"],
@@ -197,7 +207,7 @@ class SecureKubeletPortHunter(Hunter):
                 "Sec-Websocket-Protocol": "SPDY"
 
             }
-            pf_url = self.path + self.Handlers.PORTFORWARD.value.format(
+            pf_url = self.path + KubeletHandlers.PORTFORWARD.value.format(
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 port=80
@@ -207,7 +217,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # executes one command and returns output
         def test_run_container(self):
-            run_url = self.path + self.Handlers.RUN.value.format(
+            run_url = self.path + KubeletHandlers.RUN.value.format(
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 containerName=self.pod["container"],
@@ -219,14 +229,14 @@ class SecureKubeletPortHunter(Hunter):
 
         # returns list of currently running pods
         def test_running_pods(self):
-            pods_url = self.path + self.Handlers.RUNNINGPODS.value
+            pods_url = self.path + KubeletHandlers.RUNNINGPODS.value
             r = self.session.get(pods_url, verify=False)
             return json.loads(r.text) if r.status_code == 200 else False
 
         # need further investigation on the differences between attach and exec
         def test_attach_container(self):
             # headers={"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
-            attach_url = self.path + self.Handlers.ATTACH.value.format(
+            attach_url = self.path + KubeletHandlers.ATTACH.value.format(
                 podNamespace=self.pod["namespace"],
                 podID=self.pod["name"],
                 containerName=self.pod["container"],
@@ -234,12 +244,21 @@ class SecureKubeletPortHunter(Hunter):
             )
             return "/cri/attach/" in self.session.get(attach_url, allow_redirects=False ,verify=False).text
 
+        # checks access to logs endpoint
+        def test_logs_endpoint(self):
+            logs_url = self.session.get(self.path + KubeletHandlers.LOGS.value.format(
+                path=""
+            )).text
+            return "<pre>" in logs_url
+
     def __init__(self, event):
         self.event = event
         self.session = requests.Session()
         if self.event.secure:
             self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
             # self.session.cert = self.event.client_cert
+        # copy session to event
+        self.event.session = self.session
         self.path = "https://{}:{}/".format(self.event.host, 10250)
         self.kubehunter_pod = {"name": "kube-hunter", "namespace": "default", "container": "kube-hunter"}
         self.pods_endpoint_data = ""
@@ -284,6 +303,8 @@ class SecureKubeletPortHunter(Hunter):
                     self.publish_event(ExposedPortForwardHandler()) # not implemented            
                 if debug_handlers.test_attach_container():
                     self.publish_event(ExposedAttachHandler())
+                if debug_handlers.test_logs_endpoint():
+                    self.publish_event(ExposedSystemLogs())
             except Exception as ex:
                 logging.debug(str(ex.message))
         else:
@@ -316,19 +337,19 @@ class ProveRunHandler(ActiveHunter):
     """
     def __init__(self, event):
         self.event = event
-    
+        self.base_path = "https://{host}:{port}/".format(host=self.event.host, port=self.event.port)
+       
     def run(self, command, container):
-        run_url = "https://{host}:{port}/run/{podNamespace}/{podID}/{containerName}".format(
-            host=self.event.host,
-            port=self.event.port,            
+        run_url = KubeletHandlers.RUN.value.format(
             podNamespace=container["namespace"],
             podID=container["pod"],
-            containerName=container["name"]
+            containerName=container["name"],
+            cmd=command
         )
-        return requests.post(run_url, verify=False, params={'cmd': command}).text
+        return self.event.session.post(self.base_path + run_url, verify=False).text
 
     def execute(self):
-        pods_raw = requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text
+        pods_raw = requests.get(self.base_path + KubeletHandlers.PODS.value, verify=False).text
         if "items" in pods_raw:
             pods_data = json.loads(pods_raw)['items']
             for pod_data in pods_data:
@@ -351,16 +372,16 @@ class ProveContainerLogsHandler(ActiveHunter):
     def __init__(self, event):
         self.event = event
         protocol = "https" if self.event.port == 10250 else "http"
-        self.base_url = "{protocol}://{host}:{port}".format(protocol=protocol, host=self.event.host, port=self.event.port)
+        self.base_url = "{protocol}://{host}:{port}/".format(protocol=protocol, host=self.event.host, port=self.event.port)
 
     def execute(self):
-        pods_raw = requests.get(self.base_url + "/pods", verify=False).text
+        pods_raw = self.event.session.get(self.base_url + KubeletHandlers.PODS.value, verify=False).text
         if "items" in pods_raw:
             pods_data = json.loads(pods_raw)['items']
             for pod_data in pods_data:
                 container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
                 if container_data:
-                    output = requests.get(self.base_url + "/containerLogs/{podNamespace}/{podID}/{containerName}".format(
+                    output = requests.get(self.base_url + KubeletHandlers.CONTAINERLOGS.value.format(
                         podNamespace=pod_data["metadata"]["namespace"],
                         podID=pod_data["metadata"]["name"],
                         containerName=container_data["name"]
@@ -371,3 +392,24 @@ class ProveContainerLogsHandler(ActiveHunter):
                             output.text.encode('utf-8')
                         )
                         return
+
+@handler.subscribe(ExposedSystemLogs)
+class ProveSystemLogs(ActiveHunter):
+    """Kubelet System Logs Hunter
+    Retrieves commands from host's system audit
+    """
+    def __init__(self, event):
+        self.event = event
+        self.base_url = "https://{host}:{port}/".format(host=self.event.host, port=self.event.port)
+
+    def execute(self):
+        audit_logs = self.event.session.get(self.base_url + KubeletHandlers.LOGS.value.format(
+            path="audit/audit.log"
+        ), verify=False).text
+        logging.debug("accessed audit log of host: {}".format(audit_logs[:10]))
+        # iterating over proctitles and converting them into readable strings
+        proctitles = list()
+        for proctitle in re.findall(r"proctitle=(\w+)", audit_logs):
+            proctitles.append(bytes.fromhex(proctitle).decode('utf-8').replace("\x00", " "))
+        self.event.proctitles = proctitles
+        self.event.evidence = "audit log: {}".format('; '.join(proctitles))
