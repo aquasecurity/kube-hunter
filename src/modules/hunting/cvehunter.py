@@ -1,8 +1,6 @@
 import logging
 import json
 import requests
-import uuid
-import ast
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event
@@ -55,11 +53,11 @@ class IsVulnerableToCVEAttack(Hunter):
         try:
             res = requests.get("{path}/version".format(path=self.path),
                                headers=self.headers, verify=False)
-            self.api_server_evidence = res.content
-            resDict = ast.literal_eval(res.content)
+            self.api_server_evidence = res.text
+            resDict = json.loads(res.text)
             version = resDict["gitVersion"].split('.')
-            first_two_minor_digits = eval(version[1])
-            last_two_minor_digits = eval(version[2])
+            first_two_minor_digits = int(version[1])
+            last_two_minor_digits = int(version[2])
             logging.debug('Passive Hunter got version from the API server version end point: %d.%d', first_two_minor_digits, last_two_minor_digits)
             return [first_two_minor_digits, last_two_minor_digits]
 
