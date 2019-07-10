@@ -216,14 +216,13 @@ class SecureKubeletPortHunter(Hunter):
         # executes one command and returns output
         def test_run_container(self):
             run_url = self.path + self.Handlers.RUN.value.format(
-                podNamespace=self.pod["namespace"],
-                podID=self.pod["name"],
-                containerName=self.pod["container"],
+                podNamespace='test',
+                podID='test',
+                containerName='test',
                 cmd = ""
             )
-            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code
-            # check if return value is 4xx
-            return not 400 <= status_code < 500
+            # if we get a Method Not Allowed, we know we passed Authentication and Authorization.
+            return self.session.get(run_url, verify=False).status_code == 405
 
         # returns list of currently running pods
         def test_running_pods(self):
