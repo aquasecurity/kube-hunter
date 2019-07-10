@@ -368,7 +368,7 @@ class ProveRunHandler(ActiveHunter):
         return self.event.session.post(self.base_path + run_url, verify=False).text
 
     def execute(self):
-        pods_raw = requests.get(self.base_path + KubeletHandlers.PODS.value, verify=False).text
+        pods_raw = self.event.session.get(self.base_path + KubeletHandlers.PODS.value, verify=False).text
         if "items" in pods_raw:
             pods_data = json.loads(pods_raw)['items']
             for pod_data in pods_data:
