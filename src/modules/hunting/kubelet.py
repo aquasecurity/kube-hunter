@@ -95,6 +95,15 @@ class ExposedSystemLogs(Vulnerability, Event):
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure)
 
+
+class ExposedKubeletCmdline(Vulnerability, Event):
+    """Commandline flags that were passed to the kubelet can be obtained from the pprof endpoints"""
+    def __init__(self, cmdline):
+        Vulnerability.__init__(self, Kubelet, "Exposed Kubelet Cmdline", category=InformationDisclosure)
+        self.cmdline = cmdline
+        self.evidence = "cmdline: {}".format(self.cmdline)
+
+
 """ Enum containing all of the kubelet handlers """
 class KubeletHandlers(Enum):
     PODS = "pods"                                                                                 # GET
@@ -105,8 +114,9 @@ class KubeletHandlers(Enum):
     PORTFORWARD = "portForward/{podNamespace}/{podID}?port={port}"                                # GET/POST
     ATTACH = "attach/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1" # GET -> WebSocket
     LOGS = "logs/{path}"                                                                          # GET
-
-
+    PPROF_CMDLINE = "debug/pprof/cmdline"                                                         # GET
+    
+    
 """ dividing ports for seperate hunters """
 @handler.subscribe(ReadOnlyKubeletEvent)
 class ReadOnlyKubeletPortHunter(Hunter):
@@ -218,14 +228,13 @@ class SecureKubeletPortHunter(Hunter):
         # executes one command and returns output
         def test_run_container(self):
             run_url = self.path + KubeletHandlers.RUN.value.format(
-                podNamespace=self.pod["namespace"],
-                podID=self.pod["name"],
-                containerName=self.pod["container"],
+                podNamespace='test',
+                podID='test',
+                containerName='test',
                 cmd = ""
             )
-            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code
-            # check if return value is 4xx
-            return not 400 <= status_code < 500
+            # if we get a Method Not Allowed, we know we passed Authentication and Authorization.
+            return self.session.get(run_url, verify=False).status_code == 405
 
         # returns list of currently running pods
         def test_running_pods(self):
@@ -250,6 +259,12 @@ class SecureKubeletPortHunter(Hunter):
                 path=""
             )).text
             return "<pre>" in logs_url
+
+        # returns the cmd line used to run the kubelet
+        def test_pprof_cmdline(self):
+            cmd = self.session.get(self.path + KubeletHandlers.PPROF_CMDLINE.value, verify=False)
+            return cmd.text if cmd.status_code == 200 else None
+            
 
     def __init__(self, event):
         self.event = event
@@ -290,9 +305,13 @@ class SecureKubeletPortHunter(Hunter):
         if pod:
             debug_handlers = self.DebugHandlers(self.path, pod=pod, session=self.session)
             try:
+                # TODO: use named expressions, introduced in python3.8
                 running_pods = debug_handlers.test_running_pods()
                 if running_pods:
                     self.publish_event(ExposedRunningPodsHandler(count=len(running_pods["items"])))            
+                cmdline = debug_handlers.test_pprof_cmdline()
+                if cmdline:
+                    self.publish_event(ExposedKubeletCmdline(cmdline=cmdline))
                 if debug_handlers.test_container_logs():
                     self.publish_event(ExposedContainerLogsHandler())
                 if debug_handlers.test_exec_container():
