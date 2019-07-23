@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import urllib3
+from urllib3.exceptions import HTTPError
 
 
 class HTTPDispatcher(object):
