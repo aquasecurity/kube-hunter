@@ -82,12 +82,9 @@ class SendFullReport(object):
 
     def execute(self):
         report = config.reporter.get_report()
-        print('-------------------------------------------------')
         config.dispatcher.dispatch(report)
         handler.publish_event(ReportDispatched())
-        print('-------------------------------------------------')
         handler.publish_event(TablesPrinted())
-
 
 
 @handler.subscribe(HuntStarted)
