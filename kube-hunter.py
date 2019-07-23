@@ -1,14 +1,8 @@
 #!/usr/bin/env python
-from __future__ import print_function
-
 import argparse
 import logging
 import threading
 
-try:
-    raw_input          # Python 2
-except NameError:
-    raw_input = input  # Python 3
 
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
 parser.add_argument('--list', action="store_true", help="displays all tests in kubehunter (add --active flag to see active tests)")
@@ -75,13 +69,13 @@ def interactive_set_config():
     print("Choose one of the options below:")
     for i, (option, explanation) in enumerate(options):
         print("{}. {} ({})".format(i+1, option.ljust(20), explanation))
-    choice = raw_input("Your choice: ")    
+    choice = input("Your choice: ")
     if choice == '1':
-        config.remote = raw_input("Remotes (separated by a ','): ").replace(' ', '').split(',')
+        config.remote = input("Remotes (separated by a ','): ").replace(' ', '').split(',')
     elif choice == '2':
         config.internal = True
     elif choice == '3': 
-        config.cidr = raw_input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
+        config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
     else: 
         return False
     return True
