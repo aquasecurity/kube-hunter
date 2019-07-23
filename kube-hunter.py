@@ -15,6 +15,7 @@ parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help=
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml, json")
+parser.add_argument('--dispatch', type=str, default='stdout', help="where to send the report to, options are: stdout, http")
 parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
 
 import plugins
@@ -38,6 +39,14 @@ elif config.report.lower() == "json":
     config.reporter = JSONReporter()
 else:
     config.reporter = PlainReporter()
+
+from src.modules.dispatchers.stdout import STDOUTDispatcher
+from src.modules.dispatchers.http import HTTPDispatcher
+dispatchers = {
+    'stdout': STDOUTDispatcher(),
+    'http': HTTPDispatcher()
+}
+config.dispatcher = dispatchers[config.dispatch.lower()]
 
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted

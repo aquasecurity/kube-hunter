@@ -2,7 +2,7 @@ import logging
 
 from __main__ import config
 from src.core.events import handler
-from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted
+from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
 import threading
 
 
@@ -82,11 +82,12 @@ class SendFullReport(object):
 
     def execute(self):
         report = config.reporter.get_report()
-        if config.report == "plain":
-            logging.info("\n{div}\n{report}".format(div="-" * 10, report=report))
-        else:
-            print(report)
+        print('-------------------------------------------------')
+        config.dispatcher.dispatch(report)
+        handler.publish_event(ReportDispatched())
+        print('-------------------------------------------------')
         handler.publish_event(TablesPrinted())
+
 
 
 @handler.subscribe(HuntStarted)

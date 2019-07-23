@@ -145,3 +145,7 @@ class HuntFinished(Event):
 
 class HuntStarted(Event):
     pass
+
+
+class ReportDispatched(Event):
+    pass
