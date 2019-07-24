@@ -86,12 +86,12 @@ class ProveVarLogMount(ActiveHunter):
         """Returns content of file on the host, and cleans trails"""
         symlink_name = str(uuid.uuid4())
         # creating symlink to file
-        output = self.run("ln -s {} {}/{}".format(host_file, mount_path, symlink_name), container=container)
+        self.run("ln -s {} {}/{}".format(host_file, mount_path, symlink_name), container=container)
         # following symlink with kubelet
         path_in_logs_endpoint = KubeletHandlers.LOGS.value.format(path=host_path.strip('/var/log')+symlink_name)
         content = self.event.session.get("{}{}".format(self.base_path, path_in_logs_endpoint), verify=False).text
         # removing symlink
-        output = self.run("rm {}/{}".format(mount_path, symlink_name), container=container)
+        self.run("rm {}/{}".format(mount_path, symlink_name), container=container)
         return content
 
     def execute(self):
