@@ -42,21 +42,6 @@ else:
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
 from src.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
-from src.modules.hunting.kubelet import Kubelet
-from src.modules.discovery.apiserver import ApiServerDiscovery
-from src.modules.discovery.proxy import KubeProxy
-from src.modules.discovery.etcd import EtcdRemoteAccess
-from src.modules.discovery.dashboard import KubeDashboard
-from src.modules.discovery.ports import PortDiscovery
-from src.modules.hunting.apiserver import AccessApiServer
-from src.modules.hunting.apiserver import AccessApiServerWithToken
-from src.modules.hunting.proxy import KubeProxy
-from src.modules.hunting.etcd import EtcdRemoteAccess
-from src.modules.hunting.certificates import CertificateDiscovery
-from src.modules.hunting.dashboard import KubeDashboard
-from src.modules.hunting.cvehunter import IsVulnerableToCVEAttack
-from src.modules.hunting.aks import AzureSpnHunter
-from src.modules.hunting.secrets import AccessSecrets
 import src
 
 
