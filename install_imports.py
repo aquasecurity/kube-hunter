@@ -14,3 +14,4 @@ def install_static_imports(path):
 install_static_imports("src/modules/discovery/")
 install_static_imports("src/modules/hunting/")
 install_static_imports("src/modules/report/")
+install_static_imports("plugins/")
