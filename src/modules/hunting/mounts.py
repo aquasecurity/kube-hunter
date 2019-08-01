@@ -9,14 +9,14 @@ from .kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
 
 """ Vulnerabilities """
 class WriteMountToVarLog(Vulnerability, Event):
-    """A pod can traverse read files on the host filesystem"""
+    """A pod can create symlinks in the /var/log directory on the host, which can lead to a root directory traveral"""
     def __init__(self, pods):
         Vulnerability.__init__(self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation)
         self.pods = pods
         self.evidence = "pods: {}".format(', '.join((pod["metadata"]["name"] for pod in self.pods)))
 
 class DirectoryTraversalWithKubelet(Vulnerability, Event):
-    """An attacker can run commands on a pods with mount to /var/log, to traverse read all files on the host fs"""
+    """An attacker can run commands on pods with mount to /var/log, and traverse read all files on the host filesystem"""
     def __init__(self, output):
         Vulnerability.__init__(self, KubernetesCluster, "Root Traversal Read On The Kubelet", category=PrivilegeEscalation)
         self.output = output
