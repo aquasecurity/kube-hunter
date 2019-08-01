@@ -50,7 +50,7 @@ class VarLogMountHunter(Hunter):
 @handler.subscribe(ExposedRunHandler)
 class ProveVarLogMount(ActiveHunter):
     """Prove /var/log Mount Hunter
-    Tries to exploit the kubelet by running commands inside a pod with mount  
+    Tries to read /etc/shadow on the host by running commands inside a pod with host mount to /var/log
     """
     def __init__(self, event):
         self.event = event
