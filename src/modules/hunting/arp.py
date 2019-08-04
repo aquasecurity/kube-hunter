@@ -15,6 +15,9 @@ class PossibleArpSpoofing(Vulnerability, Event):
 
 @handler.subscribe(CapNetRawEnabled)
 class ArpSpoofHunter(ActiveHunter):
+    """Arp Spoof Hunter
+    Checks for the possibility of running an ARP spoof attack from within a pod (results are based on the running node)
+    """
     def __init__(self, event):
         self.event = event
 

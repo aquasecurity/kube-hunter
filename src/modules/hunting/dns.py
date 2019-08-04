@@ -9,7 +9,7 @@ from .arp import PossibleArpSpoofing
 from scapy.all import *
 
 class PossibleDnsSpoofing(Vulnerability, Event):
-    """A malicous pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM between pods on the node."""
+    """A malicous pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM attck on applications running in the cluster."""
     def __init__(self, kubedns_pod_ip):
         Vulnerability.__init__(self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft)
         self.kubedns_pod_ip = kubedns_pod_ip
@@ -18,6 +18,9 @@ class PossibleDnsSpoofing(Vulnerability, Event):
 # Only triggered with RunningAsPod base event
 @handler.subscribe(PossibleArpSpoofing)
 class DnsSpoofHunter(ActiveHunter):
+    """DNS Spoof Hunter
+    Checks for the possibility of a malicous pod to compromise DNS requests of the cluster (results are based on the running node)
+    """
     def __init__(self, event):
         self.event = event
     
