@@ -189,6 +189,61 @@ The process of proving vulnerabilities, is the base concept of the Active Huntin
 To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vulnerability, and inside of the `execute`, specify the `evidence` attribute of the event.   
 *Note that you can specify the 'evidence' attribute without active hunting*  
 
+## Filtering Events
+A filter can change an event's attribute or remove it completely, before it gets published to hunters.
+
+To create a filter:
+* create a class that inherits from `EventFilterBase` (from `src.core.events.types`)   
+* use `@handler.subscribe(Event)` to filter a specific `Event`
+* define a `__init__(self, event)` method, and save the event in your class  
+* implement `self.execute(self)` method, __returns a new event, or None to remove event__  
+_(You can filter a parent event class, such as Service or Vulnerability, to filter all services/vulnerabilities)_
+  
+#### Options for filtering:  
+* Remove/Prevent an event from being published 
+* Altering event attributes 
+  
+To prevent an event from being published, return `None` from the execute method of your filter.  
+To alter event attributes, return a new event, based on the `self.event` after your modifications, it will replace the event itself before it is published.  
+__Make sure to return the event from the execute method, or the event will not get publihshed__  
+ 
+For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `src/modules/report/`
+```python
+from src.core.events import handler
+from src.core.events.types import Service, EventFilterBase
+
+@handler.subscribe(Service)
+class LocalHostFilter(EventFilterBase):
+    # return None to filter out event
+    def execute(self):
+        if self.event.host == "127.0.0.1":
+            return None
+        return self.event
+```
+The following filter will filter out any Service found on a localhost IP. Those Services will not get published to Kube-Hunter's Queue.
+That means other hunters that are subscribed to this Service will not get triggered.
+That opens up a wide variety of possible operations, as this not only can __filter out__ events, but you can actually __change event's attributes__, for example:
+
+```python
+from src.core.events import handler
+from src.core.types import InformationDisclosure
+from src.core.events.types import Vulnerability, EventFilterBase
+
+@handler.subscribe(Vulnerability)
+class CensorInformation(EventFilterBase):
+    # return None to filter out event
+    def execute(self):
+        if self.event.category == InformationDisclosure:
+            new_event = self.event
+            new_event.evidence = "<classified information>"
+            return new_event
+        else:
+            return self.event
+```
+This will censor all vulnerabilities which can disclose information about a cluster. 
+
+__Note: in filters, you should not change attributes in the event.previous, this will result in unexpected behaviour__
+
 ## Tests
 Although we haven't been rigorous about this in the past, please add tests to support your code changes. Tests are executed like this: 
 
