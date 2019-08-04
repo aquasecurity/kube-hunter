@@ -19,7 +19,7 @@ class PossibleDnsSpoofing(Vulnerability, Event):
 @handler.subscribe(PossibleArpSpoofing)
 class DnsSpoofHunter(ActiveHunter):
     """DNS Spoof Hunter
-    Checks for the possibility of a malicous pod to compromise DNS requests of the cluster (results are based on the running node)
+    Checks for the possibility for a malicous pod to compromise DNS requests of the cluster (results are based on the running node)
     """
     def __init__(self, event):
         self.event = event
