@@ -88,10 +88,7 @@ class HostDiscoveryUtils:
     @staticmethod
     def generate_subnet(ip, sn="24"):
         logging.debug("HostDiscoveryUtils.generate_subnet {0}/{1}".format(ip, sn))
-        subnet = IPNetwork('{ip}/{sn}'.format(ip=ip, sn=sn))
-        for ip in IPNetwork(subnet):
-            logging.debug("HostDiscoveryUtils.generate_subnet yielding {0}".format(ip))
-            yield ip
+        return IPNetwork('{ip}/{sn}'.format(ip=ip, sn=sn))
 
     # generate ip addresses from all internal network interfaces
     @staticmethod
