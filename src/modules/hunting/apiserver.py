@@ -233,14 +233,14 @@ class AccessApiServer(Hunter):
         
         return None
 
-    def get_pods(self, namespace=None):
+    def get_pods(self, namespace="default"):
         pods = []
         try:
             if namespace is None:
                 r = requests.get("{path}/api/v1/pods".format(path=self.path),
                                headers=self.headers, verify=False)
             else:
-                r = requests.get("{path}/api/v1/namespaces/{namespace}/pods".format(path=self.path),
+                r = requests.get("{path}/api/v1/namespaces/{namespace}/pods".format(path=self.path, namespace=namespace),
                                headers=self.headers, verify=False)
             if r.status_code == 200:
                 resp = json.loads(r.content)
@@ -265,6 +265,9 @@ class AccessApiServer(Hunter):
         namespaces = self.get_items("{path}/api/v1/namespaces".format(path=self.path))
         if namespaces:
             self.publish_event(ListNamespaces(namespaces, self.with_token))
+        else:
+            # defaulting to default namespaces, to test other endpoints
+            namespaces = ["default"]
 
         roles = self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/roles".format(path=self.path))
         if roles:
@@ -281,19 +284,6 @@ class AccessApiServer(Hunter):
         # If we have a service account token, this event should get triggered twice - once with and once without
         # the token
         self.publish_event(ApiServerPassiveHunterFinished(namespaces))
-
-@handler.subscribe(ApiServer, predicate=lambda x: x.auth_token)
-class AccessApiServerWithToken(AccessApiServer):
-    """ API Server Hunter
-    Accessing the API server using the service account token obtained from a compromised pod
-    """
-
-    def __init__(self, event):
-        super(AccessApiServerWithToken, self).__init__(event)
-        assert self.event.auth_token != ''
-        self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
-        self.category = InformationDisclosure
-        self.with_token = True
 
 
 # Active Hunter
@@ -521,8 +511,8 @@ class AccessApiServerActive(ActiveHunter):
                     delete_time = self.delete_a_pod(namespace, pod_name)
                     if delete_time:
                         self.publish_event(DeleteAPod('Pod Name: {pod_name}  deletion time: {delete_time}'.format(
-                                                    pod_name=pod_name, delete_evidence=delete_time)))
-                
+                                                    pod_name=pod_name, delete_time=delete_time)))
+
                 # Try creating, patching and deleting an unprivileged pod
                 pod_name = self.create_a_pod(namespace, False)
                 if pod_name:
