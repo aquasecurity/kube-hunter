@@ -45,6 +45,9 @@ def test_AccessApiServer():
                             {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}')
         m.get('https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/roles', status_code=403)
         m.get('https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles', text='{"items":[]}')
+        m.get('https://mockkubernetes:443/api/v1/namespaces/default/pods',
+            text='{"items":[{"metadata":{"name":"podA", "namespace":"default"}}, \
+                            {"metadata":{"name":"podB", "namespace":"default"}}]}')
 
         h = AccessApiServer(e)
         h.execute()
@@ -65,7 +68,10 @@ def test_AccessApiServer():
         m.get('https://mockkubernetesToken:443/apis/rbac.authorization.k8s.io/v1/roles', status_code=403)
         m.get('https://mockkubernetesToken:443/apis/rbac.authorization.k8s.io/v1/clusterroles', 
             text='{"items":[{"metadata":{"name":"my-role"}}]}')
-
+        m.get('https://mockkubernetesToken:443/api/v1/namespaces/default/pods',
+            text='{"items":[{"metadata":{"name":"podA", "namespace":"default"}}, \
+                            {"metadata":{"name":"podB", "namespace":"default"}}]}')
+        
         e.auth_token = "so-secret"
         e.host = "mockKubernetesToken"
         h = AccessApiServer(e)

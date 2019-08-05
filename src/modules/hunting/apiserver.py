@@ -206,7 +206,7 @@ class AccessApiServer(Hunter):
         self.event = event
         self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
         self.headers = {}
-        self.with_token = False
+        self.with_token = self.event.auth_token is not None 
 
     def access_api_server(self):
         logging.debug('Passive Hunter is attempting to access the API at {}'.format(self.path))
