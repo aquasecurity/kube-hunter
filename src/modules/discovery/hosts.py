@@ -7,7 +7,7 @@ import time
 from enum import Enum
 
 import requests
-from netaddr import IPNetwork
+from netaddr import IPNetwork, IPAddress
 
 from __main__ import config
 from netifaces import AF_INET, ifaddresses, interfaces
@@ -107,7 +107,7 @@ class FromPodHostDiscovery(Discovery):
                 for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
                     self.publish_event(NewHostEvent(host=ip, cloud=cloud))
             if should_scan_apiserver:
-                self.publish_event(NewHostEvent(host=self.event.kubeservicehost, cloud=cloud))
+                self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
 
             
     def is_azure_pod(self):
