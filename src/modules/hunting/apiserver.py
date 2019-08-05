@@ -196,7 +196,6 @@ class ApiServerPassiveHunterFinished(Event):
 
 
 # This Hunter checks what happens if we try to access the API Server without a service account token
-# If we have a service account token we'll also trigger AccessApiServerWithToken below
 @handler.subscribe(ApiServer)
 class AccessApiServer(Hunter):
     """ API Server Hunter

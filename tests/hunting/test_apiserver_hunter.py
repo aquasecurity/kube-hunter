@@ -1,7 +1,7 @@
 import requests_mock
 import time
 
-from src.modules.hunting.apiserver import AccessApiServer, AccessApiServerWithToken, ServerApiAccess, AccessApiServerActive
+from src.modules.hunting.apiserver import AccessApiServer, ServerApiAccess, AccessApiServerActive
 from src.modules.hunting.apiserver import ListNamespaces, ListPodsAndNamespaces, ListRoles, ListClusterRoles
 from src.modules.hunting.apiserver import ApiServerPassiveHunterFinished
 from src.modules.hunting.apiserver import CreateANamespace, DeleteANamespace
@@ -21,7 +21,7 @@ def test_ApiServerToken():
     e.auth_token = "my-secret-token"
 
     # Test that the pod's token is passed on through the event
-    h = AccessApiServerWithToken(e)
+    h = AccessApiServer(e)
     assert h.event.auth_token == "my-secret-token"
 
     # This test doesn't generate any events
@@ -68,7 +68,7 @@ def test_AccessApiServer():
 
         e.auth_token = "so-secret"
         e.host = "mockKubernetesToken"
-        h = AccessApiServerWithToken(e)
+        h = AccessApiServer(e)
         h.execute()
 
         # We should see the same set of events but with the addition of Cluster Roles
