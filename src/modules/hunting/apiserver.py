@@ -19,7 +19,7 @@ class ServerApiAccess(Vulnerability, Event):
  
     def __init__(self, evidence, using_token):
         if using_token:
-            name = "Access to API using service account token"
+            name = "Access to API using {}".format(self.account_name)
             category = InformationDisclosure
         else:
             name = "Unauthenticated access to API"
@@ -38,8 +38,8 @@ class ServerApiHTTPAccess(Vulnerability, Event):
 
 class ApiInfoDisclosure(Vulnerability, Event):
     def __init__(self, evidence, using_token, name):
-        if using_token: 
-            name +=" using service account token"
+        if using_token:
+            name +=" using {}".format(self.account_name)
         else:
             name +=" as anonymous user"
         Vulnerability.__init__(self, KubernetesCluster, name=name, category=InformationDisclosure)
@@ -74,9 +74,8 @@ class ListClusterRoles(ApiInfoDisclosure):
 
 
 class CreateANamespace(Vulnerability, Event):
+    """ Creating a namespace might give an attacker an area with default (exploitable) permissions to run pods in."""
 
-    """ Creating a namespace might give an attacker an area with default (exploitable) permissions to run pods in.
-    """
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Created a namespace",
                                category=AccessRisk)
@@ -84,8 +83,8 @@ class CreateANamespace(Vulnerability, Event):
 
 
 class DeleteANamespace(Vulnerability, Event):
-
     """ Deleting a namespace might give an attacker the option to affect application behavior """
+
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Delete a namespace",
                                category=AccessRisk)
@@ -191,7 +190,7 @@ class DeleteAPod(Vulnerability, Event):
 
 
 class ApiServerPassiveHunterFinished(Event):
-    def __init__(self, namespaces):
+    def __init__(self, namespaces, with_token):
         self.namespaces = namespaces
 
 
@@ -205,13 +204,13 @@ class AccessApiServer(Hunter):
     def __init__(self, event):
         self.event = event
         self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
-        self.headers = {}
-        self.with_token = self.event.auth_token is not None 
+        self.session = requests.Session()
+        self.session.verify = False
 
     def access_api_server(self):
         logging.debug('Passive Hunter is attempting to access the API at {}'.format(self.path))
         try:
-            r = requests.get("{path}/api".format(path=self.path), headers=self.headers, verify=False)
+            r = self.session.get("{path}/api".format(path=self.path))
             if r.status_code == 200 and r.content != '':
                 return r.content
         except requests.exceptions.ConnectionError:
@@ -221,7 +220,7 @@ class AccessApiServer(Hunter):
     def get_items(self, path):
         try: 
             items = []
-            r = requests.get(path, headers=self.headers, verify=False)
+            r = self.session.get(path)
             if r.status_code ==200:
                 resp = json.loads(r.content)
                 for item in resp["items"]:
@@ -236,11 +235,9 @@ class AccessApiServer(Hunter):
         pods = []
         try:
             if namespace is None:
-                r = requests.get("{path}/api/v1/pods".format(path=self.path),
-                               headers=self.headers, verify=False)
+                r = self.session.get("{path}/api/v1/pods".format(path=self.path))
             else:
-                r = requests.get("{path}/api/v1/namespaces/{namespace}/pods".format(path=self.path, namespace=namespace),
-                               headers=self.headers, verify=False)
+                r = self.session.get("{path}/api/v1/namespaces/{namespace}/pods".format(path=self.path, namespace=namespace))
             if r.status_code == 200:
                 resp = json.loads(r.content)
                 for item in resp["items"]:
@@ -253,38 +250,44 @@ class AccessApiServer(Hunter):
             pass
         return None
 
-    def execute(self):
+    def try_endpoints(self, with_token):
         api = self.access_api_server()
         if api:
             if self.event.protocol == "http":
                 self.publish_event(ServerApiHTTPAccess(api))
             else:
-                self.publish_event(ServerApiAccess(api, self.with_token))
+                self.publish_event(ServerApiAccess(api, with_token))
 
         namespaces = self.get_items("{path}/api/v1/namespaces".format(path=self.path))
         if namespaces:
-            self.publish_event(ListNamespaces(namespaces, self.with_token))
+            self.publish_event(ListNamespaces(namespaces, with_token))
         else:
             # defaulting to default namespaces, to test other endpoints
             namespaces = ["default"]
 
         roles = self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/roles".format(path=self.path))
         if roles:
-            self.publish_event(ListRoles(roles, self.with_token))
+            self.publish_event(ListRoles(roles, with_token))
 
         cluster_roles = self.get_items("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(path=self.path))
         if cluster_roles:
-            self.publish_event(ListClusterRoles(cluster_roles, self.with_token))
+            self.publish_event(ListClusterRoles(cluster_roles, with_token))
 
         pods = self.get_pods()
         if pods:
-            self.publish_event(ListPodsAndNamespaces(pods, self.with_token))
+            self.publish_event(ListPodsAndNamespaces(pods, with_token))
 
         # If we have a service account token, this event should get triggered twice - once with and once without
-        # the token
-        self.publish_event(ApiServerPassiveHunterFinished(namespaces))
+        self.publish_event(ApiServerPassiveHunterFinished(namespaces, with_token))
 
-
+    def execute(self):
+        # first run tests without a token 
+        self.try_endpoints(with_token=False)
+        # then if there is a token, try with it as well.
+        if self.event.auth_token:
+            self.try_endpoints(with_token=True)
+        
+        
 # Active Hunter
 @handler.subscribe(ApiServerPassiveHunterFinished)
 class AccessApiServerActive(ActiveHunter):
@@ -295,16 +298,14 @@ class AccessApiServerActive(ActiveHunter):
     def __init__(self, event):
         self.event = event
         self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
+        self.session = requests.Session()
+        self.verify = False
+        if self.event.with_token:
+            self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
 
     def create_item(self, path, name, data):
-        headers = {
-            'Content-Type': 'application/json'
-        }
-        if self.event.auth_token:
-            headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
-
         try:
-            res = requests.post(path.format(name=name), verify=False, data=data, headers=headers)
+            res = self.session.post(path.format(name=name), data=data)
             if res.status_code in [200, 201, 202]: 
                 parsed_content = json.loads(res.content)
                 return parsed_content['metadata']['name']
@@ -313,13 +314,8 @@ class AccessApiServerActive(ActiveHunter):
         return None
 
     def patch_item(self, path, data):
-        headers = {
-            'Content-Type': 'application/json-patch+json'
-        }
-        if self.event.auth_token:
-            headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
         try:
-            res = requests.patch(path, headers=headers, verify=False, data=data)
+            res = self.session.patch(path, data=data)
             if res.status_code not in [200, 201, 202]: 
                 return None
             parsed_content = json.loads(res.content)
@@ -330,11 +326,8 @@ class AccessApiServerActive(ActiveHunter):
         return None
 
     def delete_item(self, path):
-        headers = {}
-        if self.event.auth_token:
-            headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
         try:
-            res = requests.delete(path, headers=headers, verify=False)
+            res = self.session.delete(path)
             if res.status_code in [200, 201, 202]: 
                 parsed_content = json.loads(res.content)
                 return parsed_content['metadata']['deletionTimestamp']

@@ -6,6 +6,7 @@ import sys
 import time
 from enum import Enum
 
+import base64
 import requests
 from netaddr import IPNetwork, IPAddress
 
@@ -19,10 +20,12 @@ from ...core.types import Discovery, InformationDisclosure, Azure
 class RunningAsPodEvent(Event):
     def __init__(self):
         self.name = 'Running from within a pod'
-        self.auth_token = self.get_service_account_file("token")
         self.client_cert = self.get_service_account_file("ca.crt")
         self.namespace = self.get_service_account_file("namespace")
         self.kubeservicehost = os.environ.get("KUBERNETES_SERVICE_HOST", None)
+        self.auth_token = self.get_service_account_file("token")
+        if self.auth_token:
+            self.account_name = self.parse_token(self.auth_token)
 
     # Event's logical location to be used mainly for reports.
     def location(self):
@@ -38,7 +41,16 @@ class RunningAsPodEvent(Event):
                 return f.read()
         except IOError:
             pass
-
+    
+    def parse_token(self, token):
+        """ extracts json data from payload in token """
+        try:
+            payload = token.split('.')[1]
+            raw = base64.b64decode(payload + '===')
+            return json.loads(raw)
+        except Exception as ex:
+            logging.debug("Cannot parse token installed in pod: {}".format(ex))
+        
 class AzureMetadataApi(Vulnerability, Event):
     """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
     def __init__(self, cidr):
