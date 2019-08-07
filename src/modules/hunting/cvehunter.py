@@ -26,6 +26,13 @@ class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService)
         self.evidence = evidence
 
+class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
+    """Api Server not patched for CVE-2019-11247. API server allows access to custom resources via wrong scope"""
+
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Arbitrary Access To Cluster Scoped Resources", category=PrivilegeEscalation)
+        self.evidence = evidence
+
 
 # Passive Hunter
 @handler.subscribe(ApiServer)
@@ -101,6 +108,28 @@ class IsVulnerableToCVEAttack(Hunter):
 
         return False
 
+    def check_cve_cve_2019_11247(self, api_version):
+        """
+        Kubernetes v1.7.x-1.12.x
+        Kubernetes v1.13.0-1.13.8 (fixed in v1.13.9)
+        Kubernetes v1.14.0-1.14.4 (fixed in v1.14.5)
+        Kubernetes v1.15.0-1.15.1 (fixed in v1.15.2)
+        """
+
+        first_two_minor_digists = api_version[0]
+        last_two_minor_digists = api_version[1]
+
+        if first_two_minor_digists == 13 and last_two_minor_digists < 9:
+            return True
+        elif first_two_minor_digists == 14 and last_two_minor_digists < 5:
+            return True
+        elif first_two_minor_digists == 15 and last_two_minor_digists < 2:
+            return True
+        elif first_two_minor_digists == 7:
+            return True
+
+        return False
+
     def execute(self):
         api_version = self.get_api_server_version_end_point()
 
@@ -110,5 +139,8 @@ class IsVulnerableToCVEAttack(Hunter):
 
             if self.check_cve_2019_1002100(api_version):
                 self.publish_event(ServerApiVersionEndPointAccessDos(self.api_server_evidence))
+
+            if self.check_cve_cve_2019_11247(api_version):
+                self.publish_event(ServerApiClusterScopedResourcesAccess(self.api_server_evidence))
 
 
