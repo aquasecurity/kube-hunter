@@ -25,7 +25,7 @@ class RunningAsPodEvent(Event):
         self.kubeservicehost = os.environ.get("KUBERNETES_SERVICE_HOST", None)
         self.auth_token = self.get_service_account_file("token")
         if self.auth_token:
-            self.account_name = self.parse_token(self.auth_token)
+            self.account_name = self.parse_token(self.auth_token).get('sub')
 
     # Event's logical location to be used mainly for reports.
     def location(self):
