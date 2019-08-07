@@ -79,6 +79,7 @@ class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from logs in the /metrics endpoint"""
     def __init__(self, version):
         Vulnerability.__init__(self, Kubelet, "K8s Version Disclosure", category=InformationDisclosure)
+        self.version = version
         self.evidence = version
 
 

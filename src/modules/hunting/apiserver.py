@@ -12,6 +12,12 @@ from ...core.types import RemoteCodeExec, AccessRisk, InformationDisclosure, Una
 
 
 """ Vulnerabilities """
+class K8sVersionDisclosure(Vulnerability, Event):
+    """The kubernetes version could be obtained from the /version endpoint"""
+    def __init__(self, version):
+        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure)
+        self.version = version
+        self.evidence = version
 
 
 class ServerApiAccess(Vulnerability, Event):
@@ -557,3 +563,23 @@ class AccessApiServerActive(ActiveHunter):
 
             #  Note: we are not binding any role or cluster role because
             # -- in certain cases it might effect the running pod within the cluster (and we don't want to do that).
+
+@handler.subscribe(ApiServer)
+class ApiVersionHunter(Hunter):
+    """Api Version Hunter
+    Tries to obtain the Api Server's version directly from /version endpoint
+    """
+    def __init__(self, event):
+        self.event = event
+        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
+        self.session = requests.Session()
+        self.session.verify = False
+        if self.event.auth_token:
+            self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
+        
+    def execute(self):
+        if self.event.auth_token:
+            logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token: \t%s', str(self.headers))
+        else:
+            logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
+        self.session.get(self.path + "/version").text

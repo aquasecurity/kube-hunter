@@ -4,9 +4,9 @@ import requests
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event
-from ..discovery.apiserver import ApiServer
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, \
     PrivilegeEscalation, DenialOfService
+from .apiserver import K8sVersionDisclosure
 
 """ Vulnerabilities """
 
@@ -28,7 +28,7 @@ class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
 
 
 # Passive Hunter
-@handler.subscribe(ApiServer)
+@handler.subscribe(K8sVersionDisclosure)
 class IsVulnerableToCVEAttack(Hunter):
     """CVE hunter
     Checks if Node is running a Kubernetes version vulnerable to critical CVEs
@@ -36,25 +36,13 @@ class IsVulnerableToCVEAttack(Hunter):
 
     def __init__(self, event):
         self.event = event
-        self.headers = dict()
-        # From within a Pod we may have extra credentials
-        if self.event.auth_token:
-            self.headers = {'Authorization': 'Bearer ' + self.event.auth_token}
-        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
         self.api_server_evidence = ''
         self.k8sVersion = ''
 
-    def get_api_server_version_end_point(self):
-        logging.debug(self.event.host)
-        if 'Authorization' in self.headers:
-            logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token: \t%s', str(self.headers))
-        else:
-            logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
+    def parse_api_server_version_end_point(self):
         try:
-            res = requests.get("{path}/version".format(path=self.path),
-                               headers=self.headers, verify=False)
-            self.api_server_evidence = res.text
-            resDict = json.loads(res.text)
+            self.api_server_evidence = self.event.version
+            resDict = json.loads(self.event.version)
             version = resDict["gitVersion"].split('.')
             first_two_minor_digits = int(version[1])
             last_two_minor_digits = int(version[2])
@@ -102,7 +90,7 @@ class IsVulnerableToCVEAttack(Hunter):
         return False
 
     def execute(self):
-        api_version = self.get_api_server_version_end_point()
+        api_version = self.parse_api_server_version_end_point()
 
         if api_version:
             if self.check_cve_2018_1002105(api_version):
