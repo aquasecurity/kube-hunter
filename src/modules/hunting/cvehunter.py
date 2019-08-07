@@ -7,6 +7,7 @@ from ...core.events.types import Vulnerability, Event
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, \
     PrivilegeEscalation, DenialOfService
 from .apiserver import K8sVersionDisclosure
+from distutils.version import LooseVersion, StrictVersion
 
 """ Vulnerabilities """
 
@@ -27,6 +28,31 @@ class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
         self.evidence = evidence
 
 
+class CveUtils:
+    @staticmethod
+    def is_older_than(fix_versions, check_version):
+        """Function determines if a version is vulnerable, by comparing to given fix versions"""
+        logging.debug("Passive hunter is comparing the kubectl binary version to vulnerable versions")
+        # in case version is in short version, converting
+        if len(LooseVersion(check_version).version) < 3:
+            check_version += '.0'
+
+        vulnerable = False
+        if check_version not in fix_versions:
+            for fix_v in fix_versions:
+                fix_v = LooseVersion(fix_v)
+                base_v = '.'.join(map(lambda x: str(x), fix_v.version[:2]) )
+
+                if check_version.startswith(base_v):
+                    if LooseVersion(check_version) < fix_v:
+                        vulnerable = True
+                        break
+        # if version is smaller than smaller fix version
+        if not vulnerable and LooseVersion(check_version) < LooseVersion(fix_versions[0]):
+            vulnerable = True
+
+        return vulnerable
+
 # Passive Hunter
 @handler.subscribe(K8sVersionDisclosure)
 class IsVulnerableToCVEAttack(Hunter):
@@ -39,32 +65,9 @@ class IsVulnerableToCVEAttack(Hunter):
         self.api_server_evidence = ''
         self.k8sVersion = ''
 
-    def parse_api_server_version_end_point(self):
-        try:
-            self.api_server_evidence = self.event.version
-            version = self.event.version.split('.')
-            first_two_minor_digits = int(version[1])
-            last_two_minor_digits = int(version[2])
-            logging.debug('Passive Hunter got version from the API server version end point: %d.%d', first_two_minor_digits, last_two_minor_digits)
-            return [first_two_minor_digits, last_two_minor_digits]
-
-        except (requests.exceptions.ConnectionError, KeyError):
-            return None
-
     def check_cve_2018_1002105(self, api_version):
-        first_two_minor_digists = api_version[0]
-        last_two_minor_digists = api_version[1]
-
-        if first_two_minor_digists == 10 and last_two_minor_digists < 11:
-            return True
-        elif first_two_minor_digists == 11 and last_two_minor_digists < 5:
-            return True
-        elif first_two_minor_digists == 12 and last_two_minor_digists < 3:
-            return True
-        elif first_two_minor_digists < 10:
-            return True
-
-        return False
+        fix_versions = ["1.10.11", "1.11.5", "1.12.3"]
+        return CveUtils.is_older_than(fix_versions, check_version=api_version)
 
     def check_cve_2019_1002100(self, api_version):
         """
@@ -73,29 +76,16 @@ class IsVulnerableToCVEAttack(Hunter):
         Kubernetes v1.12.0-1.12.5 (fixed in v1.12.6)
         Kubernetes v1.13.0-1.13.3 (fixed in v1.13.4)
         """
-
-        first_two_minor_digists = api_version[0]
-        last_two_minor_digists = api_version[1]
-
-        if first_two_minor_digists == 11 and last_two_minor_digists < 8:
-            return True
-        elif first_two_minor_digists == 12 and last_two_minor_digists < 6:
-            return True
-        elif first_two_minor_digists == 13 and last_two_minor_digists < 4:
-            return True
-        elif first_two_minor_digists < 11:
-            return True
-
-        return False
+        fix_versions = ["1.11.8", "1.12.6", "1.13.4"]
+        return CveUtils.is_older_than(fix_versions, check_version=api_version)
 
     def execute(self):
-        api_version = self.parse_api_server_version_end_point()
+        logging.debug('Cve Hunter got version from the API server: {}'.format(self.event.version))
+        
+        if self.check_cve_2018_1002105(self.event.version):
+            self.publish_event(ServerApiVersionEndPointAccessPE(self.event.version))
 
-        if api_version:
-            if self.check_cve_2018_1002105(api_version):
-                self.publish_event(ServerApiVersionEndPointAccessPE(self.api_server_evidence))
-
-            if self.check_cve_2019_1002100(api_version):
-                self.publish_event(ServerApiVersionEndPointAccessDos(self.api_server_evidence))
+        if self.check_cve_2019_1002100(self.event.version):
+            self.publish_event(ServerApiVersionEndPointAccessDos(self.event.version))
 
 
