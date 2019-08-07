@@ -582,4 +582,5 @@ class ApiVersionHunter(Hunter):
             logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token: \t%s', str(self.headers))
         else:
             logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
-        self.session.get(self.path + "/version").text
+        version = json.loads(self.session.get(self.path + "/version").text)["gitVersion"]
+        self.publish_event(K8sVersionDisclosure(version))
