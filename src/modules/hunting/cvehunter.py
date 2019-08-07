@@ -42,8 +42,7 @@ class IsVulnerableToCVEAttack(Hunter):
     def parse_api_server_version_end_point(self):
         try:
             self.api_server_evidence = self.event.version
-            resDict = json.loads(self.event.version)
-            version = resDict["gitVersion"].split('.')
+            version = self.event.version.split('.')
             first_two_minor_digits = int(version[1])
             last_two_minor_digits = int(version[2])
             logging.debug('Passive Hunter got version from the API server version end point: %d.%d', first_two_minor_digits, last_two_minor_digits)
