@@ -125,7 +125,7 @@ class IsVulnerableToCVEAttack(Hunter):
             return True
         elif first_two_minor_digists == 15 and last_two_minor_digists < 2:
             return True
-        elif first_two_minor_digists == 7:
+        elif first_two_minor_digists < 13:
             return True
 
         return False
