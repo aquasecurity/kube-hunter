@@ -8,7 +8,7 @@ from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExe
     PrivilegeEscalation, DenialOfService, KubectlClient
 from ..discovery.kubectl import KubectlClientEvent
 
-from distutils.version import LooseVersion, StrictVersion
+from packaging import version
 
 """ CVE Vulnerabilities """
 
@@ -41,25 +41,34 @@ class KubectlCpVulnerability(Vulnerability, Event):
 
 class CveUtils:
     @staticmethod
-    def is_older_than(fix_versions, check_version):
-        """Function determines if a version is vulnerable, by comparing to given fix versions"""
-        logging.debug("Passive hunter is comparing the kubectl binary version to vulnerable versions")
-        # in case version is in short version, converting
-        if len(LooseVersion(check_version).version) < 3:
-            check_version += '.0'
+    def get_base_release(full_ver):
+        # if LecacyVersion, converting manually to a base version
+        if type(full_ver) == version.LegacyVersion:
+            return version.parse('.'.join(full_ver._version.split('.')[:2]))
+        else:
+            return version.parse('.'.join(map(str, full_ver._version.release[:2])))
 
+    @staticmethod
+    def is_vulnerable(fix_versions, check_version):
+        """Function determines if a version is vulnerable, by comparing to given fix versions by base release"""
         vulnerable = False
+        check_v = version.parse(check_version)
+        base_check_v = CveUtils.get_base_release(check_v)
+        
         if check_version not in fix_versions:
+            # comparing ease base release for a fix
             for fix_v in fix_versions:
-                fix_v = LooseVersion(fix_v)
-                base_v = '.'.join(map(lambda x: str(x), fix_v.version[:2]) )
+                fix_v = version.parse(fix_v)
+                base_fix_v = CveUtils.get_base_release(fix_v)
 
-                if check_version.startswith(base_v):
-                    if LooseVersion(check_version) < fix_v:
+                # if the check version and the current fix has the same base release 
+                if base_check_v == base_fix_v:
+                    # determine vulnerable if smaller
+                    if check_v < fix_v:
                         vulnerable = True
                         break
-        # if version is smaller than smaller fix version
-        if not vulnerable and LooseVersion(check_version) < LooseVersion(fix_versions[0]):
+        # if we did't find a fix in the fix releases, checking if the version is smaller that the first fix 
+        if not vulnerable and check_v < version.parse(fix_versions[0]):
             vulnerable = True
 
         return vulnerable
@@ -79,10 +88,10 @@ class K8sClusterCveHunter(Hunter):
         fix_versions_cve_2018_1002105 = ["1.10.11", "1.11.5", "1.12.3"]
         fix_versions_cve_2019_1002100 = ["1.11.8", "1.12.6", "1.13.4"]
         
-        if CveUtils.is_older_than(fix_versions_cve_2018_1002105, self.event.version):
+        if CveUtils.is_vulnerable(fix_versions_cve_2018_1002105, self.event.version):
             self.publish_event(ServerApiVersionEndPointAccessPE(self.event.version))
 
-        if CveUtils.is_older_than(fix_versions_cve_2019_1002100, self.event.version):
+        if CveUtils.is_vulnerable(fix_versions_cve_2019_1002100, self.event.version):
             self.publish_event(ServerApiVersionEndPointAccessDos(self.event.version))
 
 
@@ -98,8 +107,8 @@ class KubectlCVEHunter(Hunter):
         cve_2019_1002101_fix_versions = ['1.11.9', '1.12.7', '1.13.5' '1.14.0']
         cve_2019_11246_fix_versions = ['1.12.9', '1.13.6', '1.14.2']
 
-        if CveUtils.is_older_than(fix_versions=cve_2019_1002101_fix_versions, check_version=self.event.version):
+        if CveUtils.is_vulnerable(fix_versions=cve_2019_1002101_fix_versions, check_version=self.event.version):
             self.publish_event(KubectlCpVulnerability(binary_version=self.event.version))
 
-        if CveUtils.is_older_than(fix_versions=cve_2019_11246_fix_versions, check_version=self.event.version):
+        if CveUtils.is_vulnerable(fix_versions=cve_2019_11246_fix_versions, check_version=self.event.version):
             self.publish_event(IncompleteFixToKubectlCpVulnerability(binary_version=self.event.version))
