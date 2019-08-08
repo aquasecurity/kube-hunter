@@ -1,15 +1,11 @@
-import json
 import logging
 import os
-import urllib3
-from urllib3.exceptions import HTTPError
+import requests
 
 
 class HTTPDispatcher(object):
     def dispatch(self, report):
         logging.error('Dispatching report via http')
-        http = urllib3.PoolManager()
-        encoded_data = json.dumps(report).encode('utf-8')
         dispatchMethod = os.environ.get(
             'KUBEHUNTER_HTTP_DISPATCH_METHOD',
             'POST'
@@ -25,23 +21,24 @@ class HTTPDispatcher(object):
             )
         )
         try:
-            r = http.request(
+            r = requests.request(
                 dispatchMethod,
                 dispatchURL,
-                body=encoded_data,
+                json=report,
                 headers={'Content-Type': 'application/json'}
             )
+            r.raise_for_status()
             logging.debug(
                 "\tResponse Code: {status}\n\tResponse Data:\n{data}".format(
-                    status=r.status,
-                    data=r.data.decode("utf-8")
+                    status=r.status_code,
+                    data=r.text
                 )
             )
-        except HTTPError as e:
+        except requests.HTTPError as e:
             logging.error(
                 "Dispatcher failed to deliver\n\tResponse Code: {status}\n\tResponse Data:\n{data}".format(
-                    status=r.status,
-                    data=r.data.decode("utf-8")
+                    status=r.status_code,
+                    data=r.text
                 )
             )
 
