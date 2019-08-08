@@ -43,10 +43,10 @@ else:
 from src.modules.dispatchers.stdout import STDOUTDispatcher
 from src.modules.dispatchers.http import HTTPDispatcher
 dispatchers = {
-    'stdout': STDOUTDispatcher(),
-    'http': HTTPDispatcher()
+    'stdout': STDOUTDispatcher,
+    'http': HTTPDispatcher
 }
-config.dispatcher = dispatchers[config.dispatch.lower()]
+config.dispatcher = dispatchers[config.dispatch.lower()]()
 
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
