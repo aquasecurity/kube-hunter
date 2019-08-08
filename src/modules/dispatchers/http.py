@@ -5,7 +5,7 @@ import requests
 
 class HTTPDispatcher(object):
     def dispatch(self, report):
-        logging.error('Dispatching report via http')
+        logging.info('Dispatching report via http')
         dispatchMethod = os.environ.get(
             'KUBEHUNTER_HTTP_DISPATCH_METHOD',
             'POST'
@@ -14,7 +14,7 @@ class HTTPDispatcher(object):
             'KUBEHUNTER_HTTP_DISPATCH_URL',
             'https://localhost/'
         )
-        logging.debug(
+        logging.info(
             'Dispatching report via {method} to {url}'.format(
                 method=dispatchMethod,
                 url=dispatchURL
@@ -28,7 +28,7 @@ class HTTPDispatcher(object):
                 headers={'Content-Type': 'application/json'}
             )
             r.raise_for_status()
-            logging.debug(
+            logging.info(
                 "\tResponse Code: {status}\n\tResponse Data:\n{data}".format(
                     status=r.status_code,
                     data=r.text
