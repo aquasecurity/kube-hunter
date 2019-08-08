@@ -37,7 +37,11 @@ reporters = {
     'json': JSONReporter,
     'plain': PlainReporter
 }
-config.reporter = reporters[config.report.lower()]()
+if config.report.lower() in reporters.keys():
+    config.reporter = reporters[config.report.lower()]()
+else:
+    logging.warning('Unknown reporter selected, using plain')
+    config.reporter = reporters['plain']()
 
 from src.modules.dispatchers.stdout import STDOUTDispatcher
 from src.modules.dispatchers.http import HTTPDispatcher
@@ -45,7 +49,11 @@ dispatchers = {
     'stdout': STDOUTDispatcher,
     'http': HTTPDispatcher
 }
-config.dispatcher = dispatchers[config.dispatch.lower()]()
+if config.dispatch.lower() in dispatchers.keys():
+    config.dispatcher = dispatchers[config.dispatch.lower()]()
+else:
+    logging.warning('Unknown dispatcher selected, using stdout')
+    config.dispatcher = dispatchers['stdout']()
 
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
