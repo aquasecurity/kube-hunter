@@ -3,7 +3,7 @@ import requests_mock
 
 from src.core.events import handler
 from src.core.events.types import K8sVersionDisclosure
-from src.modules.hunting.cvehunter import K8sClusterCveHunter, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos
+from src.modules.hunting.cves import K8sClusterCveHunter, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos
 
 cve_counter = 0
 
