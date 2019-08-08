@@ -1,6 +1,7 @@
 import logging
 import os
 import requests
+from __main__ import config
 
 
 class HTTPDispatcher(object):
@@ -42,3 +43,10 @@ class HTTPDispatcher(object):
                 )
             )
 
+class STDOUTDispatcher(object):
+    def dispatch(self, report):
+        logging.info('Dispatching report via stdout')
+        if config.report == "plain":
+            logging.info("\n{div}\n{report}".format(div="-" * 10, report=report))
+        else:
+            print(report)

@@ -43,8 +43,7 @@ else:
     logging.warning('Unknown reporter selected, using plain')
     config.reporter = reporters['plain']()
 
-from src.modules.dispatchers.stdout import STDOUTDispatcher
-from src.modules.dispatchers.http import HTTPDispatcher
+from src.modules.report.dispatchers import STDOUTDispatcher, HTTPDispatcher
 dispatchers = {
     'stdout': STDOUTDispatcher,
     'http': HTTPDispatcher
