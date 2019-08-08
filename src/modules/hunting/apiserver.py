@@ -5,20 +5,13 @@ import uuid
 import copy
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event
+from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ..discovery.apiserver import ApiServer
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster
 from ...core.types import RemoteCodeExec, AccessRisk, InformationDisclosure, UnauthenticatedAccess
 
 
 """ Vulnerabilities """
-class K8sVersionDisclosure(Vulnerability, Event):
-    """The kubernetes version could be obtained from the /version endpoint"""
-    def __init__(self, version):
-        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure)
-        self.version = version
-        self.evidence = version
-
 
 class ServerApiAccess(Vulnerability, Event):
     """ The API Server port is accessible. Depending on your RBAC settings this could expose access to or control of your cluster. """
@@ -584,4 +577,4 @@ class ApiVersionHunter(Hunter):
             logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
         version = json.loads(self.session.get(self.path + "/version").text)["gitVersion"]
         logging.debug("Discovered version of api server {}".format(version))
-        self.publish_event(K8sVersionDisclosure(version))
+        self.publish_event(K8sVersionDisclosure(version=version, from_endpoint="/version"))

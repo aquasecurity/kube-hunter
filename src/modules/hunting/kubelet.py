@@ -8,7 +8,7 @@ import urllib3
 
 from __main__ import config
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event
+from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, Kubelet, InformationDisclosure, RemoteCodeExec, AccessRisk
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -73,14 +73,6 @@ class ExposedHealthzHandler(Vulnerability, Event):
         Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure", category=InformationDisclosure)    
         self.status = status
         self.evidence = "status: {}".format(self.status)
-
-
-class K8sVersionDisclosure(Vulnerability, Event):
-    """The kubernetes version could be obtained from logs in the /metrics endpoint"""
-    def __init__(self, version):
-        Vulnerability.__init__(self, Kubelet, "K8s Version Disclosure", category=InformationDisclosure)
-        self.version = version
-        self.evidence = version
 
 
 class PrivilegedContainers(Vulnerability, Event):
@@ -166,7 +158,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         privileged_containers = self.find_privileged_containers()
         healthz = self.check_healthz_endpoint()
         if k8s_version:
-            self.publish_event(K8sVersionDisclosure(version=k8s_version))
+            self.publish_event(K8sVersionDisclosure(version=k8s_version, from_endpoint="/metrics", extra_info="on the Kubelet"))
         if privileged_containers:
             self.publish_event(PrivilegedContainers(containers=privileged_containers))
         if healthz:

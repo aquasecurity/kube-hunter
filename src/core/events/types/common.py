@@ -2,7 +2,7 @@ import logging
 import requests
 import json
 import threading
-from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess
+from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
 
 class EventFilterBase(object):
     def __init__(self, event):
@@ -139,9 +139,24 @@ class OpenPortEvent(Event):
             location = str(self.port)
         return location
 
+
 class HuntFinished(Event):
     pass
 
 
 class HuntStarted(Event):
     pass
+
+
+""" Core Vulnerabilites """
+class K8sVersionDisclosure(Vulnerability, Event):
+    """The kubernetes version could be obtained from the {} endpoint """
+    def __init__(self, version, from_endpoint, extra_info=""):
+        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure)
+        self.version = version
+        self.from_endpoint = from_endpoint
+        self.extra_info = extra_info
+        self.evidence = version
+
+    def explain(self):
+        return self.__doc__.format(self.from_endpoint) + self.extra_info if self.extra_info else ""

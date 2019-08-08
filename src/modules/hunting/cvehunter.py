@@ -3,14 +3,12 @@ import json
 import requests
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event
+from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, \
     PrivilegeEscalation, DenialOfService
-from .apiserver import K8sVersionDisclosure
 from distutils.version import LooseVersion, StrictVersion
 
 """ Vulnerabilities """
-
 
 class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
     """Node is vulnerable to critical CVE-2018-1002105"""
@@ -87,5 +85,3 @@ class IsVulnerableToCVEAttack(Hunter):
 
         if self.check_cve_2019_1002100(self.event.version):
             self.publish_event(ServerApiVersionEndPointAccessDos(self.event.version))
-
-
