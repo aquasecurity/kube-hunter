@@ -3,14 +3,14 @@ import requests_mock
 
 from src.core.events import handler
 from src.core.events.types import K8sVersionDisclosure
-from src.modules.hunting.cvehunter import IsVulnerableToCVEAttack, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos
+from src.modules.hunting.cvehunter import K8sClusterCveHunter, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos
 
 cve_counter = 0
 
-def test_CveHunter():
+def test_K8sCveHunter():
     global cve_counter
     e = K8sVersionDisclosure(version="1.10.1", from_endpoint="/version")
-    h = IsVulnerableToCVEAttack(e)
+    h = K8sClusterCveHunter(e)
     h.execute()
 
     time.sleep(0.01)
@@ -19,7 +19,7 @@ def test_CveHunter():
 
     # test complex version
     e = K8sVersionDisclosure(version="1.10.1-gke-1", from_endpoint="/version")
-    h = IsVulnerableToCVEAttack(e)
+    h = K8sClusterCveHunter(e)
     h.execute()
 
     time.sleep(0.01)
