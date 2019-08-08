@@ -11,11 +11,11 @@ class HTTPDispatcher(object):
         http = urllib3.PoolManager()
         encoded_data = json.dumps(report).encode('utf-8')
         dispatchMethod = os.environ.get(
-            'KUBEHUNTER_DISPATCH_METHOD',
+            'KUBEHUNTER_HTTP_DISPATCH_METHOD',
             'POST'
         ).upper()
         dispatchURL = os.environ.get(
-            'KUBEHUNTER_DISPATCH_URL',
+            'KUBEHUNTER_HTTP_DISPATCH_URL',
             'https://localhost/'
         )
         logging.debug(
