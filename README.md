@@ -68,8 +68,8 @@ Available log levels are:
 
 ### Dispatching
 By default, the report will be dispatched to `stdout`, but you can specify different methods, by using the `--dispatch` option. Example:
-`./kube-hunter.py --dispatch http`
-Available log levels are:
+`./kube-hunter.py --report json --dispatch http`
+Available dispatch methods are:
 
 * stdout (default)
 * http (to configure, set the following environment variables:) 
