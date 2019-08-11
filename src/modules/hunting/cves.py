@@ -49,12 +49,46 @@ class CveUtils:
             return version.parse('.'.join(map(str, full_ver._version.release[:2])))
 
     @staticmethod
+    def to_legacy(full_ver):
+        # converting version to verison.LegacyVersion
+        return version.LegacyVersion('.'.join(map(str, full_ver._version.release)))
+
+    @staticmethod
+    def to_raw_version(v):
+        if type(v) == version.LegacyVersion:
+            return '.'.join(v._version.split('.'))
+        else: 
+            return '.'.join(map(str, v._version.release))
+        
+    @staticmethod
+    def version_compare(v1, v2):
+        """Function compares two versions, handling differences with convertion to LegacyVersion"""
+        decision = 1
+        # getting raw version, while striping 'v' char at the start. if exists. 
+        # removing this char lets us safely compare the two version.
+        v1_raw, v2_raw = CveUtils.to_raw_version(v1).strip('v'), CveUtils.to_raw_version(v2).strip('v')
+        new_v1 = version.LegacyVersion(v1_raw)
+        new_v2 = version.LegacyVersion(v2_raw)
+        
+        if new_v1 < new_v2:
+            decision = -1
+        elif new_v1 == new_v2:
+            decision = 0
+        return decision
+
+
+    @staticmethod
     def is_vulnerable(fix_versions, check_version):
         """Function determines if a version is vulnerable, by comparing to given fix versions by base release"""
         vulnerable = False
         check_v = version.parse(check_version)
         base_check_v = CveUtils.get_base_release(check_v)
         
+        # default to classic compare, unless the check_version is legacy.
+        version_compare_func = lambda x, y: (x>y)-(x<y)
+        if type(check_v) == version.LegacyVersion:
+            version_compare_func = CveUtils.version_compare
+
         if check_version not in fix_versions:
             # comparing ease base release for a fix
             for fix_v in fix_versions:
@@ -63,12 +97,14 @@ class CveUtils:
 
                 # if the check version and the current fix has the same base release 
                 if base_check_v == base_fix_v:
-                    # determine vulnerable if smaller
-                    if check_v < fix_v:
+                    # when check_version is legacy, we use a custom compare func, to handle differnces between versions.                    
+                    if version_compare_func(check_v, fix_v) == -1:
+                        # determine vulnerable if smaller and with same base version
                         vulnerable = True
                         break
+
         # if we did't find a fix in the fix releases, checking if the version is smaller that the first fix 
-        if not vulnerable and check_v < version.parse(fix_versions[0]):
+        if not vulnerable and version_compare_func(check_v, version.parse(fix_versions[0])) == -1:
             vulnerable = True
 
         return vulnerable

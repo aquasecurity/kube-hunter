@@ -26,6 +26,15 @@ def test_K8sCveHunter():
     assert cve_counter == 2
     cve_counter = 0
 
+    # test complex version
+    e = K8sVersionDisclosure(version="v1.13.6-gke.13", from_endpoint="/version")
+    h = K8sClusterCveHunter(e)
+    h.execute()
+
+    time.sleep(0.01)
+    assert cve_counter == 0
+    cve_counter = 0
+
 
 @handler.subscribe(ServerApiVersionEndPointAccessPE)
 class test_CVE_2018_1002105(object):
