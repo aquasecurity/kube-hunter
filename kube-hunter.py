@@ -15,6 +15,7 @@ parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help=
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml, json")
+parser.add_argument('--dispatch', type=str, default='stdout', help="where to send the report to, options are: stdout, http (set KUBEHUNTER_HTTP_DISPATCH_URL and KUBEHUNTER_HTTP_DISPATCH_METHOD environs to configure)")
 parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
 
 import plugins
