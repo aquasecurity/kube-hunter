@@ -33,7 +33,7 @@ class ApiServerDiscovery(Discovery):
 
     def execute(self):
         # if were running as a pod, we only want to discover the api server from the env variable.
-        if self.event.kubeservicehost and self.event.kubeservicehost != self.event.host:
+        if self.event.kubeservicehost and self.event.kubeservicehost != str(self.event.host):
             return
         logging.debug("Attempting to discover an API server on {}:{}".format(self.event.host, self.event.port))
         if self.is_api_server(protocol="https"):
