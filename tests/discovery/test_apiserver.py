@@ -35,6 +35,7 @@ def test_ApiServerWithServiceAccountToken():
     with requests_mock.Mocker() as m:
         m.get('https://mockKubernetes:443', request_headers={'Authorization':'Bearer very_secret'}, text='{"code":200}')
         m.get('https://mockKubernetes:443', text='{"code":403}', status_code=403)
+        m.get('https://mockKubernetes:443/version', text='{"code":403}', status_code=403)
         m.get('https://mockOther:443', text='elephant')
 
         e = Event()
@@ -54,7 +55,7 @@ def test_ApiServerWithServiceAccountToken():
         time.sleep(0.1)
         assert counter == 2
 
-        # But we shouldn't generate an event if we don't see an error code
+        # But we shouldn't generate an event if we don't see an error code or find the 'major' in /version
         e.host = 'mockOther'
         a = ApiServerDiscovery(e)
         a.execute()
@@ -77,6 +78,7 @@ def test_InsecureApiServer():
     "/apis/admissionregistration.k8s.io/v1beta1",
     "/apis/apiextensions.k8s.io"
   ]}""")
+        m.get('http://mockOther:8080/version', status_code={'major': '1.14.10'})
 
         e = Event()
         e.protocol = "http"

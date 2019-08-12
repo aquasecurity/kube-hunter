@@ -58,15 +58,21 @@ class ApiServerDiscovery(Discovery):
                 # only the api server has a major version
                 if versions.get('major') != "":
                     is_api = True
-            else:
-                # fallback to check the api server existence, by error code and format 
-                r = self.session.get("{}://{}:{}".format(protocol, self.event.host, self.event.port))
-                if ('k8s' in r.text) or ('"code"' in r.text and r.status_code is not 200): 
-                    is_api = True
         except requests.exceptions.SSLError:
             logging.debug("{} protocol not accepted on {}:{}".format(protocol, self.event.host, self.event.port))
         except Exception as e:
             logging.debug("{} on {}:{}".format(e, self.event.host, self.event.port))
+            
+        # fallback to check the api server existence, by error code and format 
+        if not is_api:
+            try:
+                r = self.session.get("{}://{}:{}".format(protocol, self.event.host, self.event.port))
+                if ('k8s' in r.text) or ('"code"' in r.text and r.status_code is not 200): 
+                    is_api = True
+            except requests.exceptions.SSLError:
+                logging.debug("{} protocol not accepted on {}:{}".format(protocol, self.event.host, self.event.port))
+            except Exception as e:
+                logging.debug("{} on {}:{}".format(e, self.event.host, self.event.port))   
         return is_api
 
 
