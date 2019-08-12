@@ -17,10 +17,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 """ Vulnerabilities """
 class ExposedPodsHandler(Vulnerability, Event):
     """An attacker could view sensitive information about pods that are bound to a Node using the /pods endpoint"""
-    def __init__(self, count):
+    def __init__(self, pods):
         Vulnerability.__init__(self, Kubelet, "Exposed Pods", category=InformationDisclosure)    
-        self.count = count
-        self.evidence = "count: {}".format(self.count)
+        self.pods = pods
+        self.evidence = "count: {}".format(len(self.pods))
 
 
 class AnonymousAuthEnabled(Vulnerability, Event):
@@ -171,7 +171,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         if healthz:
             self.publish_event(ExposedHealthzHandler(status=healthz))
         if self.pods_endpoint_data:
-            self.publish_event(ExposedPodsHandler(count=len(self.pods_endpoint_data["items"])))
+            self.publish_event(ExposedPodsHandler(pods=self.pods_endpoint_data["items"]))
 
 
 @handler.subscribe(SecureKubeletEvent)        
@@ -294,7 +294,7 @@ class SecureKubeletPortHunter(Hunter):
         self.pods_endpoint_data = self.get_pods_endpoint()
         healthz = self.check_healthz_endpoint() 
         if self.pods_endpoint_data:
-            self.publish_event(ExposedPodsHandler(count=len(self.pods_endpoint_data["items"])))
+            self.publish_event(ExposedPodsHandler(pods=self.pods_endpoint_data["items"]))
         if healthz:
             self.publish_event(ExposedHealthzHandler(status=healthz)) 
         self.test_handlers()
