@@ -22,7 +22,7 @@ class MetricsServer(Service, Event):
  
  
 # Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
-# A Kubernetes API server will to respond to a get to /version or respond with a JSON message that includes a "code" field for the HTTP status code
+# A Kubernetes API server will respond to a get to /version or respond with a JSON message that includes a "code" field for the HTTP status code
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port in KNOWN_API_PORTS)
 class ApiServerDiscovery(Discovery):
     """API Server Discovery
@@ -30,6 +30,11 @@ class ApiServerDiscovery(Discovery):
     """
     def __init__(self, event):
         self.event = event
+        self.session = requests.Session()
+        self.session.verify = False
+        # Using the auth token if we can, for the case that authentication is needed for our checks
+        if self.event.auth_token:
+            self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
 
     def execute(self):
         # if were running as a pod, we only want to discover the api server from the env variable.
@@ -47,7 +52,7 @@ class ApiServerDiscovery(Discovery):
         is_api = False
         try:
             # first try to access /version. in most clusters, this will be open.
-            r = requests.get("{}://{}:{}/version".format(protocol, self.event.host, self.event.port), verify=False)
+            r = self.session.get("{}://{}:{}/version".format(protocol, self.event.host, self.event.port))
             if 'major' in r.text:
                 versions = json.loads(r.text)
                 # only the api server has a major version
@@ -55,7 +60,7 @@ class ApiServerDiscovery(Discovery):
                     is_api = True
             else:
                 # fallback to check the api server existence, by error code and format 
-                r = requests.get("{}://{}:{}".format(protocol, self.event.host, self.event.port), verify=False)
+                r = self.session.get("{}://{}:{}".format(protocol, self.event.host, self.event.port))
                 if ('k8s' in r.text) or ('"code"' in r.text and r.status_code is not 200): 
                     is_api = True
         except requests.exceptions.SSLError:
@@ -76,7 +81,7 @@ class MetricsServerDiscovery(Discovery):
 
     def execute(self):
         logging.debug("Attempting to discover an Metrics server on {}:{}".format(self.event.host, self.event.port))        
-        r = requests.get("https://{}:{}/version".format(self.event.host, self.event.port), verify=False)
+        r = requests.get("https://{}:{}/version".format(self.event.host, self.event.port))
         try:
             versions = json.loads(r.text)
             # major version on a metrics server will be empty
