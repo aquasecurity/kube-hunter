@@ -22,7 +22,7 @@ class MetricsServer(Service, Event):
  
  
 # Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
-# A Kubernetes API server will to respond to a get to /version 
+# A Kubernetes API server will to respond to a get to /version or respond with a JSON message that includes a "code" field for the HTTP status code
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port in KNOWN_API_PORTS)
 class ApiServerDiscovery(Discovery):
     """API Server Discovery
