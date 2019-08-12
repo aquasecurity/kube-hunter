@@ -36,19 +36,33 @@ class ApiServerDiscovery(Discovery):
         if self.event.kubeservicehost and self.event.kubeservicehost != self.event.host:
             return
         logging.debug("Attempting to discover an API server on {}:{}".format(self.event.host, self.event.port))
-        self.make_request(protocol="https")
-        self.make_request(protocol="http")    
-
-    def make_request(self, protocol):
+        if self.is_api_server(protocol="https"):
+            self.event.role = "Master"
+            self.publish_event(ApiServer(protocol="https"))
+        if self.is_api_server(protocol="http"):
+            self.event.role = "Master"            
+            self.publish_event(ApiServer(protocol="http"))
+    
+    def is_api_server(self, protocol):
+        is_api = False
         try:
-            r = requests.get("{}://{}:{}".format(protocol, self.event.host, self.event.port), verify=False)
-            if ('k8s' in r.text) or ('"code"' in r.text and r.status_code is not 200): 
-                self.event.role = "Master"
-                self.publish_event(ApiServer(protocol=protocol))
+            # first try to access /version. in most clusters, this will be open.
+            r = requests.get("{}://{}:{}/version".format(protocol, self.event.host, self.event.port), verify=False)
+            if 'major' in r.text:
+                versions = json.loads(r.text)
+                # only the api server has a major version
+                if versions.get('major') != "":
+                    is_api = True
+            else:
+                # fallback to check the api server existence, by error code and format 
+                r = requests.get("{}://{}:{}".format(protocol, self.event.host, self.event.port), verify=False)
+                if ('k8s' in r.text) or ('"code"' in r.text and r.status_code is not 200): 
+                    is_api = True
         except requests.exceptions.SSLError:
             logging.debug("{} protocol not accepted on {}:{}".format(protocol, self.event.host, self.event.port))
         except Exception as e:
             logging.debug("{} on {}:{}".format(e, self.event.host, self.event.port))
+        return is_api
 
 
 # Making sure to not subscribe to the Api Server's host
@@ -61,10 +75,11 @@ class MetricsServerDiscovery(Discovery):
         self.event = event
 
     def execute(self):
+        logging.debug("Attempting to discover an Metrics server on {}:{}".format(self.event.host, self.event.port))        
         r = requests.get("https://{}:{}/version".format(self.event.host, self.event.port), verify=False)
         try:
             versions = json.loads(r.text)
-            # major version on a metrics server will return empty
+            # major version on a metrics server will be empty
             if versions.get("major") == "":
                 self.publish_event(MetricsServer())
         except Exception as e:
