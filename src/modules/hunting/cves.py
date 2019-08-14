@@ -110,7 +110,7 @@ class CveUtils:
         return vulnerable
 
 
-@handler.subscribe(K8sVersionDisclosure)
+@handler.subscribe_once(K8sVersionDisclosure)
 class K8sClusterCveHunter(Hunter):
     """K8s CVE Hunter
     Checks if Node is running a Kubernetes version vulnerable to known CVEs
