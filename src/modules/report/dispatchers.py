@@ -23,12 +23,7 @@ class HTTPDispatcher(object):
                 headers={'Content-Type': 'application/json'}
             )
             r.raise_for_status()
-            logging.debug(
-                'Dispatching report via {method} to {url}'.format(
-                    method=dispatchMethod,
-                    url=dispatchURL
-                )
-            )
+            logging.info('\nReport was dispatched to: {url}'.format(url=dispatchURL))
             logging.debug(
                 "\tResponse Code: {status}\n\tResponse Data:\n{data}".format(
                     status=r.status_code,
