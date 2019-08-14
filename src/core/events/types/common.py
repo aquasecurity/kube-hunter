@@ -148,6 +148,10 @@ class HuntStarted(Event):
     pass
 
 
+class ReportDispatched(Event):
+    pass
+
+
 """ Core Vulnerabilites """
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint """
