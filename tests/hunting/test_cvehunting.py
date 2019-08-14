@@ -9,6 +9,9 @@ cve_counter = 0
 
 def test_K8sCveHunter():
     global cve_counter
+    # because the hunter unregisters itself, we manually remove this option, so we can test it
+    K8sClusterCveHunter.__new__ = lambda self, cls: object.__new__(self)
+
     e = K8sVersionDisclosure(version="1.10.1", from_endpoint="/version")
     h = K8sClusterCveHunter(e)
     h.execute()
