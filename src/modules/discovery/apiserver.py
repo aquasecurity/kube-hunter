@@ -37,6 +37,7 @@ class ApiServiceDiscovery(Discovery):
     def __init__(self, event):
         self.event = event
         self.session = requests.Session()
+        self.session.verify = False
     
     def execute(self):
         logging.debug("Attempting to discover an API service on {}:{}".format(self.event.host, self.event.port))
@@ -59,15 +60,10 @@ class ApiServiceDiscovery(Discovery):
 # Acts as a Filter and a Discovery, In the case that we can classify the API,
 # We filter out this event and publish specific events for the API service
 @handler.subscribe(K8sApiService)
-class ApiServiceClassify(EventFilterBase, Discovery):
+class ApiServiceClassify(EventFilterBase):
     """API Service Classifier
     Classifies an API service
     """
-    class ApiServiceTypes(Enum):
-        SERVER="API Server"
-        METRICS="Metrics Server"
-        UNRECOGNIZED="Unreconized K8s Api Service"    
-
     def __init__(self, event):
         self.event = event
         self.classified = False
