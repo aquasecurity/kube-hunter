@@ -85,10 +85,9 @@ class ApiServiceClassify(EventFilterBase, Discovery):
             versions = r.json()
             if 'major' in versions:
                 if versions.get('major') == "":
-                    self.publish_event(MetricsServer())
+                    self.event = MetricsServer()
                 else:
-                    self.publish_event(ApiServer())
-                self.classified = True
+                    self.event = ApiServer()
         except Exception as e:
             logging.error("Could not access /version on API service: {}".format(e))
 
@@ -97,16 +96,13 @@ class ApiServiceClassify(EventFilterBase, Discovery):
         if self.event.kubeservicehost:
             # if the host is the api server's IP, we know it's the Api Server
             if self.event.kubeservicehost == str(self.event.host):
-                self.publish_event(ApiServer())
+                self.event = ApiServer()
             else:
-                self.publish_event(MetricsServer())
-            self.classified = True
+                self.event = MetricsServer()
         # if not running as pod.
         else:
             self.classify_using_version_endpoint()
 
         # If some check classified the Service, 
-        # we remove the registered event from handler.
-        if self.classified:
-            return None
+        # the event will have been replaced.
         return self.event
