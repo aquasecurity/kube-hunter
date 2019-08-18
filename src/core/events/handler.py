@@ -44,6 +44,20 @@ class EventQueue(Queue, object):
 
         return wrapper
 
+    # wrapper takes care of the subscribe once mechanism
+    def subscribe_once(self, event, hook=None, predicate=None):
+        def wrapper(hook):
+            # installing a __new__ magic method on the hunter
+            # which will remove the hunter from the list upon creation
+            def __new__unsubscribe_self(self, cls):
+                handler.hooks[event].remove((hook, predicate))
+                return object.__new__(self)
+            hook.__new__ = __new__unsubscribe_self
+
+            self.subscribe_event(event, hook=hook, predicate=predicate)
+            return hook
+        return wrapper
+
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
         if ActiveHunter in hook.__mro__:
