@@ -1,7 +1,6 @@
 import json
 import requests
 import logging
-from enum import Enum
 
 from ...core.types import Discovery
 from ...core.events import handler
@@ -27,8 +26,8 @@ class MetricsServer(Service, Event):
         Service.__init__(self, name="Metrics Server")
 
 
-# Other devices could have this port open, but we can check to see if it looks like a Kubernetes node
-# A Kubernetes API server will respond to a get to /version or respond with a JSON message that includes a "code" field for the HTTP status code
+# Other devices could have this port open, but we can check to see if it looks like a Kubernetes api
+# A Kubernetes API service will respond with a JSON message that includes a "code" field for the HTTP status code
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port in KNOWN_API_PORTS)
 class ApiServiceDiscovery(Discovery):
     """API Service Discovery
@@ -57,8 +56,8 @@ class ApiServiceDiscovery(Discovery):
             logging.debug("{} on {}:{}".format(e, self.event.host, self.event.port))
 
 
-# Acts as a Filter and a Discovery, In the case that we can classify the API,
-# We filter out this event and publish specific events for the API service
+# Acts as a Filter for services, In the case that we can classify the API,
+# We swap the filtered event with a new corresponding Service to next be published
 @handler.subscribe(K8sApiService)
 class ApiServiceClassify(EventFilterBase):
     """API Service Classifier
@@ -76,7 +75,6 @@ class ApiServiceClassify(EventFilterBase):
     def classify_using_version_endpoint(self):
         """Tries to classify by accessing /version. if could not access succeded, returns"""
         try:
-            # import pytest; pytest.set_trace()
             r = self.session.get("{}://{}:{}/version".format(self.event.protocol, self.event.host, self.event.port))
             versions = r.json()
             if 'major' in versions:
