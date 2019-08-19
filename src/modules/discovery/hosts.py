@@ -4,7 +4,6 @@ import logging
 import socket
 import sys
 import time
-from enum import Enum
 
 import requests
 from netaddr import IPNetwork
@@ -43,10 +42,6 @@ class RunningAsPodEvent(Event):
 
 class HostScanEvent(Event):
     pass
-
-# for comparing prefixes
-class InterfaceTypes(Enum):
-    LOCALHOST = "127"
 
 class HostDiscoveryUtils:
     """ Static class containes util functions for Host discovery processes """
@@ -95,8 +90,6 @@ class HostDiscoveryUtils:
     def generate_interfaces_subnet(sn='24'):
         for ifaceName in interfaces():
             for ip in [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [])]:
-                if InterfaceTypes.LOCALHOST.value in ip.__str__():
-                    continue
                 for ip in HostDiscoveryUtils.generate_subnet(ip, sn):
                     yield ip
 
@@ -110,24 +103,24 @@ class FromPodHostDiscovery(Discovery):
         self.event = event
 
     def execute(self):
-        # Scan any additional hosts that the user specified
+        # If user has specified specific remotes, scanning only them
         if config.remote or config.cidr:
             self.publish_event(HostScanEvent())
+        else:
+            # figuring out the cloud from the external ip, default to CloudTypes.NO_CLOUD
+            external_ip = HostDiscoveryUtils.get_external_ip()
+            cloud = HostDiscoveryUtils.get_cloud(external_ip)
 
-        # figuring out the cloud from the external ip, default to CloudTypes.NO_CLOUD
-        external_ip = HostDiscoveryUtils.get_external_ip()
-        cloud = HostDiscoveryUtils.get_cloud(external_ip)
+            # specific cloud discoveries should subscribe to RunningPodOnCloud
+            if cloud != CloudTypes.NO_CLOUD:
+                self.publish_event(RunningPodOnCloud(cloud=cloud))
 
-        # specific cloud discoveries should subscribe to RunningPodOnCloud
-        if cloud != CloudTypes.NO_CLOUD:
-            self.publish_event(RunningPodOnCloud(cloud=cloud))
-
-        # normal pod discovery
-        scan_subnets = self.pod_subnet_discovery()
-        for subnet in scan_subnets:
-            logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
-            for ip in HostDiscoveryUtils.generate_subnet(ip=subnet[0], sn=subnet[1]):
-                self.publish_event(NewHostEvent(host=ip, cloud=CloudTypes.NO_CLOUD))
+            # normal pod discovery
+            scan_subnets = self.pod_subnet_discovery()
+            for subnet in scan_subnets:
+                logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
+                for ip in HostDiscoveryUtils.generate_subnet(ip=subnet[0], sn=subnet[1]):
+                    self.publish_event(NewHostEvent(host=ip, cloud=CloudTypes.NO_CLOUD))
 
     def pod_subnet_discovery(self):
         # normal option when running as a pod is to scan it's own subnet
