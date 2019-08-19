@@ -6,7 +6,7 @@ import sys
 import time
 
 import requests
-from netaddr import IPNetwork
+from netaddr import IPNetwork, IPAddress
 
 from __main__ import config
 from netifaces import AF_INET, ifaddresses, interfaces, gateways
@@ -28,6 +28,7 @@ class RunningAsPodEvent(Event):
         self.auth_token = self.get_service_account_file("token")
         self.client_cert = self.get_service_account_file("ca.crt")
         self.namespace = self.get_service_account_file("namespace")
+        self.kubeservicehost = os.environ.get("KUBERNETES_SERVICE_HOST", None)
 
     # Event's logical location to be used mainly for reports.
     def location(self):
@@ -118,10 +119,17 @@ class FromPodHostDiscovery(Discovery):
 
             # normal pod discovery
             scan_subnets = self.pod_subnet_discovery()
+            should_scan_apiserver = False
+            if self.event.kubeservicehost:
+                should_scan_apiserver = True
             for subnet in scan_subnets:
+                if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork("{}/{}".format(subnet[0], subnet[1])):
+                    should_scan_apiserver = False
                 logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
                 for ip in HostDiscoveryUtils.generate_subnet(ip=subnet[0], sn=subnet[1]):
-                    self.publish_event(NewHostEvent(host=ip, cloud=CloudTypes.NO_CLOUD))
+                    self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+            if should_scan_apiserver:
+                self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
 
     def pod_subnet_discovery(self):
         # normal option when running as a pod is to scan it's own subnet

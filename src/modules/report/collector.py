@@ -2,7 +2,7 @@ import logging
 
 from __main__ import config
 from src.core.events import handler
-from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted
+from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
 import threading
 
 
@@ -53,10 +53,9 @@ class Collector(object):
             services.append(self.event)
             services_lock.release()
             import datetime
-            logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  host: {host}:{port}".format(
-                host=self.event.host,
-                port=self.event.port,
+            logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  location: {location}".format(
                 name=self.event.get_name(),
+                location=self.event.location(),
                 time=datetime.time()
             ))
 
@@ -65,10 +64,9 @@ class Collector(object):
             vulnerabilities.append(self.event)
             vulnerabilities_lock.release()
             logging.info(
-                "|\n| {name}:\n|   type: vulnerability\n|   host: {host}:{port}\n|   description: \n{desc}".format(
+                "|\n| {name}:\n|   type: vulnerability\n|   location: {location}\n|   description: \n{desc}".format(
                     name=self.event.get_name(),
-                    host=self.event.host,
-                    port=self.event.port,
+                    location=self.event.location(),
                     desc=wrap_last_line(console_trim(self.event.explain(), '|     '))
                 ))
 
@@ -84,10 +82,8 @@ class SendFullReport(object):
 
     def execute(self):
         report = config.reporter.get_report()
-        if config.report == "plain":
-            logging.info("\n{div}\n{report}".format(div="-" * 10, report=report))
-        else:
-            print(report)
+        config.dispatcher.dispatch(report)
+        handler.publish_event(ReportDispatched())
         handler.publish_event(TablesPrinted())
 
 

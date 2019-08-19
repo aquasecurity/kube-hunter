@@ -1,14 +1,8 @@
 #!/usr/bin/env python
-from __future__ import print_function
-
 import argparse
 import logging
 import threading
 
-try:
-    raw_input          # Python 2
-except NameError:
-    raw_input = input  # Python 3
 
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
 parser.add_argument('--list', action="store_true", help="displays all tests in kubehunter (add --active flag to see active tests)")
@@ -21,6 +15,7 @@ parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help=
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml, json")
+parser.add_argument('--dispatch', type=str, default='stdout', help="where to send the report to, options are: stdout, http (use KUBEHUNTER_HTTP_DISPATCH_URL and KUBEHUNTER_HTTP_DISPATCH_METHOD to configure)")
 parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
 
 import plugins
@@ -37,32 +32,31 @@ if config.log.lower() != "none":
 from src.modules.report.plain import PlainReporter
 from src.modules.report.yaml import YAMLReporter
 from src.modules.report.json_reporter import JSONReporter
-
-if config.report.lower() == "yaml":
-    config.reporter = YAMLReporter()
-elif config.report.lower() == "json":
-    config.reporter = JSONReporter()
+reporters = {
+    'yaml': YAMLReporter,
+    'json': JSONReporter,
+    'plain': PlainReporter
+}
+if config.report.lower() in reporters.keys():
+    config.reporter = reporters[config.report.lower()]()
 else:
-    config.reporter = PlainReporter()
+    logging.warning('Unknown reporter selected, using plain')
+    config.reporter = reporters['plain']()
+
+from src.modules.report.dispatchers import STDOUTDispatcher, HTTPDispatcher
+dispatchers = {
+    'stdout': STDOUTDispatcher,
+    'http': HTTPDispatcher
+}
+if config.dispatch.lower() in dispatchers.keys():
+    config.dispatcher = dispatchers[config.dispatch.lower()]()
+else:
+    logging.warning('Unknown dispatcher selected, using stdout')
+    config.dispatcher = dispatchers['stdout']()
 
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
 from src.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
-from src.modules.hunting.kubelet import Kubelet
-from src.modules.discovery.apiserver import ApiServerDiscovery
-from src.modules.discovery.proxy import KubeProxy
-from src.modules.discovery.etcd import EtcdRemoteAccess
-from src.modules.discovery.dashboard import KubeDashboard
-from src.modules.discovery.ports import PortDiscovery
-from src.modules.hunting.apiserver import AccessApiServer
-from src.modules.hunting.apiserver import AccessApiServerWithToken
-from src.modules.hunting.proxy import KubeProxy
-from src.modules.hunting.etcd import EtcdRemoteAccess
-from src.modules.hunting.certificates import CertificateDiscovery
-from src.modules.hunting.dashboard import KubeDashboard
-from src.modules.hunting.cvehunter import IsVulnerableToCVEAttack
-from src.modules.hunting.aks import AzureSpnHunter
-from src.modules.hunting.secrets import AccessSecrets
 import src
 
 
@@ -75,13 +69,13 @@ def interactive_set_config():
     print("Choose one of the options below:")
     for i, (option, explanation) in enumerate(options):
         print("{}. {} ({})".format(i+1, option.ljust(20), explanation))
-    choice = raw_input("Your choice: ")    
+    choice = input("Your choice: ")
     if choice == '1':
-        config.remote = raw_input("Remotes (separated by a ','): ").replace(' ', '').split(',')
+        config.remote = input("Remotes (separated by a ','): ").replace(' ', '').split(',')
     elif choice == '2':
         config.internal = True
     elif choice == '3': 
-        config.cidr = raw_input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
+        config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
     else: 
         return False
     return True
