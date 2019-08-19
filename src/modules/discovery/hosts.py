@@ -76,7 +76,7 @@ class HostDiscoveryUtils:
         external_ip = None
         try:
             logging.debug("HostDiscovery hunter attempting to get external IP address")
-            external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+            external_ip = requests.get("https://canhazip.com", verify=False).text # getting external ip, to determine if cloud cluster
         except requests.ConnectionError as e:
             logging.debug("unable to determine external IP address: {0}".format(e))
         return external_ip
