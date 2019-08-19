@@ -19,6 +19,9 @@ class RunningPodOnCloud(Event):
     def __init__(self, cloud):
         self.cloud = cloud
 
+class HostScanEvent(Event):
+    pass
+
 class RunningAsPodEvent(Event):
     def __init__(self):
         self.name = 'Running from within a pod'
@@ -40,8 +43,6 @@ class RunningAsPodEvent(Event):
         except IOError:
             pass
 
-class HostScanEvent(Event):
-    pass
 
 class HostDiscoveryUtils:
     """ Static class containes util functions for Host discovery processes """
