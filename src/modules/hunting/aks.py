@@ -16,7 +16,7 @@ class AzureSpnExposure(Vulnerability, Event):
         Vulnerability.__init__(self, Azure, "Azure SPN Exposure", category=IdentityTheft)
         self.container = container
 
-@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud==CloudTypes.AZURE)
+@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud==CloudTypes.AKS)
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
