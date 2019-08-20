@@ -30,7 +30,7 @@ To specify remote machines for hunting, select option 1 or use the `--remote` op
 `./kube-hunter.py --remote some.node.com`
 
 2. **interface scanning**
-To specify internal scanning, you can use the `--interface` option. (this will scan all of the machine's network interfaces) Example:
+To specify interface scanning, you can use the `--interface` option. (this will scan all of the machine's network interfaces) Example:
 `./kube-hunter.py --interface`
 
 3. **Network scanning**
