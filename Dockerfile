@@ -1,8 +1,7 @@
-FROM python:3.7.3-alpine3.9 as builder
+FROM python:3.8-rc-alpine3.9 as builder
 
 RUN apk add --update \
     linux-headers \
-    wireshark \
     tcpdump \
     build-base \
     ebtables
@@ -13,11 +12,10 @@ RUN pip install -r /kube-hunter/requirements.txt -t /kube-hunter
 
 COPY . /kube-hunter
 
-FROM python:3.7.3-alpine3.9
+FROM python:3.8-rc-alpine3.9
 
 RUN apk add --update \
     linux-headers \
-    wireshark \
     tcpdump 
 
 COPY --from=builder /kube-hunter /kube-hunter

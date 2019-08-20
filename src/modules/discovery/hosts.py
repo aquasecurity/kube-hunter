@@ -122,7 +122,6 @@ class FromPodHostDiscovery(Discovery):
     def traceroute_discovery(self):
         external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
         cloud = HostDiscoveryHelpers.get_cloud(external_ip)
-        logging.getLogger("scapy.runtime").setLevel(logging.ERROR) # disables scapy's warnings
         from scapy.all import ICMP, IP, Ether, srp1
 
         node_internal_ip = srp1(Ether() / IP(dst="google.com" , ttl=1) / ICMP(), verbose=0)[IP].src
