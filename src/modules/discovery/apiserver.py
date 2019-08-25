@@ -31,7 +31,7 @@ class ApiServerDiscovery(Discovery):
     def make_request(self, protocol):
         try:
             r = requests.get("{}://{}:{}".format(protocol, self.event.host, self.event.port), verify=False)
-            if ('k8s' in r.text) or ('"code"' in r.text and r.status_code is not 200): 
+            if ('k8s' in r.text) or ('"code"' in r.text and r.status_code != 200): 
                 self.event.role = "Master"
                 self.publish_event(ApiServer(protocol=protocol))
         except requests.exceptions.SSLError:

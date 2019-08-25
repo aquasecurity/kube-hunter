@@ -12,14 +12,13 @@ RUN pip install -r /kube-hunter/requirements.txt -t /kube-hunter
 
 COPY . /kube-hunter
 
-FROM python:3.8-rc-alpine3.10
+FROM python:3.7-alpine3.10
 
 RUN apk add --update \
-    linux-headers \
-    tcpdump 
+    tcpdump
+RUN apk upgrade 
 
 COPY --from=builder /kube-hunter /kube-hunter
-COPY --from=builder /etc/ethertypes /etc/ethertypes
 
 WORKDIR /kube-hunter
 
