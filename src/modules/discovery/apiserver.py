@@ -58,6 +58,13 @@ class ApiServiceDiscovery(Discovery):
 
 # Acts as a Filter for services, In the case that we can classify the API,
 # We swap the filtered event with a new corresponding Service to next be published
+# The classification can be regarding the context of the execution,
+# Currently we classify: Metrics Server and Api Server
+# If running as a pod: 
+# We know the Api server IP, so we can classify easily
+# If not: 
+# We determine by accessing the /version on the service. 
+# Api Server will contain a major version field, while the Metrics will not
 @handler.subscribe(K8sApiService)
 class ApiServiceClassify(EventFilterBase):
     """API Service Classifier
