@@ -163,4 +163,4 @@ class K8sVersionDisclosure(Vulnerability, Event):
         self.evidence = version
 
     def explain(self):
-        return self.__doc__.format(self.from_endpoint) + self.extra_info if self.extra_info else ""
+        return self.__doc__.format(self.from_endpoint) + self.extra_info
