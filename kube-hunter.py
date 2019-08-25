@@ -6,7 +6,7 @@ import threading
 
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
 parser.add_argument('--list', action="store_true", help="displays all tests in kubehunter (add --active flag to see active tests)")
-parser.add_argument('--internal', action="store_true", help="set hunting of all internal network interfaces")
+parser.add_argument('--interface', action="store_true", help="set hunting of all network interfaces")
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
 parser.add_argument('--quick', action="store_true", help="Prefer quick scan (subnet 24)")
 parser.add_argument('--cidr', type=str, help="set an ip range to scan, example: 192.168.0.0/16")
@@ -63,7 +63,7 @@ import src
 def interactive_set_config():
     """Sets config manually, returns True for success"""
     options = [("Remote scanning", "scans one or more specific IPs or DNS names"),
-    ("Subnet scanning","scans subnets on all local network interfaces"),
+    ("Interface scanning","scans subnets on all local network interfaces"),
     ("IP range scanning","scans a given IP range")]
     
     print("Choose one of the options below:")
@@ -73,7 +73,7 @@ def interactive_set_config():
     if choice == '1':
         config.remote = input("Remotes (separated by a ','): ").replace(' ', '').split(',')
     elif choice == '2':
-        config.internal = True
+        config.interface = True
     elif choice == '3': 
         config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
     else: 
@@ -105,7 +105,7 @@ def main():
         config.pod, 
         config.cidr,
         config.remote, 
-        config.internal
+        config.interface
     ]
     try:
         if config.list:
