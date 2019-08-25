@@ -55,10 +55,9 @@ class CveUtils:
 
     @staticmethod
     def to_raw_version(v):
-        if type(v) == version.LegacyVersion:
-            return '.'.join(v._version.split('.'))
-        else: 
+        if type(v) != version.LegacyVersion:
             return '.'.join(map(str, v._version.release))
+        return v._version
         
     @staticmethod
     def version_compare(v1, v2):
