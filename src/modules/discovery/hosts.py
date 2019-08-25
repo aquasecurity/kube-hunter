@@ -7,7 +7,7 @@ import time
 from enum import Enum
 
 import requests
-from netaddr import IPNetwork
+from netaddr import IPNetwork, IPAddress
 
 from __main__ import config
 from netifaces import AF_INET, ifaddresses, interfaces
@@ -22,6 +22,7 @@ class RunningAsPodEvent(Event):
         self.auth_token = self.get_service_account_file("token")
         self.client_cert = self.get_service_account_file("ca.crt")
         self.namespace = self.get_service_account_file("namespace")
+        self.kubeservicehost = os.environ.get("KUBERNETES_SERVICE_HOST", None)
 
     # Event's logical location to be used mainly for reports.
     def location(self):
@@ -96,10 +97,17 @@ class FromPodHostDiscovery(Discovery):
             else:
                 subnets, cloud = self.traceroute_discovery()
 
+            should_scan_apiserver = False
+            if self.event.kubeservicehost:
+                should_scan_apiserver = True
             for subnet in subnets:
+                if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork("{}/{}".format(subnet[0], subnet[1])):
+                    should_scan_apiserver = False
                 logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
                 for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
                     self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+            if should_scan_apiserver:
+                self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
 
             
     def is_azure_pod(self):
@@ -153,7 +161,7 @@ class HostDiscovery(Discovery):
             cloud = HostDiscoveryHelpers.get_cloud(ip)
             for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):
                 self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
-        elif config.internal:
+        elif config.interface:
             self.scan_interfaces()
         elif len(config.remote) > 0:
             for host in config.remote:

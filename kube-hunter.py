@@ -6,7 +6,7 @@ import threading
 
 parser = argparse.ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
 parser.add_argument('--list', action="store_true", help="displays all tests in kubehunter (add --active flag to see active tests)")
-parser.add_argument('--internal', action="store_true", help="set hunting of all internal network interfaces")
+parser.add_argument('--interface', action="store_true", help="set hunting of all network interfaces")
 parser.add_argument('--pod', action="store_true", help="set hunter as an insider pod")
 parser.add_argument('--quick', action="store_true", help="Prefer quick scan (subnet 24)")
 parser.add_argument('--cidr', type=str, help="set an ip range to scan, example: 192.168.0.0/16")
@@ -15,6 +15,7 @@ parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help=
 parser.add_argument('--active', action="store_true", help="enables active hunting")
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml, json")
+parser.add_argument('--dispatch', type=str, default='stdout', help="where to send the report to, options are: stdout, http (use KUBEHUNTER_HTTP_DISPATCH_URL and KUBEHUNTER_HTTP_DISPATCH_METHOD to configure)")
 parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
 
 import plugins
@@ -31,13 +32,27 @@ if config.log.lower() != "none":
 from src.modules.report.plain import PlainReporter
 from src.modules.report.yaml import YAMLReporter
 from src.modules.report.json_reporter import JSONReporter
-
-if config.report.lower() == "yaml":
-    config.reporter = YAMLReporter()
-elif config.report.lower() == "json":
-    config.reporter = JSONReporter()
+reporters = {
+    'yaml': YAMLReporter,
+    'json': JSONReporter,
+    'plain': PlainReporter
+}
+if config.report.lower() in reporters.keys():
+    config.reporter = reporters[config.report.lower()]()
 else:
-    config.reporter = PlainReporter()
+    logging.warning('Unknown reporter selected, using plain')
+    config.reporter = reporters['plain']()
+
+from src.modules.report.dispatchers import STDOUTDispatcher, HTTPDispatcher
+dispatchers = {
+    'stdout': STDOUTDispatcher,
+    'http': HTTPDispatcher
+}
+if config.dispatch.lower() in dispatchers.keys():
+    config.dispatcher = dispatchers[config.dispatch.lower()]()
+else:
+    logging.warning('Unknown dispatcher selected, using stdout')
+    config.dispatcher = dispatchers['stdout']()
 
 from src.core.events import handler
 from src.core.events.types import HuntFinished, HuntStarted
@@ -48,7 +63,7 @@ import src
 def interactive_set_config():
     """Sets config manually, returns True for success"""
     options = [("Remote scanning", "scans one or more specific IPs or DNS names"),
-    ("Subnet scanning","scans subnets on all local network interfaces"),
+    ("Interface scanning","scans subnets on all local network interfaces"),
     ("IP range scanning","scans a given IP range")]
     
     print("Choose one of the options below:")
@@ -58,7 +73,7 @@ def interactive_set_config():
     if choice == '1':
         config.remote = input("Remotes (separated by a ','): ").replace(' ', '').split(',')
     elif choice == '2':
-        config.internal = True
+        config.interface = True
     elif choice == '3': 
         config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
     else: 
@@ -90,7 +105,7 @@ def main():
         config.pod, 
         config.cidr,
         config.remote, 
-        config.internal
+        config.interface
     ]
     try:
         if config.list:
