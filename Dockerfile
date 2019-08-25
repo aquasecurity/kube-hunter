@@ -1,4 +1,4 @@
-FROM python:3.8-rc-alpine3.10 as builder
+FROM python:3.7-alpine3.10 as builder
 
 RUN apk add --update \
     linux-headers \
