@@ -62,19 +62,17 @@ class CveUtils:
     @staticmethod
     def version_compare(v1, v2):
         """Function compares two versions, handling differences with convertion to LegacyVersion"""
-        decision = 1
         # getting raw version, while striping 'v' char at the start. if exists. 
         # removing this char lets us safely compare the two version.
         v1_raw, v2_raw = CveUtils.to_raw_version(v1).strip('v'), CveUtils.to_raw_version(v2).strip('v')
         new_v1 = version.LegacyVersion(v1_raw)
         new_v2 = version.LegacyVersion(v2_raw)
         
-        if new_v1 < new_v2:
-            decision = -1
-        elif new_v1 == new_v2:
-            decision = 0
-        return decision
+        return CveUtils.basic_compare(new_v1, new_v2)
 
+    @staticmethod
+    def basic_compare(v1, v2):
+        return (v1>v2)-(v1<v2)
 
     @staticmethod
     def is_vulnerable(fix_versions, check_version):
@@ -84,7 +82,7 @@ class CveUtils:
         base_check_v = CveUtils.get_base_release(check_v)
         
         # default to classic compare, unless the check_version is legacy.
-        version_compare_func = lambda x, y: (x>y)-(x<y)
+        version_compare_func = CveUtils.basic_compare
         if type(check_v) == version.LegacyVersion:
             version_compare_func = CveUtils.version_compare
 
