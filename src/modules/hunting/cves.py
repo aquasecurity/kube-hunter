@@ -117,15 +117,14 @@ class K8sClusterCveHunter(Hunter):
         self.event = event
 
     def execute(self):
-        logging.debug('Api Cve Hunter got version from the API server: {}'.format(self.event.version))
-        fix_versions_cve_2018_1002105 = ["1.10.11", "1.11.5", "1.12.3"]
-        fix_versions_cve_2019_1002100 = ["1.11.8", "1.12.6", "1.13.4"]
-        
-        if CveUtils.is_vulnerable(fix_versions_cve_2018_1002105, self.event.version):
-            self.publish_event(ServerApiVersionEndPointAccessPE(self.event.version))
-
-        if CveUtils.is_vulnerable(fix_versions_cve_2019_1002100, self.event.version):
-            self.publish_event(ServerApiVersionEndPointAccessDos(self.event.version))
+        logging.debug('Api Cve Hunter determining vulnerable version: {}'.format(self.event.version))
+        cve_mapping = {
+            ServerApiVersionEndPointAccessPE: ["1.10.11", "1.11.5", "1.12.3"],
+            ServerApiVersionEndPointAccessDos: ["1.11.8", "1.12.6", "1.13.4"], 
+        }        
+        for vulnerability, fix_versions in cve_mapping.items():
+            if CveUtils.is_vulnerable(fix_versions, self.event.version):
+                self.publish_event(vulnerability(self.event.version))
 
 
 @handler.subscribe(KubectlClientEvent)
@@ -137,11 +136,11 @@ class KubectlCVEHunter(Hunter):
         self.event = event
 
     def execute(self):
-        cve_2019_1002101_fix_versions = ['1.11.9', '1.12.7', '1.13.5' '1.14.0']
-        cve_2019_11246_fix_versions = ['1.12.9', '1.13.6', '1.14.2']
-
-        if CveUtils.is_vulnerable(fix_versions=cve_2019_1002101_fix_versions, check_version=self.event.version):
-            self.publish_event(KubectlCpVulnerability(binary_version=self.event.version))
-
-        if CveUtils.is_vulnerable(fix_versions=cve_2019_11246_fix_versions, check_version=self.event.version):
-            self.publish_event(IncompleteFixToKubectlCpVulnerability(binary_version=self.event.version))
+        cve_mapping = {
+            KubectlCpVulnerability: ['1.11.9', '1.12.7', '1.13.5' '1.14.0'],
+            IncompleteFixToKubectlCpVulnerability: ['1.12.9', '1.13.6', '1.14.2'] 
+        }
+        logging.debug('Kubectl Cve Hunter determining vulnerable version: {}'.format(self.event.version))
+        for vulnerability, fix_versions in cve_mapping.items():
+            if CveUtils.is_vulnerable(fix_versions, self.event.version):
+                self.publish_event(vulnerability(binary_version=self.event.version))
