@@ -1,4 +1,4 @@
-FROM python:3.8-rc-alpine3.9 as builder
+FROM python:3.8-rc-alpine3.10 as builder
 
 RUN apk add --update \
     linux-headers \
@@ -12,7 +12,7 @@ RUN pip install -r /kube-hunter/requirements.txt -t /kube-hunter
 
 COPY . /kube-hunter
 
-FROM python:3.8-rc-alpine3.9
+FROM python:3.8-rc-alpine3.10
 
 RUN apk add --update \
     linux-headers \
