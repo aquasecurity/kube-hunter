@@ -29,9 +29,9 @@ By default, kube-hunter will open an interactive session, in which you will be a
 To specify remote machines for hunting, select option 1 or use the `--remote` option. Example:
 `./kube-hunter.py --remote some.node.com`
 
-2. **Internal scanning**
-To specify internal scanning, you can use the `--internal` option. (this will scan all of the machine's network interfaces) Example:
-`./kube-hunter.py --internal`
+2. **interface scanning**
+To specify interface scanning, you can use the `--interface` option. (this will scan all of the machine's network interfaces) Example:
+`./kube-hunter.py --interface`
 
 3. **Network scanning**
 To specify a specific CIDR to scan, use the `--cidr` option. Example:
