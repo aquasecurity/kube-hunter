@@ -25,7 +25,7 @@ class DnsSpoofHunter(ActiveHunter):
         self.event = event
     
     def get_cbr0_ip_mac(self):
-        res = srp1(Ether() / IP(dst="google.com" , ttl=1) / ICMP(), verbose=0)
+        res = srp1(Ether() / IP(dst="1.1.1.1" , ttl=1) / ICMP(), verbose=0)
         return res[IP].src, res.src
 
     def get_kube_dns_ip_mac(self):
@@ -44,7 +44,7 @@ class DnsSpoofHunter(ActiveHunter):
     
     def execute(self):
         logging.debug("Attempting to get kube-dns pod ip")
-        self_ip = sr1(IP(dst="google.com", ttl=1), ICMP(), verbose=0)[IP].dst 
+        self_ip = sr1(IP(dst="1.1.1.1", ttl=1), ICMP(), verbose=0)[IP].dst 
         kubedns_ip, kubedns_mac = self.get_kube_dns_ip_mac()
         cbr0_ip, cbr0_mac = self.get_cbr0_ip_mac()
 

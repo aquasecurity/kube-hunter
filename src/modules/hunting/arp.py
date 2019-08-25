@@ -42,7 +42,7 @@ class ArpSpoofHunter(ActiveHunter):
         return False
         
     def execute(self):
-        self_ip = sr1(IP(dst="google.com", ttl=1), ICMP(), verbose=0)[IP].dst 
+        self_ip = sr1(IP(dst="1.1.1.1", ttl=1), ICMP(), verbose=0)[IP].dst 
         arp_responses, _ = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(op=1, pdst="{}/24".format(self_ip)), timeout=3, verbose=0)
         
         # arp enabled on cluster and more than one pod on node
