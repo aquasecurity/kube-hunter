@@ -10,8 +10,7 @@ from ..discovery.kubectl import KubectlClientEvent
 
 from packaging import version
 
-""" CVE Vulnerabilities """
-
+""" Cluster CVES """
 class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
     """Node is vulnerable to critical CVE-2018-1002105"""
     def __init__(self, evidence):
@@ -36,6 +35,14 @@ class ResetFloodHttp2Implementation(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Possible Reset Flood Attack", category=DenialOfService)
         self.evidence = evidence
 
+class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
+    """Api Server not patched for CVE-2019-11247. API server allows access to custom resources via wrong scope"""
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Arbitrary Access To Cluster Scoped Resources", category=PrivilegeEscalation)
+        self.evidence = evidence
+
+
+""" Kubectl CVES """
 class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
     """The kubectl client is vulnerable to CVE-2019-11246, an attacker could potentially execute arbitrary code on the client's machine"""
     def __init__(self, binary_version):
@@ -134,7 +141,8 @@ class K8sClusterCveHunter(Hunter):
             ServerApiVersionEndPointAccessPE: ["1.10.11", "1.11.5", "1.12.3"],
             ServerApiVersionEndPointAccessDos: ["1.11.8", "1.12.6", "1.13.4"],
             ResetFloodHttp2Implementation: ["1.13.10", "1.14.6", "1.15.3"],
-            PingFloodHttp2Implementation: ["1.13.10", "1.14.6", "1.15.3"]
+            PingFloodHttp2Implementation: ["1.13.10", "1.14.6", "1.15.3"],
+            ServerApiClusterScopedResourcesAccess: ["1.13.9", "1.14.5", "1.15.2"]
         }        
         for vulnerability, fix_versions in cve_mapping.items():
             if CveUtils.is_vulnerable(fix_versions, self.event.version):
