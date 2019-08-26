@@ -24,6 +24,18 @@ class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService)
         self.evidence = evidence
 
+class PingFloodHttp2Implementation(Vulnerability, Event):
+    """Node not patched for CVE-2019-9512. an attacker could cause a Denial of Service by sending specially crafted HTTP requests."""
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Possible Ping Flood Attack", category=DenialOfService)
+        self.evidence = evidence
+
+class ResetFloodHttp2Implementation(Vulnerability, Event):
+    """Node not patched for CVE-2019-9514. an attacker could cause a Denial of Service by sending specially crafted HTTP requests."""
+    def __init__(self, evidence):
+        Vulnerability.__init__(self, KubernetesCluster, name="Possible Reset Flood Attack", category=DenialOfService)
+        self.evidence = evidence
+
 class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
     """The kubectl client is vulnerable to CVE-2019-11246, an attacker could potentially execute arbitrary code on the client's machine"""
     def __init__(self, binary_version):
@@ -120,7 +132,9 @@ class K8sClusterCveHunter(Hunter):
         logging.debug('Api Cve Hunter determining vulnerable version: {}'.format(self.event.version))
         cve_mapping = {
             ServerApiVersionEndPointAccessPE: ["1.10.11", "1.11.5", "1.12.3"],
-            ServerApiVersionEndPointAccessDos: ["1.11.8", "1.12.6", "1.13.4"], 
+            ServerApiVersionEndPointAccessDos: ["1.11.8", "1.12.6", "1.13.4"],
+            ResetFloodHttp2Implementation: ["1.13.10", "1.14.6", "1.15.3"],
+            PingFloodHttp2Implementation: ["1.13.10", "1.14.6", "1.15.3"]
         }        
         for vulnerability, fix_versions in cve_mapping.items():
             if CveUtils.is_vulnerable(fix_versions, self.event.version):
