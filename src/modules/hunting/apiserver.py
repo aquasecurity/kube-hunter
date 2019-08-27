@@ -5,14 +5,13 @@ import uuid
 import copy
 
 from ...core.events import handler
-from ...core.events.types import Vulnerability, Event
+from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ..discovery.apiserver import ApiServer
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster
 from ...core.types import RemoteCodeExec, AccessRisk, InformationDisclosure, UnauthenticatedAccess
 
 
 """ Vulnerabilities """
-
 
 class ServerApiAccess(Vulnerability, Event):
     """ The API Server port is accessible. Depending on your RBAC settings this could expose access to or control of your cluster. """
@@ -557,3 +556,25 @@ class AccessApiServerActive(ActiveHunter):
 
             #  Note: we are not binding any role or cluster role because
             # -- in certain cases it might effect the running pod within the cluster (and we don't want to do that).
+
+@handler.subscribe(ApiServer)
+class ApiVersionHunter(Hunter):
+    """Api Version Hunter
+    Tries to obtain the Api Server's version directly from /version endpoint
+    """
+    def __init__(self, event):
+        self.event = event
+        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
+        self.session = requests.Session()
+        self.session.verify = False
+        if self.event.auth_token:
+            self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
+        
+    def execute(self):
+        if self.event.auth_token:
+            logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token on {}:{} \t'.format(self.event.host, self.event.port))
+        else:
+            logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
+        version = json.loads(self.session.get(self.path + "/version").text)["gitVersion"]
+        logging.debug("Discovered version of api server {}".format(version))
+        self.publish_event(K8sVersionDisclosure(version=version, from_endpoint="/version"))
