@@ -48,7 +48,7 @@ class ApiServiceDiscovery(Discovery):
     def has_api_behaviour(self, protocol):
         try:
             r = self.session.get("{}://{}:{}".format(protocol, self.event.host, self.event.port))
-            if ('k8s' in r.text) or ('"code"' in r.text and r.status_code is not 200):
+            if ('k8s' in r.text) or ('"code"' in r.text and r.status_code != 200):
                 return True
         except requests.exceptions.SSLError:
             logging.debug("{} protocol not accepted on {}:{}".format(protocol, self.event.host, self.event.port))
