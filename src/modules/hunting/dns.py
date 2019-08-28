@@ -1,3 +1,4 @@
+import re
 import logging
 
 from ...core.events import handler
@@ -6,10 +7,10 @@ from ...core.types import ActiveHunter, KubernetesCluster, IdentityTheft
 
 from .arp import PossibleArpSpoofing
 
-from scapy.all import *
+from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1
 
 class PossibleDnsSpoofing(Vulnerability, Event):
-    """A malicous pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM attck on applications running in the cluster."""
+    """A malicous pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM attack on applications running in the cluster."""
     def __init__(self, kubedns_pod_ip):
         Vulnerability.__init__(self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft)
         self.kubedns_pod_ip = kubedns_pod_ip
@@ -28,9 +29,15 @@ class DnsSpoofHunter(ActiveHunter):
         res = srp1(Ether() / IP(dst="1.1.1.1" , ttl=1) / ICMP(), verbose=0)
         return res[IP].src, res.src
 
-    def get_kube_dns_ip_mac(self):
+    def extract_nameserver_ip(self):
         with open('/etc/resolv.conf', 'r') as f:
-            kubedns_svc_ip = f.readlines()[0].split(' ')[1].strip()
+            # finds first nameserver in /etc/resolv.conf
+            match = re.search(r"nameserver (\d+.\d+.\d+.\d+)", f.read())
+            if match:
+                return match.group(1)
+
+    def get_kube_dns_ip_mac(self):
+        kubedns_svc_ip = self.extract_nameserver_ip()
 
         # getting actuall pod ip of kube-dns service, by comparing the src mac of a dns response and arp scanning.
         dns_info_res = srp1(Ether() / IP(dst=kubedns_svc_ip) / UDP(dport=53) / DNS(rd=1,qd=DNSQR()), verbose=0)

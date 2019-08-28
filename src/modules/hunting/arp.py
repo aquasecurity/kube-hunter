@@ -6,7 +6,7 @@ from ...core.types import ActiveHunter, KubernetesCluster, IdentityTheft
 
 from .capabilities import CapNetRawEnabled 
 
-from scapy.all import *
+from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 
 class PossibleArpSpoofing(Vulnerability, Event):
     """A malicous pod running on the cluster could potentially run an ARP Spoof attack and perform a MITM between pods on the node."""
@@ -28,16 +28,15 @@ class ArpSpoofHunter(ActiveHunter):
     def detect_l3_on_host(self, arp_responses):
         """ returns True for an existance of an L3 network plugin """
         logging.debug("Attempting to detect L3 network plugin using ARP")
-        unique_macs = list(set([a[1][ARP].hwsrc for a in arp_responses]))
+        unique_macs = list(set(response[ARP].hwsrc for _, response in arp_responses))
         
         # if LAN addresses not unique
         if len(unique_macs) == 1:
             # if an ip outside the subnets gets a mac address
-            outside_mac = self.try_getting_mac("8.8.8.8")
-            if outside_mac:
-                # outside mac is the same as lan macs
-                if outside_mac == unique_macs[0]:
-                    return True
+            outside_mac = self.try_getting_mac("1.1.1.1")
+            # outside mac is the same as lan macs
+            if outside_mac == unique_macs[0]:
+                return True
         # only one mac address for whole LAN and outside 
         return False
         
