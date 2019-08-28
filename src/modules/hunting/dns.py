@@ -7,7 +7,7 @@ from ...core.types import ActiveHunter, KubernetesCluster, IdentityTheft
 
 from .arp import PossibleArpSpoofing
 
-from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1
+from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1, srp
 
 class PossibleDnsSpoofing(Vulnerability, Event):
     """A malicous pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM attack on applications running in the cluster."""
