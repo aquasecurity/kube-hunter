@@ -45,17 +45,22 @@ class DnsSpoofHunter(ActiveHunter):
         self_ip = dns_info_res[IP].dst
 
         arp_responses, _ = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(op=1, pdst="{}/24".format(self_ip)), timeout=3, verbose=0)
-        for res in arp_responses:
-            if res[1][Ether].src == kubedns_pod_mac:
-                return res[1][ARP].psrc, res[1].src
-    
+        for _, response in arp_responses:
+            if response[Ether].src == kubedns_pod_mac:
+                return response[ARP].psrc, response.src
+
     def execute(self):
         logging.debug("Attempting to get kube-dns pod ip")
         self_ip = sr1(IP(dst="1.1.1.1", ttl=1), ICMP(), verbose=0)[IP].dst 
-        kubedns_ip, kubedns_mac = self.get_kube_dns_ip_mac()
         cbr0_ip, cbr0_mac = self.get_cbr0_ip_mac()
 
-        logging.debug("ip = {}, kubednsip = {}, cbr0ip = {}".format(self_ip, kubedns_ip, cbr0_ip))
-        if kubedns_mac != cbr0_mac:
-            # if self pod in the same subnet as kube-dns pod
-            self.publish_event(PossibleDnsSpoofing(kubedns_pod_ip=kubedns_ip))
+        kubedns = self.get_kube_dns_ip_mac()
+        if kubedns:
+            kubedns_ip, kubedns_mac = kubedns
+            logging.debug("ip = {}, kubednsip = {}, cbr0ip = {}".format(self_ip, kubedns_ip, cbr0_ip))
+            if kubedns_mac != cbr0_mac:
+                # if self pod in the same subnet as kube-dns pod
+                self.publish_event(PossibleDnsSpoofing(kubedns_pod_ip=kubedns_ip))
+        else:
+            logging.debug("Could not get kubedns identity")
+        
