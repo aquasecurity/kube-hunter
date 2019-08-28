@@ -5,7 +5,7 @@ import requests
 import json
 
 from ...core.events import handler
-from ...core.events.types import Event, Vulnerability
+from ...core.events.types import Event, Vulnerability, K8sVersionDisclosure
 from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure
 from ..discovery.dashboard import KubeDashboardEvent
 from ..discovery.proxy import KubeProxyEvent
@@ -15,12 +15,6 @@ class KubeProxyExposed(Vulnerability, Event):
     """All oprations on the cluster are exposed"""
     def __init__(self):
         Vulnerability.__init__(self, KubernetesCluster, "Proxy Exposed", category=InformationDisclosure)
-
-class K8sVersionDisclosure(Vulnerability, Event):
-    """The Kubernetes version is exposed from kube-proxy"""
-    def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure)
-
 
 class Service(Enum):
     DASHBOARD = "kubernetes-dashboard"
@@ -36,7 +30,6 @@ class KubeProxy(Hunter):
 
     def execute(self):
         self.publish_event(KubeProxyExposed())
-        self.publish_event(K8sVersionDisclosure())
         for namespace, services in self.services.items():
             for service in services:
                 if service == Service.DASHBOARD.value:
@@ -83,8 +76,8 @@ class ProveProxyExposed(ActiveHunter):
         if "buildDate" in version_metadata:
             self.event.evidence = "build date: {}".format(version_metadata["buildDate"])
 
-@handler.subscribe(K8sVersionDisclosure)
-class ProveK8sVersionDisclosure(ActiveHunter):
+@handler.subscribe(KubeProxyExposed)
+class K8sVersionDisclosureProve(ActiveHunter):
     """K8s Version Hunter
     Hunts Proxy when exposed, extracts the version
     """
@@ -97,4 +90,4 @@ class ProveK8sVersionDisclosure(ActiveHunter):
             port=self.event.port,
         ), verify=False).text)
         if "gitVersion" in version_metadata:
-            self.event.evidence = "version: {}".format(version_metadata["gitVersion"])
+            self.publish_event(K8sVersionDisclosure(version=version_metadata["gitVersion"], from_endpoint="/version", extra_info="on the kube-proxy"))
