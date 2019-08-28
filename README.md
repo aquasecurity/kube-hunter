@@ -52,6 +52,11 @@ You can see the list of tests with the `--list` option: Example:
 To see active hunting tests as well as passive:
 `./kube-hunter.py --list --active`
 
+### Nodes Mapping 
+To see only a mapping of your nodes network, run with `--mapping` option. Example:
+`./kube-hunter.py --cidr 192.168.0.0/24 --mapping`
+This will output all the Kubernetes nodes kube-hunter has found.
+
 ### Output
 To control logging, you can specify a log level, using the `--log` option. Example:
 `./kube-hunter.py --active --log WARNING`
@@ -61,9 +66,15 @@ Available log levels are:
 * INFO (default)
 * WARNING
 
-To see only a mapping of your nodes network, run with `--mapping` option. Example:
-`./kube-hunter.py --cidr 192.168.0.0/24 --mapping`
-This will output all the Kubernetes nodes kube-hunter has found.
+### Dispatching
+By default, the report will be dispatched to `stdout`, but you can specify different methods, by using the `--dispatch` option. Example:
+`./kube-hunter.py --report json --dispatch http`
+Available dispatch methods are:
+
+* stdout (default)
+* http (to configure, set the following environment variables:) 
+    * KUBEHUNTER_HTTP_DISPATCH_URL (defaults to: https://localhost)
+    * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
 ## Deployment
 There are three methods for deploying kube-hunter:
