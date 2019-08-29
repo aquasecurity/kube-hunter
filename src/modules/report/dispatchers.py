@@ -51,6 +51,5 @@ class STDOUTDispatcher(object):
     def dispatch(self, report):
         logging.debug('Dispatching report via stdout')
         if config.report == "plain":
-            logging.info("\n{div}\n{report}".format(div="-" * 10, report=report))
-        else:
-            print(report)
+            logging.info("\n{div}".format(div="-" * 10))
+        print(report)
