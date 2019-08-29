@@ -19,11 +19,13 @@ class ApiServer(Service, Event):
     """The API server is in charge of all operations on the cluster."""
     def __init__(self):
         Service.__init__(self, name="API Server")
+        self.protocol = "https"
         
 class MetricsServer(Service, Event):
     """The Metrics server is in charge of providing resource usage metrics for pods and nodes to the API server."""
     def __init__(self):
         Service.__init__(self, name="Metrics Server")
+        self.protocol = "https"
 
 
 # Other devices could have this port open, but we can check to see if it looks like a Kubernetes api
@@ -93,6 +95,7 @@ class ApiServiceClassify(EventFilterBase):
             logging.error("Could not access /version on API service: {}".format(e))
 
     def execute(self):
+        discovered_protocol = self.event.protocol
         # if running as pod
         if self.event.kubeservicehost:
             # if the host is the api server's IP, we know it's the Api Server
@@ -104,6 +107,8 @@ class ApiServiceClassify(EventFilterBase):
         else:
             self.classify_using_version_endpoint()
 
+        # in any case, making sure to link previously discovered protocol
+        self.event.protocol = discovered_protocol
         # If some check classified the Service, 
         # the event will have been replaced.
         return self.event
