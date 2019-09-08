@@ -118,18 +118,16 @@ class FromPodHostDiscovery(Discovery):
                 self.publish_event(RunningPodOnCloud(cloud=cloud))
 
             # normal pod discovery
-            scan_subnets = self.pod_subnet_discovery()
-            should_scan_apiserver = False
+            pod_subnet = self.pod_subnet_discovery()
+            logging.debug("From pod scanning subnet {0}/{1}".format(pod_subnet[0], pod_subnet[1]))
+            for ip in HostDiscoveryUtils.generate_subnet(ip=pod_subnet[0], sn=pod_subnet[1]):
+                self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+
+            # manually publishing the Api server host if outside the subnet
             if self.event.kubeservicehost:
-                should_scan_apiserver = True
-            for subnet in scan_subnets:
-                if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork("{}/{}".format(subnet[0], subnet[1])):
-                    should_scan_apiserver = False
-                logging.debug("From pod scanning subnet {0}/{1}".format(subnet[0], subnet[1]))
-                for ip in HostDiscoveryUtils.generate_subnet(ip=subnet[0], sn=subnet[1]):
-                    self.publish_event(NewHostEvent(host=ip, cloud=cloud))
-            if should_scan_apiserver:
-                self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
+                if self.event.kubeservicehost not in IPNetwork("{}/{}".format(pod_subnet[0], pod_subnet[1])):
+                    self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
+
 
     def pod_subnet_discovery(self):
         # normal option when running as a pod is to scan it's own subnet
