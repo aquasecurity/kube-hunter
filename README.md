@@ -104,7 +104,7 @@ Run:
 
 _If you want to use pyinstaller/py2exe you need to first run the install_imports.py script._
 ### Container
-Aqua Security maintains a containerised version of kube-hunter at `aquasec/kube-hunter`. _(Please note this is not currently up to date due to an issue in an underlying dependency that is [blocking the automated build](https://github.com/aquasecurity/kube-hunter/issues/112))_. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
+Aqua Security maintains a containerised version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
 
 The Dockerfile in this repository allows you to build a containerised version without the reporting plugin.
 
@@ -124,5 +124,3 @@ The `job.yaml` file defines a Job that will run kube-hunter in a pod, using defa
 * Run the job with `kubectl create` with that yaml file.
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
-
-_Please note you may wish to build your own version of the container and update job.yaml to use it, as the image on Docker hub [is not currently up to date due to an issue in an underlying dependency](https://github.com/aquasecurity/kube-hunter/issues/112)_
