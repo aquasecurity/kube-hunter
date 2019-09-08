@@ -52,8 +52,8 @@ class AzureHostDiscovery(Discovery):
 
     def execute(self):
         if self.is_azure_api():
-            for subnet in self.azure_metadata_subnets_discovery():
-                logging.debug("Azure subnet scanning {0}/{1}".format(subnet[0], subnet[1]))
-                for ip in HostDiscoveryUtils.generate_subnet(ip=subnet[0], sn=subnet[1]):
+            for address, cidr in self.azure_metadata_subnets_discovery():
+                logging.debug("Azure subnet scanning {0}/{1}".format(address, cidr))
+                for ip in HostDiscoveryUtils.generate_subnet(ip=address, sn=cidr):
                     self.publish_event(NewHostEvent(host=ip, cloud=CloudTypes.AKS))
     
