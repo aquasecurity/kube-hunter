@@ -158,7 +158,7 @@ class HostDiscovery(Discovery):
                 self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
         if config.internal:
             self.scan_interfaces()
-        if len(config.remote) > 0:
+        if config.remote:
             for host in config.remote:
                 self.publish_event(NewHostEvent(host=host, cloud=HostDiscoveryUtils.get_cloud(host)))
  
