@@ -156,7 +156,7 @@ class HostDiscovery(Discovery):
             cloud = HostDiscoveryUtils.get_cloud(ip)
             for ip in HostDiscoveryUtils.generate_subnet(ip, sn=sn):
                 self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
-        if config.internal:
+        if config.interface:
             self.scan_interfaces()
         if config.remote:
             for host in config.remote:
