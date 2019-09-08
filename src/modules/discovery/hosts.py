@@ -134,7 +134,7 @@ class FromPodHostDiscovery(Discovery):
         # The gateway connects us to the host, and we can discover the 
         # kubelet from there, other ip's are pods that are running 
         # next to us,
-        return [(HostDiscoveryUtils.get_default_gateway(), "24")]
+        return HostDiscoveryUtils.get_default_gateway(), "24"
 
 
 @handler.subscribe(HostScanEvent)
