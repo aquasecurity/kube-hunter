@@ -124,5 +124,3 @@ The `job.yaml` file defines a Job that will run kube-hunter in a pod, using defa
 * Run the job with `kubectl create` with that yaml file.
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
-
-_Please note you may wish to build your own version of the container and update job.yaml to use it, as the image on Docker hub [is not currently up to date due to an issue in an underlying dependency](https://github.com/aquasecurity/kube-hunter/issues/112)_
