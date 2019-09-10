@@ -52,16 +52,15 @@ class HostDiscoveryUtils:
         """ Returns cloud for a given ip address, defaults to NO_CLOUD """
         cloud = ""
         try:
-            if host:
-                logging.debug("Checking if {} is deployed on a cloud".format(host))
-                # azurespeed.com provide their API via HTTP only; the service can be queried with 
-                # HTTPS, but doesn't show a proper certificate. Since no encryption is worse then
-                # any encryption, we go with the verify=false option for the time being. At least
-                # this prevents leaking internal IP addresses to passive eavesdropping.
-                # TODO: find a more secure service to detect cloud IPs
-                metadata = requests.get("https://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host), verify=False).text
-                if "cloud" in metadata:
-                    cloud = json.loads(metadata)["cloud"]
+            logging.debug("Checking if {} is deployed on a cloud".format(host))
+            # azurespeed.com provide their API via HTTP only; the service can be queried with 
+            # HTTPS, but doesn't show a proper certificate. Since no encryption is worse then
+            # any encryption, we go with the verify=false option for the time being. At least
+            # this prevents leaking internal IP addresses to passive eavesdropping.
+            # TODO: find a more secure service to detect cloud IPs
+            metadata = requests.get("https://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host), verify=False).text
+            if "cloud" in metadata:
+                cloud = json.loads(metadata)["cloud"]
         except requests.ConnectionError as e:
             logging.info("- unable to check cloud: {0}".format(e))
 
