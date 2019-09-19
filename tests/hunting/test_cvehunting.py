@@ -3,7 +3,7 @@ import requests_mock
 
 from src.core.events import handler
 from src.core.events.types import K8sVersionDisclosure
-from src.modules.hunting.cves import K8sClusterCveHunter, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos
+from src.modules.hunting.cves import K8sClusterCveHunter, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos, CveUtils
 
 cve_counter = 0
 
@@ -50,3 +50,38 @@ class test_CVE_2019_1002100(object):
     def __init__(self, event):
         global cve_counter
         cve_counter += 1
+
+class test_CveUtils(object):
+    def test_is_downstream():
+        test_cases = (
+            ('1', False),
+            ('1.2', False),
+            ('1.2-3', True),
+            ('1.2-r3', True),
+            ('1.2+3', True),
+            ('1.2~3', True),
+            ('1.2+a3f5cb2', True),
+            ('1.2-9287543', True),
+            ('v1', False),
+            ('v1.2', False),
+            ('v1.2-3', True),
+            ('v1.2-r3', True),
+            ('v1.2+3', True),
+            ('v1.2~3', True),
+            ('v1.2+a3f5cb2', True),
+            ('v1.2-9287543', True)
+        )
+
+        for version, expected in test_cases:
+            actual = CveUtils.is_downstream_version(version)
+            assert actual == expected
+
+    def test_ignore_downstream():
+        test_cases = (
+            ('v2.2-abcd', ['v1.1', 'v2.3'], False),
+            ('v2.2-abcd', ['v1.1', 'v2.2'], False),
+        )
+
+        for check_version, fix_versions, expected in test_cases:
+            actual = CveUtils.is_vulnerable(check_version, fix_versions, True)
+            assert actual == expected
