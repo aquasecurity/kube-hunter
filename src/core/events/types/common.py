@@ -80,12 +80,17 @@ class Vulnerability(object):
         UnauthenticatedAccess: "low"
     })
 
-    def __init__(self, component, name, category=None):
+    # TODO: make vid mandatry once migration is done
+    def __init__(self, component, name, category=None, vid=None):
+        self.vid = vid
         self.component = component
         self.category = category
         self.name = name
         self.evidence = ""
         self.role = "Node"
+
+    def get_vid(self):
+        return self.vid
 
     def get_category(self):
         if self.category:
@@ -156,7 +161,7 @@ class ReportDispatched(Event):
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint """
     def __init__(self, version, from_endpoint, extra_info=""):
-        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure)
+        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure, vid="KHV001")
         self.version = version
         self.from_endpoint = from_endpoint
         self.extra_info = extra_info
