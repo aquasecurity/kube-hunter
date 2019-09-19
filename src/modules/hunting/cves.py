@@ -2,6 +2,8 @@ import logging
 import json
 import requests
 
+from __main__ import config
+
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, \
@@ -95,8 +97,15 @@ class CveUtils:
         return (v1>v2)-(v1<v2)
 
     @staticmethod
-    def is_vulnerable(fix_versions, check_version):
+    def is_downstream_version(version):
+        return any(c in version for c in '+-~')
+
+    @staticmethod
+    def is_vulnerable(fix_versions, check_version, ignore_downstream=False):
         """Function determines if a version is vulnerable, by comparing to given fix versions by base release"""
+        if ignore_downstream and CveUtils.is_downstream_version(check_version):
+            return False
+
         vulnerable = False
         check_v = version.parse(check_version)
         base_check_v = CveUtils.get_base_release(check_v)
@@ -146,7 +155,7 @@ class K8sClusterCveHunter(Hunter):
             ServerApiClusterScopedResourcesAccess: ["1.13.9", "1.14.5", "1.15.2"]
         }        
         for vulnerability, fix_versions in cve_mapping.items():
-            if CveUtils.is_vulnerable(fix_versions, self.event.version):
+            if CveUtils.is_vulnerable(fix_versions, self.event.version, config.ignore_downstream):
                 self.publish_event(vulnerability(self.event.version))
 
 
@@ -165,5 +174,5 @@ class KubectlCVEHunter(Hunter):
         }
         logging.debug('Kubectl Cve Hunter determining vulnerable version: {}'.format(self.event.version))
         for vulnerability, fix_versions in cve_mapping.items():
-            if CveUtils.is_vulnerable(fix_versions, self.event.version):
+            if CveUtils.is_vulnerable(fix_versions, self.event.version, config.ignore_downstream):
                 self.publish_event(vulnerability(binary_version=self.event.version))
