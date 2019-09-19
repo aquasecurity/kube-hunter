@@ -69,7 +69,8 @@ class test_CveUtils(object):
             ('v1.2+3', True),
             ('v1.2~3', True),
             ('v1.2+a3f5cb2', True),
-            ('v1.2-9287543', True)
+            ('v1.2-9287543', True),
+            ('v1.13.9-gke.3', True)
         )
 
         for version, expected in test_cases:
@@ -80,6 +81,7 @@ class test_CveUtils(object):
         test_cases = (
             ('v2.2-abcd', ['v1.1', 'v2.3'], False),
             ('v2.2-abcd', ['v1.1', 'v2.2'], False),
+            ('v1.13.9-gke.3', ['v1.14.8'], False)
         )
 
         for check_version, fix_versions, expected in test_cases:
