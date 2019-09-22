@@ -86,7 +86,7 @@ class PrivilegedContainers(Vulnerability, Event):
 class ExposedSystemLogs(Vulnerability, Event):
     """System logs are exposed from the /logs endpoint on the kubelet"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure)
+        Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure, vid="KHV045")
 
 
 class ExposedKubeletCmdline(Vulnerability, Event):
