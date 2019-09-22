@@ -139,7 +139,7 @@ class CveUtils:
 @handler.subscribe_once(K8sVersionDisclosure)
 class K8sClusterCveHunter(Hunter):
     """K8s CVE Hunter
-    Checks if Node is running a Kubernetes version vulnerable to known CVEs
+    Checks if Node is running a Kubernetes version vulnerable to specific important CVEs
     """
 
     def __init__(self, event):
@@ -162,7 +162,7 @@ class K8sClusterCveHunter(Hunter):
 @handler.subscribe(KubectlClientEvent)
 class KubectlCVEHunter(Hunter):
     """Kubectl CVE Hunter
-    Checks if the kubectl client is vulnerable to known CVEs
+    Checks if the kubectl client is vulnerable to specific important CVEs
     """
     def __init__(self, event):
         self.event = event
