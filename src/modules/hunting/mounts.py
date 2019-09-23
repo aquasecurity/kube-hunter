@@ -11,7 +11,7 @@ from .kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
 class WriteMountToVarLog(Vulnerability, Event):
     """A pod can create symlinks in the /var/log directory on the host, which can lead to a root directory traveral"""
     def __init__(self, pods):
-        Vulnerability.__init__(self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation, vid="KHV003")
+        Vulnerability.__init__(self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation, vid="KHV047")
         self.pods = pods
         self.evidence = "pods: {}".format(', '.join((pod["metadata"]["name"] for pod in self.pods)))
 
