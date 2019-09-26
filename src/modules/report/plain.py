@@ -8,7 +8,7 @@ from .base import BaseReporter
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
-KHV_LINK = "https://github.com/aquasecurity/kube-hunter/blob/master/docs/kb/{}.md"
+KHV_LINK = "https://github.com/aquasecurity/kube-hunter/tree/kb/docs/kb"
 
 
 class PlainReporter(BaseReporter):
@@ -82,7 +82,7 @@ class PlainReporter(BaseReporter):
         return detected_services_ret
 
     def vulns_table(self):
-        column_names = ["ID", "Location", "Category", "Vulnerability", "Evidence", "Details"]
+        column_names = ["ID", "Location", "Category", "Vulnerability", "Description", "Evidence"]
         vuln_table = PrettyTable(column_names, hrules=ALL)
         vuln_table.align = "l"
         vuln_table.max_width = MAX_TABLE_WIDTH
@@ -94,10 +94,10 @@ class PlainReporter(BaseReporter):
         vulnerabilities_lock.acquire()
         for vuln in vulnerabilities:
             evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
-            row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), evidence, KHV_LINK.format(vuln.get_vid())]
+            row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain(), evidence]
             vuln_table.add_row(row)
         vulnerabilities_lock.release()
-        return "\nVulnerabilities\n{}\n".format(vuln_table)
+        return "\nVulnerabilities\nFor further information about a vulnerability, search it's ID in: {}\n{}\n".format(KHV_LINK, vuln_table)
 
     def hunters_table(self):
         column_names = ["Name", "Description", "Vulnerabilities"]
