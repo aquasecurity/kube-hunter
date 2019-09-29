@@ -14,31 +14,31 @@ from packaging import version
 class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
     """Node is vulnerable to critical CVE-2018-1002105"""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Critical Privilege Escalation CVE", category=PrivilegeEscalation)
+        Vulnerability.__init__(self, KubernetesCluster, name="Critical Privilege Escalation CVE", category=PrivilegeEscalation, vid="KHV022")
         self.evidence = evidence
 
 class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
     """Node not patched for CVE-2019-1002100. Depending on your RBAC settings, a crafted json-patch could cause a Denial of Service."""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService)
+        Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService, vid="KHV023")
         self.evidence = evidence
 
 class PingFloodHttp2Implementation(Vulnerability, Event):
     """Node not patched for CVE-2019-9512. an attacker could cause a Denial of Service by sending specially crafted HTTP requests."""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Possible Ping Flood Attack", category=DenialOfService)
+        Vulnerability.__init__(self, KubernetesCluster, name="Possible Ping Flood Attack", category=DenialOfService, vid="KHV024")
         self.evidence = evidence
 
 class ResetFloodHttp2Implementation(Vulnerability, Event):
     """Node not patched for CVE-2019-9514. an attacker could cause a Denial of Service by sending specially crafted HTTP requests."""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Possible Reset Flood Attack", category=DenialOfService)
+        Vulnerability.__init__(self, KubernetesCluster, name="Possible Reset Flood Attack", category=DenialOfService, vid="KHV025")
         self.evidence = evidence
 
 class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
     """Api Server not patched for CVE-2019-11247. API server allows access to custom resources via wrong scope"""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Arbitrary Access To Cluster Scoped Resources", category=PrivilegeEscalation)
+        Vulnerability.__init__(self, KubernetesCluster, name="Arbitrary Access To Cluster Scoped Resources", category=PrivilegeEscalation, vid="KHV026")
         self.evidence = evidence
 
 
