@@ -11,7 +11,7 @@ from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 class PossibleArpSpoofing(Vulnerability, Event):
     """A malicous pod running on the cluster could potentially run an ARP Spoof attack and perform a MITM between pods on the node."""
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft)
+        Vulnerability.__init__(self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft,vid="KHV020")
 
 @handler.subscribe(CapNetRawEnabled)
 class ArpSpoofHunter(ActiveHunter):
