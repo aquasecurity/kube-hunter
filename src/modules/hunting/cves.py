@@ -47,14 +47,14 @@ class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
 class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
     """The kubectl client is vulnerable to CVE-2019-11246, an attacker could potentially execute arbitrary code on the client's machine"""
     def __init__(self, binary_version):
-        Vulnerability.__init__(self, KubectlClient, "Kubectl Vulnerable To CVE-2019-11246", category=RemoteCodeExec)
+        Vulnerability.__init__(self, KubectlClient, "Kubectl Vulnerable To CVE-2019-11246", category=RemoteCodeExec, vid="KHV027")
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
 
 class KubectlCpVulnerability(Vulnerability, Event):
     """The kubectl client is vulnerable to CVE-2019-1002101, an attacker could potentially execute arbitrary code on the client's machine"""
     def __init__(self, binary_version):
-        Vulnerability.__init__(self, KubectlClient, "Kubectl Vulnerable To CVE-2019-1002101", category=RemoteCodeExec)
+        Vulnerability.__init__(self, KubectlClient, "Kubectl Vulnerable To CVE-2019-1002101", category=RemoteCodeExec, vid="KHV028")
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
 
