@@ -13,7 +13,7 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
     """Remote write access might grant an attacker full control over the kubernetes cluster"""
 
     def __init__(self, write_res):
-        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec)
+        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec, vid="KHV031")
         self.evidence = write_res
 
 
