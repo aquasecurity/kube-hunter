@@ -8,7 +8,7 @@ from .base import BaseReporter
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
-KHV_LINK = "https://github.com/aquasecurity/kube-hunter/tree/kb/docs/kb"
+KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/kb"
 
 
 class PlainReporter(BaseReporter):
@@ -97,7 +97,7 @@ class PlainReporter(BaseReporter):
             row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain(), evidence]
             vuln_table.add_row(row)
         vulnerabilities_lock.release()
-        return "\nVulnerabilities\nFor further information about a vulnerability, search it's ID in: {}\n{}\n".format(KHV_LINK, vuln_table)
+        return "\nVulnerabilities\nFor further information about a vulnerability, search it's ID in: {}\n{}\n".format(KB_LINK, vuln_table)
 
     def hunters_table(self):
         column_names = ["Name", "Description", "Vulnerabilities"]
