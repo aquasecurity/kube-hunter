@@ -4,7 +4,7 @@
 
 ## Documentation for vulnerabilities
 
-For information about a specific vulnerability reported by kube-hunter, enter it's 'VID' (e.g. KHV004) in the search box to the left, to get to the vulnerability article.
+For information about a specific vulnerability reported by kube-hunter, enter its 'VID' (e.g. KHV004) in the search box to the left, to get to the vulnerability article.
 
 ## Getting started
 
