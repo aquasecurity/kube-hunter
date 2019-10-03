@@ -97,7 +97,7 @@ class PlainReporter(BaseReporter):
             row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain(), evidence]
             vuln_table.add_row(row)
         vulnerabilities_lock.release()
-        return "\nVulnerabilities\nFor further information about a vulnerability, search it's ID in: {}\n{}\n".format(KB_LINK, vuln_table)
+        return "\nVulnerabilities\nFor further information about a vulnerability, search its ID in: \n{}\n{}\n".format(KB_LINK, vuln_table)
 
     def hunters_table(self):
         column_names = ["Name", "Description", "Vulnerabilities"]
