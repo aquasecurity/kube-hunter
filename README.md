@@ -87,18 +87,15 @@ You can run the kube-hunter python code directly on your machine.
 You will need the following installed:
 * python 3.x 
 * pip
-`brew postinstall python3`
 
 Clone the repository:
 ~~~
 git clone https://github.com/aquasecurity/kube-hunter.git
 ~~~
 
-Install module dependencies (python scripts are better run from within a virtualenv):
+Install module dependencies. (You may prefer to do this within a [Virtual Environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/))
 ~~~
 cd ./kube-hunter
-python -m venv env2 # Create a virtualenv if one does not already exist
-source env2/bin/activate   # Activate the virtual environment
 pip install -r requirements.txt
 python kube-hunter.py
 ~~~
