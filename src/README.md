@@ -137,7 +137,7 @@ class OpenKubeDns(Service, Event):
         Service.__init__(self, name="Kube-Dns")  
 ```  
 `Notice:` Every type of event, should have an explanation in exactly the form shown above, that explanation will eventually be used when the report is made.  
-`Notice:` You can add any attribute to the event you create as needed, the examples shown above is the minimum implementation that needs to be made  
+`Notice:` You can add any attribute to the event you create as needed, the examples shown above are the minimum implementation that needs to be made  
   
 ----------------------- 
 ## Events 
@@ -183,7 +183,7 @@ def execute(self):
     do_something_with_host(self.event.host) # normal access  
 ```  
 
-If another Hunter subscribes to the events that this Hunter publishes, it can  access the `event.certificate`.
+If another Hunter subscribes to the events that this Hunter publishes, it can access the `event.certificate`.
   
 ## Proving Vulnerabilities  
 The process of proving vulnerabilities, is the base concept of the Active Hunting.    
