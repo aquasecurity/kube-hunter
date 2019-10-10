@@ -104,9 +104,9 @@ Run:
 
 _If you want to use pyinstaller/py2exe you need to first run the install_imports.py script._
 ### Container
-Aqua Security maintains a containerised version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
+Aqua Security maintains a containerized version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
 
-The Dockerfile in this repository allows you to build a containerised version without the reporting plugin.
+The Dockerfile in this repository allows you to build a containerized version without the reporting plugin.
 
 If you run the kube-hunter container with the host network it will be able to probe all the interfaces on the host:
 
