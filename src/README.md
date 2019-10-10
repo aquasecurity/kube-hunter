@@ -45,7 +45,8 @@ in this example, we subscribe the Hunter, `KubeDashboardDiscovery`, to an `OpenP
 
    
 ##### ActiveHunter  
-An ActiveHunter will be subscribed to events (and therefore operate) only if kube-hunter is running in active scanning mode.  
+An ActiveHunter will be subscribed to events (and therefore operate) only 
+kube-hunter is running in active scanning mode.  
 Implementing an Active Hunter is the same as implementing a regular Hunter, you just need to inherit from `ActiveHunter`  
 Example:   
 ```python  
@@ -182,7 +183,7 @@ def execute(self):
     do_something_with_host(self.event.host) # normal access  
 ```  
 
-If another Hunter subscribes to the events that this Hunter publishes, if can  access the `event.certificate`.
+If another Hunter subscribes to the events that this Hunter publishes, it can  access the `event.certificate`.
   
 ## Proving Vulnerabilities  
 The process of proving vulnerabilities, is the base concept of the Active Hunting.    
