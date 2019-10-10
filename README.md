@@ -93,7 +93,7 @@ Clone the repository:
 git clone https://github.com/aquasecurity/kube-hunter.git
 ~~~
 
-Install module dependencies:
+Install module dependencies. (You may prefer to do this within a [Virtual Environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/))
 ~~~
 cd ./kube-hunter
 pip install -r requirements.txt
