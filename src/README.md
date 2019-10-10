@@ -45,8 +45,7 @@ in this example, we subscribe the Hunter, `KubeDashboardDiscovery`, to an `OpenP
 
    
 ##### ActiveHunter  
-An ActiveHunter will be subscribed to events (and therefore operate) only 
-kube-hunter is running in active scanning mode.  
+An ActiveHunter will be subscribed to events (and therefore operate) only if kube-hunter is running in active scanning mode.  
 Implementing an Active Hunter is the same as implementing a regular Hunter, you just need to inherit from `ActiveHunter`  
 Example:   
 ```python  
