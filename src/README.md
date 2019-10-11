@@ -1,7 +1,7 @@
 # Guidelines for developing kube-hunter  
 ---  
 This document is intended for developers, if you are not a developer, please refer back to the [Deployment README](/README.md)    
-First, lets go through kube-hunter's basic architecture.    
+First, let's go through kube-hunter's basic architecture.    
 ### Directory Structure  
 ~~~  
 kube-hunter/  
@@ -25,7 +25,7 @@ When you write your module, you can decide on which Event to subscribe to, meani
 
 -----------------------
 ### Hunter Types  
-There are three hunter types which you can implement: a `Hunter`, `ActiveHunter` and `Discovery`.  Hunters just probe the state of a cluster, whereas ActiveHunter modules can attempt operations that could change the state of the cluster. Discovery is Hunter for discovery purpose only.
+There are three hunter types which you can implement: a `Hunter`, `ActiveHunter` and `Discovery`.  Hunters just probe the state of a cluster, whereas ActiveHunter modules can attempt operations that could change the state of the cluster. Discovery is Hunter for discovery purposes only.
 ##### Hunter  
 Example:  
 ~~~python  
@@ -118,7 +118,7 @@ relative import: `...core.types`
   
 ## Creating Events  
 As discussed above, we know there are a lot of different types of events that can be created. but at the end, they all need to inherit from the base class `Event`  
-lets see some examples of creating different types of events:  
+let's see some examples of creating different types of events:  
 ### Vulnerability  
 ```python  
 class ExposedMasterCN(Vulnerability, Event):  
@@ -205,7 +205,7 @@ _(You can filter a parent event class, such as Service or Vulnerability, to filt
   
 To prevent an event from being published, return `None` from the execute method of your filter.  
 To alter event attributes, return a new event, based on the `self.event` after your modifications, it will replace the event itself before it is published.  
-__Make sure to return the event from the execute method, or the event will not get publihshed__  
+__Make sure to return the event from the execute method, or the event will not get published__  
  
 For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `src/modules/report/`
 ```python
