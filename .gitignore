@@ -3,3 +3,4 @@
 *aqua*
 venv/
 .vscode
+.coverage
