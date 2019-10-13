@@ -72,7 +72,7 @@ By default, the report will be dispatched to `stdout`, but you can specify diffe
 Available dispatch methods are:
 
 * stdout (default)
-* http (to configure, set the following environment variables:) 
+* Http (to configure, set the following environment variables:) 
     * KUBEHUNTER_HTTP_DISPATCH_URL (defaults to: https://localhost)
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
