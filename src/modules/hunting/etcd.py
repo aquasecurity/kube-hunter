@@ -13,7 +13,7 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
     """Remote write access might grant an attacker full control over the kubernetes cluster"""
 
     def __init__(self, write_res):
-        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec)
+        Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec, vid="KHV031")
         self.evidence = write_res
 
 
@@ -21,7 +21,7 @@ class EtcdRemoteReadAccessEvent(Vulnerability, Event):
     """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
 
     def __init__(self, keys):
-        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd Remote Read Access Event", category=AccessRisk)
+        Vulnerability.__init__(self, KubernetesCluster,  name="Etcd Remote Read Access Event", category=AccessRisk, vid="KHV032")
         self.evidence = keys
 
 
@@ -31,7 +31,7 @@ class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
     def __init__(self, version):
 
         Vulnerability.__init__(self, KubernetesCluster, name="Etcd Remote version disclosure",
-                               category=InformationDisclosure)
+                               category=InformationDisclosure, vid="KHV033")
         self.evidence = version
 
 
@@ -41,7 +41,7 @@ class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
 
     def __init__(self, version):
         Vulnerability.__init__(self, KubernetesCluster,  name="Etcd is accessible using insecure connection (HTTP)",
-                               category=UnauthenticatedAccess)
+                               category=UnauthenticatedAccess, vid="KHV034")
         self.evidence = version
 
 
