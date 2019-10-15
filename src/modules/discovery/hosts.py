@@ -131,7 +131,7 @@ class FromPodHostDiscovery(Discovery):
     def azure_metadata_discovery(self):
         logging.debug("From pod attempting to access azure's metadata")
         machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).text)
-        address, subnet= "", ""
+        address, subnet = "", ""
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
