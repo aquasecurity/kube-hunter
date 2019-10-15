@@ -54,17 +54,18 @@ class HostScanEvent(Event):
 class HostDiscoveryHelpers:
     @staticmethod
     def get_cloud(host):
-        try:
-            logging.debug("Checking whether the cluster is deployed on azure's cloud")
-            # azurespeed.com provide their API via HTTP only; the service can be queried with 
-            # HTTPS, but doesn't show a proper certificate. Since no encryption is worse then
-            # any encryption, we go with the verify=false option for the time being. At least
-            # this prevents leaking internal IP addresses to passive eavesdropping.
-            # TODO: find a more secure service to detect cloud IPs
-            metadata = requests.get("https://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host), verify=False).text
-        except requests.ConnectionError as e:
-            logging.info("- unable to check cloud: {0}".format(e))
-            return
+        if config.azurechk:
+            try:
+                logging.debug("Checking whether the cluster is deployed on azure's cloud")
+                # azurespeed.com provide their API via HTTP only; the service can be queried with 
+                # HTTPS, but doesn't show a proper certificate. Since no encryption is worse then
+                # any encryption, we go with the verify=false option for the time being. At least
+                # this prevents leaking internal IP addresses to passive eavesdropping.
+                # TODO: find a more secure service to detect cloud IPs
+                metadata = requests.get("https://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host), verify=False).text
+            except requests.ConnectionError as e:
+                logging.info("- unable to check cloud: {0}".format(e))
+                return
         if "cloud" in metadata:
             return json.loads(metadata)["cloud"]
 

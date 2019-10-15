@@ -18,6 +18,7 @@ parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help=
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml, json")
 parser.add_argument('--dispatch', type=str, default='stdout', help="where to send the report to, options are: stdout, http (set KUBEHUNTER_HTTP_DISPATCH_URL and KUBEHUNTER_HTTP_DISPATCH_METHOD environment variables to configure)")
 parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
+parser.add_argument('--azurechk', action="store_true", help="whether to check if the cluster is deployed on azure cloud - defaults to true")
 
 import plugins
 

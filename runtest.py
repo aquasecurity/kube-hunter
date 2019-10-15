@@ -14,6 +14,7 @@ parser.add_argument('--active', action="store_true", help="enables active huntin
 parser.add_argument('--log', type=str, metavar="LOGLEVEL", default='INFO', help="set log level, options are: debug, info, warn, none")
 parser.add_argument('--report', type=str, default='plain', help="set report type, options are: plain, yaml")
 parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
+parser.add_argument('--azurechk', action="store_true", default=True, help="set whether to check if the cluster is deployed on azure cloud - defaults to true | options: True, False")
 
 config = parser.parse_args()
 
