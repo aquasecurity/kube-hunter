@@ -13,7 +13,7 @@ from ...core.types import Hunter, ActiveHunter, IdentityTheft, Azure
 class AzureSpnExposure(Vulnerability, Event):
     """The SPN is exposed, potentially allowing an attacker to gain access to the Azure subscription"""
     def __init__(self, container):
-        Vulnerability.__init__(self, Azure, "Azure SPN Exposure", category=IdentityTheft)
+        Vulnerability.__init__(self, Azure, "Azure SPN Exposure", category=IdentityTheft, vid="KHV004")
         self.container = container
 
 @handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud=="Azure")

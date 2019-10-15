@@ -26,7 +26,7 @@ class ExposedPodsHandler(Vulnerability, Event):
 class AnonymousAuthEnabled(Vulnerability, Event):
     """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet, without the need to authenticate"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication", category=RemoteCodeExec)
+        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication", category=RemoteCodeExec, vid="KHV036")
 
 
 class ExposedContainerLogsHandler(Vulnerability, Event):
@@ -78,7 +78,7 @@ class ExposedHealthzHandler(Vulnerability, Event):
 class PrivilegedContainers(Vulnerability, Event):
     """A Privileged container exist on a node. could expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
-        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=AccessRisk)
+        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=AccessRisk, vid="KHV044")
         self.containers = containers
         self.evidence = "pod: {}, container: {}, count: {}".format(containers[0][0], containers[0][1], len(containers))
 
@@ -86,13 +86,13 @@ class PrivilegedContainers(Vulnerability, Event):
 class ExposedSystemLogs(Vulnerability, Event):
     """System logs are exposed from the /logs endpoint on the kubelet"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure)
+        Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure, vid="KHV045")
 
 
 class ExposedKubeletCmdline(Vulnerability, Event):
     """Commandline flags that were passed to the kubelet can be obtained from the pprof endpoints"""
     def __init__(self, cmdline):
-        Vulnerability.__init__(self, Kubelet, "Exposed Kubelet Cmdline", category=InformationDisclosure)
+        Vulnerability.__init__(self, Kubelet, "Exposed Kubelet Cmdline", category=InformationDisclosure, vid="KHV046")
         self.cmdline = cmdline
         self.evidence = "cmdline: {}".format(self.cmdline)
 
