@@ -62,7 +62,7 @@
     </div>
     <script src="{{ "/assets/js/scale.fix.js" | relative_url }}"></script>
     <script type="text/javascript">
-        var articleUrlPrefix = "{{ site.url }}/kb/";
+        var articleUrlTemplate = "{% link kb/KHV002.md %}";
         var searchInput = document.getElementById("searchInput");
         var searchButton = document.getElementById("searchButton");
         searchInput.addEventListener("keyup", function(event) {
@@ -81,7 +81,7 @@
             if (!searchTerm.startsWith("KHV")) {
                 searchTerm = "KHV" + searchTerm;
             }
-            window.location = articleUrlPrefix + searchTerm;
+            window.location = articleUrlTemplate.replace("KHV002",searchTerm);
         }
     </script>
     {% if site.google_analytics %}
