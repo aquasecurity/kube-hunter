@@ -126,4 +126,4 @@ The `job.yaml` file defines a Job that will run kube-hunter in a pod, using defa
 * View the test results with `kubectl logs <pod name>`
 
 ## License
-This repository is available under the [Apache License 2.0](https://github.com/srivastavaayu/kube-hunter/blob/master/LICENSE).
+This repository is available under the [Apache License 2.0](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE).
