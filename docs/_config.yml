@@ -1,0 +1,6 @@
+title: kube-hunter
+description: Kube-hunter hunts for security weaknesses in Kubernetes clusters
+logo: https://raw.githubusercontent.com/aquasecurity/kube-hunter/master/kube-hunter.png
+show_downloads: false
+google_analytics: UA-63272154-1
+theme: jekyll-theme-minimal
