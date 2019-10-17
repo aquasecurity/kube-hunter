@@ -16,7 +16,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(self, KubernetesCluster, name="Read access to pod's service account token",
-                               category=AccessRisk)
+                               category=AccessRisk, vid="KHV050")
         self.evidence = evidence
 
 class SecretsAccess(Vulnerability, Event):

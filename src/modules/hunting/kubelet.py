@@ -26,19 +26,19 @@ class ExposedPodsHandler(Vulnerability, Event):
 class AnonymousAuthEnabled(Vulnerability, Event):
     """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet, without the need to authenticate"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication", category=RemoteCodeExec)
+        Vulnerability.__init__(self, Kubelet, "Anonymous Authentication", category=RemoteCodeExec, vid="KHV036")
 
 
 class ExposedContainerLogsHandler(Vulnerability, Event):
     """Output logs from a running container are using the exposed /containerLogs endpoint"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Container Logs", category=InformationDisclosure)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Container Logs", category=InformationDisclosure, vid="KHV037")    
 
 
 class ExposedRunningPodsHandler(Vulnerability, Event):
     """Outputs a list of currently running pods, and some of their metadata, which can reveal sensitive information"""
     def __init__(self, count):
-        Vulnerability.__init__(self, Kubelet, "Exposed Running Pods", category=InformationDisclosure)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Running Pods", category=InformationDisclosure, vid="KHV038")    
         self.count = count
         self.evidence = "{} running pods".format(self.count)
 
@@ -46,31 +46,31 @@ class ExposedRunningPodsHandler(Vulnerability, Event):
 class ExposedExecHandler(Vulnerability, Event):
     """An attacker could run arbitrary commands on a container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Exec On Container", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Exec On Container", category=RemoteCodeExec, vid="KHV039")    
 
 
 class ExposedRunHandler(Vulnerability, Event):
     """An attacker could run an arbitrary command inside a container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec, vid="KHV040")    
 
 
 class ExposedPortForwardHandler(Vulnerability, Event):
     """An attacker could set port forwaring rule on a pod"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Port Forward", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Port Forward", category=RemoteCodeExec, vid="KHV041")    
 
 
 class ExposedAttachHandler(Vulnerability, Event):
     """Opens a websocket that could enable an attacker to attach to a running container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Attaching To Container", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Attaching To Container", category=RemoteCodeExec, vid="KHV042")    
 
 
 class ExposedHealthzHandler(Vulnerability, Event):
     """By accessing the open /healthz handler, an attacker could get the cluster health state without authenticating"""
     def __init__(self, status):
-        Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure", category=InformationDisclosure)    
+        Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure", category=InformationDisclosure, vid="KHV043")    
         self.status = status
         self.evidence = "status: {}".format(self.status)
 
@@ -78,7 +78,7 @@ class ExposedHealthzHandler(Vulnerability, Event):
 class PrivilegedContainers(Vulnerability, Event):
     """A Privileged container exist on a node. could expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
-        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=AccessRisk)
+        Vulnerability.__init__(self, KubernetesCluster, "Privileged Container", category=AccessRisk, vid="KHV044")
         self.containers = containers
         self.evidence = "pod: {}, container: {}, count: {}".format(containers[0][0], containers[0][1], len(containers))
 
@@ -86,13 +86,13 @@ class PrivilegedContainers(Vulnerability, Event):
 class ExposedSystemLogs(Vulnerability, Event):
     """System logs are exposed from the /logs endpoint on the kubelet"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure)
+        Vulnerability.__init__(self, Kubelet, "Exposed System Logs", category=InformationDisclosure, vid="KHV045")
 
 
 class ExposedKubeletCmdline(Vulnerability, Event):
     """Commandline flags that were passed to the kubelet can be obtained from the pprof endpoints"""
     def __init__(self, cmdline):
-        Vulnerability.__init__(self, Kubelet, "Exposed Kubelet Cmdline", category=InformationDisclosure)
+        Vulnerability.__init__(self, Kubelet, "Exposed Kubelet Cmdline", category=InformationDisclosure, vid="KHV046")
         self.cmdline = cmdline
         self.evidence = "cmdline: {}".format(self.cmdline)
 
@@ -100,12 +100,12 @@ class ExposedKubeletCmdline(Vulnerability, Event):
 """ Enum containing all of the kubelet handlers """
 class KubeletHandlers(Enum):
     PODS = "pods"                                                                                 # GET
-    CONTAINERLOGS = "containerLogs/{podNamespace}/{podID}/{containerName}"                        # GET
+    CONTAINERLOGS = "containerLogs/{pod_namespace}/{pod_id}/{container_name}"                        # GET
     RUNNINGPODS = "runningpods"                                                                   # GET
-    EXEC = "exec/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1"     # GET -> WebSocket 
-    RUN = "run/{podNamespace}/{podID}/{containerName}?cmd={cmd}"                                  # POST, For legacy reasons, it uses different query param than exec.
-    PORTFORWARD = "portForward/{podNamespace}/{podID}?port={port}"                                # GET/POST
-    ATTACH = "attach/{podNamespace}/{podID}/{containerName}?command={cmd}&input=1&output=1&tty=1" # GET -> WebSocket
+    EXEC = "exec/{pod_namespace}/{pod_id}/{container_name}?command={cmd}&input=1&output=1&tty=1"     # GET -> WebSocket
+    RUN = "run/{pod_namespace}/{pod_id}/{container_name}?cmd={cmd}"                                  # POST, For legacy reasons, it uses different query param than exec.
+    PORTFORWARD = "portForward/{pod_namespace}/{pod_id}?port={port}"                                # GET/POST
+    ATTACH = "attach/{pod_namespace}/{pod_id}/{container_name}?command={cmd}&input=1&output=1&tty=1" # GET -> WebSocket
     LOGS = "logs/{path}"                                                                          # GET
     PPROF_CMDLINE = "debug/pprof/cmdline"                                                         # GET
     
@@ -182,9 +182,9 @@ class SecureKubeletPortHunter(Hunter):
         # outputs logs from a specific container
         def test_container_logs(self):
             logs_url = self.path + KubeletHandlers.CONTAINERLOGS.value.format(
-                podNamespace=self.pod["namespace"],
-                podID=self.pod["name"],
-                containerName=self.pod["container"]
+                pod_namespace=self.pod["namespace"],
+                pod_id=self.pod["name"],
+                container_name=self.pod["container"]
             )
             return self.session.get(logs_url, verify=False).status_code == 200
         
@@ -193,9 +193,9 @@ class SecureKubeletPortHunter(Hunter):
             # opens a stream to connect to using a web socket
             headers={"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
             exec_url = self.path + KubeletHandlers.EXEC.value.format(
-                podNamespace=self.pod["namespace"],
-                podID=self.pod["name"],
-                containerName=self.pod["container"],
+                pod_namespace=self.pod["namespace"],
+                pod_id=self.pod["name"],
+                container_name=self.pod["container"],
                 cmd = ""
             )
             return "/cri/exec/" in self.session.get(exec_url, headers=headers, allow_redirects=False ,verify=False).text
@@ -211,8 +211,8 @@ class SecureKubeletPortHunter(Hunter):
 
             }
             pf_url = self.path + KubeletHandlers.PORTFORWARD.value.format(
-                podNamespace=self.pod["namespace"],
-                podID=self.pod["name"],
+                pod_namespace=self.pod["namespace"],
+                pod_id=self.pod["name"],
                 port=80
             )
             self.session.get(pf_url, headers=headers, verify=False, stream=True).status_code == 200
@@ -221,9 +221,9 @@ class SecureKubeletPortHunter(Hunter):
         # executes one command and returns output
         def test_run_container(self):
             run_url = self.path + KubeletHandlers.RUN.value.format(
-                podNamespace='test',
-                podID='test',
-                containerName='test',
+                pod_namespace='test',
+                pod_id='test',
+                container_name='test',
                 cmd = ""
             )
             # if we get a Method Not Allowed, we know we passed Authentication and Authorization.
@@ -239,9 +239,9 @@ class SecureKubeletPortHunter(Hunter):
         def test_attach_container(self):
             # headers={"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
             attach_url = self.path + KubeletHandlers.ATTACH.value.format(
-                podNamespace=self.pod["namespace"],
-                podID=self.pod["name"],
-                containerName=self.pod["container"],
+                pod_namespace=self.pod["namespace"],
+                pod_id=self.pod["name"],
+                container_name=self.pod["container"],
                 cmd = ""
             )
             return "/cri/attach/" in self.session.get(attach_url, allow_redirects=False ,verify=False).text
@@ -353,9 +353,9 @@ class ProveRunHandler(ActiveHunter):
        
     def run(self, command, container):
         run_url = KubeletHandlers.RUN.value.format(
-            podNamespace=container["namespace"],
-            podID=container["pod"],
-            containerName=container["name"],
+            pod_namespace=container["namespace"],
+            pod_id=container["pod"],
+            container_name=container["name"],
             cmd=command
         )
         return self.event.session.post(self.base_path + run_url, verify=False).text
@@ -394,9 +394,9 @@ class ProveContainerLogsHandler(ActiveHunter):
                 container_data = next((container_data for container_data in pod_data["spec"]["containers"]), None)
                 if container_data:
                     output = requests.get(self.base_url + KubeletHandlers.CONTAINERLOGS.value.format(
-                        podNamespace=pod_data["metadata"]["namespace"],
-                        podID=pod_data["metadata"]["name"],
-                        containerName=container_data["name"]
+                        pod_namespace=pod_data["metadata"]["namespace"],
+                        pod_id=pod_data["metadata"]["name"],
+                        container_name=container_data["name"]
                     ), verify=False)
                     if output.status_code == 200 and output.text:
                         self.event.evidence = "{}: {}".format(
