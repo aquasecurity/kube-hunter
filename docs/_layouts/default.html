@@ -62,7 +62,7 @@
     </div>
     <script src="{{ "/assets/js/scale.fix.js" | relative_url }}"></script>
     <script type="text/javascript">
-        var articleUrlTemplate = "{% link kb/KHV002.md %}";
+        var articleUrlTemplate = "{{ site.baseurl }}{% link kb/KHV002.md %}";
         var searchInput = document.getElementById("searchInput");
         var searchButton = document.getElementById("searchButton");
         searchInput.addEventListener("keyup", function(event) {
