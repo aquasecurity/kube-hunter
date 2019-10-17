@@ -83,7 +83,7 @@ def interactive_set_config():
 
 
 def list_hunters():
-    print("\nPassive Hunters:\n----------------")
+    print("\n Passive Hunters: \n----------------")
     for hunter, docs in handler.passive_hunters.items():
         name, doc = hunter.parse_docs(docs)
         print("* {}\n  {}\n".format(name, doc))
