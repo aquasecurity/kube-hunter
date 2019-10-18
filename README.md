@@ -124,3 +124,6 @@ The `job.yaml` file defines a Job that will run kube-hunter in a pod, using defa
 * Run the job with `kubectl create` with that yaml file.
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
+
+
+📌 Thanks for Contributing us
