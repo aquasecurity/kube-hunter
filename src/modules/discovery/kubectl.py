@@ -29,12 +29,12 @@ class KubectlClientDiscovery(Discovery):
         version = None
         try:
             # kubectl version --client does not make any connection to the cluster/internet whatsoever.
-            versionInfo = subprocess.check_output("kubectl version --client", stderr=subprocess.STDOUT)
-            if b"GitVersion" in versionInfo:
+            version_info = subprocess.check_output("kubectl version --client", stderr=subprocess.STDOUT)
+            if b"GitVersion" in version_info:
                 # extracting version from kubectl output
-                versionInfo = versionInfo.decode()
-                start = versionInfo.find('GitVersion')
-                version = versionInfo[start + len("GitVersion':\"") : versionInfo.find("\",", start)]
+                version_info = version_info.decode()
+                start = version_info.find('GitVersion')
+                version = version_info[start + len("GitVersion':\"") : version_info.find("\",", start)]
         except Exception as x:
             logging.debug("Could not find kubectl client")
         return version

@@ -26,6 +26,7 @@ class BaseReporter(object):
     def get_vulnerabilities(self):
         vulnerabilities_lock.acquire()
         vulnerabilities_data = [{"location": vuln.location(),
+                 "vid": vuln.get_vid(),
                  "category": vuln.category.name,
                  "severity": vuln.get_severity(),
                  "vulnerability": vuln.get_name(),

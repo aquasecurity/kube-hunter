@@ -42,7 +42,7 @@ class RunningAsPodEvent(Event):
 class AzureMetadataApi(Vulnerability, Event):
     """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
     def __init__(self, cidr):
-        Vulnerability.__init__(self, Azure, "Azure Metadata Exposure", category=InformationDisclosure)
+        Vulnerability.__init__(self, Azure, "Azure Metadata Exposure", category=InformationDisclosure, vid="KHV003")
         self.cidr = cidr
         self.evidence = "cidr: {}".format(cidr)
 
@@ -131,7 +131,7 @@ class FromPodHostDiscovery(Discovery):
     def azure_metadata_discovery(self):
         logging.debug("From pod attempting to access azure's metadata")
         machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).text)
-        address, subnet= "", ""
+        address, subnet = "", ""
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]

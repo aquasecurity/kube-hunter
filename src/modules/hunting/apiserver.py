@@ -23,7 +23,7 @@ class ServerApiAccess(Vulnerability, Event):
         else:
             name = "Unauthenticated access to API"
             category = UnauthenticatedAccess
-        Vulnerability.__init__(self, KubernetesCluster, name=name, category=category)
+        Vulnerability.__init__(self, KubernetesCluster, name=name, category=category, vid="KHV005")
         self.evidence = evidence
 
 class ServerApiHTTPAccess(Vulnerability, Event):
@@ -32,7 +32,7 @@ class ServerApiHTTPAccess(Vulnerability, Event):
     def __init__(self, evidence):
         name = "Insecure (HTTP) access to API"
         category = UnauthenticatedAccess
-        Vulnerability.__init__(self, KubernetesCluster, name=name, category=category)
+        Vulnerability.__init__(self, KubernetesCluster, name=name, category=category, vid="KHV006")
         self.evidence = evidence
 
 class ApiInfoDisclosure(Vulnerability, Event):
@@ -41,7 +41,7 @@ class ApiInfoDisclosure(Vulnerability, Event):
             name +=" using service account token"
         else:
             name +=" as anonymous user"
-        Vulnerability.__init__(self, KubernetesCluster, name=name, category=InformationDisclosure)
+        Vulnerability.__init__(self, KubernetesCluster, name=name, category=InformationDisclosure, vid="KHV007")
         self.evidence = evidence
 
 class ListPodsAndNamespaces(ApiInfoDisclosure):
