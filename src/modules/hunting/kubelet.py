@@ -32,13 +32,13 @@ class AnonymousAuthEnabled(Vulnerability, Event):
 class ExposedContainerLogsHandler(Vulnerability, Event):
     """Output logs from a running container are using the exposed /containerLogs endpoint"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Container Logs", category=InformationDisclosure)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Container Logs", category=InformationDisclosure, vid="KHV037")    
 
 
 class ExposedRunningPodsHandler(Vulnerability, Event):
     """Outputs a list of currently running pods, and some of their metadata, which can reveal sensitive information"""
     def __init__(self, count):
-        Vulnerability.__init__(self, Kubelet, "Exposed Running Pods", category=InformationDisclosure)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Running Pods", category=InformationDisclosure, vid="KHV038")    
         self.count = count
         self.evidence = "{} running pods".format(self.count)
 
@@ -46,31 +46,31 @@ class ExposedRunningPodsHandler(Vulnerability, Event):
 class ExposedExecHandler(Vulnerability, Event):
     """An attacker could run arbitrary commands on a container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Exec On Container", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Exec On Container", category=RemoteCodeExec, vid="KHV039")    
 
 
 class ExposedRunHandler(Vulnerability, Event):
     """An attacker could run an arbitrary command inside a container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Run Inside Container", category=RemoteCodeExec, vid="KHV040")    
 
 
 class ExposedPortForwardHandler(Vulnerability, Event):
     """An attacker could set port forwaring rule on a pod"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Port Forward", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Port Forward", category=RemoteCodeExec, vid="KHV041")    
 
 
 class ExposedAttachHandler(Vulnerability, Event):
     """Opens a websocket that could enable an attacker to attach to a running container"""
     def __init__(self):
-        Vulnerability.__init__(self, Kubelet, "Exposed Attaching To Container", category=RemoteCodeExec)    
+        Vulnerability.__init__(self, Kubelet, "Exposed Attaching To Container", category=RemoteCodeExec, vid="KHV042")    
 
 
 class ExposedHealthzHandler(Vulnerability, Event):
     """By accessing the open /healthz handler, an attacker could get the cluster health state without authenticating"""
     def __init__(self, status):
-        Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure", category=InformationDisclosure)    
+        Vulnerability.__init__(self, Kubelet, "Cluster Health Disclosure", category=InformationDisclosure, vid="KHV043")    
         self.status = status
         self.evidence = "status: {}".format(self.status)
 
