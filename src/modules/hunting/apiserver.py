@@ -41,7 +41,7 @@ class ApiInfoDisclosure(Vulnerability, Event):
             name +=" using service account token"
         else:
             name +=" as anonymous user"
-        Vulnerability.__init__(self, KubernetesCluster, name=name, category=InformationDisclosure)
+        Vulnerability.__init__(self, KubernetesCluster, name=name, category=InformationDisclosure, vid="KHV007")
         self.evidence = evidence
 
 class ListPodsAndNamespaces(ApiInfoDisclosure):
