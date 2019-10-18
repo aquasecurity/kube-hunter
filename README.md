@@ -1,8 +1,11 @@
 ![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png)
 
 [![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
+[![License](https://img.shields.io/github/license/aquasecurity/kube-hunter)](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE)
+[![Docker image](https://images.microbadger.com/badges/image/aquasec/kube-hunter.svg)](https://microbadger.com/images/aquasec/kube-hunter "Get your own image badge on microbadger.com")
 
-Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster you don't own!**
+
+kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster you don't own!**
 
 **Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you see and share the results online. You can also run the Python code yourself as described below.
 
@@ -38,7 +41,7 @@ You can also run kube-hunter in a pod within the cluster. This indicates how exp
 
 ### Scanning options
 
-First check the **[pre-requisites](#prerequisites)**
+First check for these **[pre-requisites](#prerequisites)**.
 
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
@@ -46,7 +49,7 @@ By default, kube-hunter will open an interactive session, in which you will be a
 To specify remote machines for hunting, select option 1 or use the `--remote` option. Example:
 `./kube-hunter.py --remote some.node.com`
 
-2. **interface scanning**
+2. **Interface scanning**
 To specify interface scanning, you can use the `--interface` option. (this will scan all of the machine's network interfaces) Example:
 `./kube-hunter.py --interface`
 
@@ -141,3 +144,6 @@ The `job.yaml` file defines a Job that will run kube-hunter in a pod, using defa
 * Run the job with `kubectl create` with that yaml file.
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
+
+## License
+This repository is available under the [Apache License 2.0](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE).
