@@ -1,7 +1,7 @@
 # Guidelines for developing kube-hunter  
 ---  
-This document is intended for developers. If you are not a developer, please refer back to the [Deployment README](/README.md)
-First, lets go through kube-hunter's basic architecture.    
+This document is intended for developers, if you are not a developer, please refer back to the [Deployment README](/README.md)    
+First, let's go through kube-hunter's basic architecture.    
 ### Directory Structure  
 ~~~  
 kube-hunter/  
@@ -19,13 +19,13 @@ kube-hunter/
         kube-hunter.py  
 ~~~  
 ### Design Pattern   
-Kube-hunter is built with the [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern).
-With this in mind, every new Service/Vulnerability/Information that has been discovered will trigger a new event.
+Kube-hunter is built with the [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern).    
+With this in mind, every new Service/Vulnerability/Information that has been discovered will trigger a new event.   
 When you write your module, you can decide on which Event to subscribe to, meaning, when exactly will your module start Hunting.  
 
 -----------------------
 ### Hunter Types  
-There are three Hunter types which you can implement: a `Hunter`, `ActiveHunter` and `Discovery`.  Hunters just probe the state of a cluster, whereas ActiveHunter modules can attempt operations that could change the state of the cluster. Discovery is Hunter for discovery purpose only.
+There are three hunter types which you can implement: a `Hunter`, `ActiveHunter` and `Discovery`.  Hunters just probe the state of a cluster, whereas ActiveHunter modules can attempt operations that could change the state of the cluster. Discovery is Hunter for discovery purposes only.
 ##### Hunter  
 Example:  
 ~~~python  
@@ -54,9 +54,9 @@ class ProveSomeVulnerability(ActiveHunter):
 ```  
 #### **Absolutely important to notice:**  
 
-* Every Hunter needs to implement an `execute` method. The core module will execute this method automatically.
-* Every Hunter needs to save its given event from the `__init__` in its attributes.
-* When subscribing to an event, if a `predicate` is specified, it will be called with the event itself, pre trigger.  
+* Every hunter, needs to implement an `execute` method. the core module will execute this method automatically.
+* Every hunter, needs to save its given event from the `__init__` in it's attributes.  
+* When subscribing to an event, if a `predicate` is specified, it will be called with the event itself, pre-trigger.  
 * When inheriting from `Hunter` or `ActiveHunter` you can use the `self.publish_event(event)`.  
  `event` is an **initialized** event object.
   
@@ -117,8 +117,8 @@ relative import: `...core.types`
   
   
 ## Creating Events  
-As discussed above, we know there are a lot of different types of events that can be created. But at the end, they all need to inherit from the base class `Event`.
-Lets see some examples of creating different types of events:
+As discussed above, we know there are a lot of different types of events that can be created. but at the end, they all need to inherit from the base class `Event`  
+Let's see some examples of creating different types of events:  
 ### Vulnerability  
 ```python  
 class ExposedMasterCN(Vulnerability, Event):  
@@ -133,7 +133,7 @@ class ExposedMasterCN(Vulnerability, Event):
 class OpenKubeDns(Service, Event):  
     """Explanation about this Service"""  
     def __init__(self):  
-        Service.__init__(self, name="Kube-Dns")  
+        Service.__init__(self, name="Kube-DNS")  
 ```  
 `Notice:` Every type of event should have an explanation in exactly the form shown above (that explanation will eventually be used when the report is made).
 `Notice:` You can add any attribute to the event you create as needed. The examples shown above are the minimum implementation that needs to be made.
@@ -149,7 +149,7 @@ Example for an event chain:
 *The first node of every event tree is the NewHostEvent*  
   
 Let us assume the following imaginary example: 
-We've defined a Hunter for SSL Certificates, which extracts the CN of the certificate, and does some magic with it. The example code would be defined in new `Discovery` and `Hunter` modules for this SSL Magic example:
+We've defined a Hunter for SSL Certificates, which extracts the CN of the certificate and does some magic with it. The example code would be defined in new `discovery` and `hunter` modules for this SSL Magic example:    
 
 Discovery:  
 ```python  
@@ -184,12 +184,12 @@ def execute(self):
 If another Hunter subscribes to the events that this Hunter publishes, it can access the `event.certificate`.
   
 ## Proving Vulnerabilities  
-The process of proving vulnerabilities is the base concept of Active Hunting.
+The process of proving vulnerabilities is the base concept of Active Hunting.    
 To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vulnerability, and inside of the `execute`, specify the `evidence` attribute of the event.   
 *Note that you can specify the 'evidence' attribute without active hunting*  
 
 ## Filtering Events
-A filter can change an event's attribute or remove it completely, before it gets published to Hunters.
+A filter can change an event's attribute or remove it completely before it gets published to Hunters.
 
 To create a filter:
 * create a class that inherits from `EventFilterBase` (from `src.core.events.types`)   
@@ -203,8 +203,8 @@ _(You can filter a parent event class, such as Service or Vulnerability, to filt
 * Altering event attributes 
   
 To prevent an event from being published, return `None` from the execute method of your filter.  
-To alter event attributes, return a new event, based on the `self.event` after your modifications. It will replace the event itself before it is published.
-__Make sure to return the event from the execute method, or the event will not get publihshed__  
+To alter event attributes, return a new event, based on the `self.event` after your modifications, it will replace the event itself before it is published.  
+__Make sure to return the event from the execute method, or the event will not get published__  
  
 For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `src/modules/report/`
 ```python

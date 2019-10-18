@@ -1,15 +1,35 @@
 ![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png)
 
 [![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
+[![License](https://img.shields.io/github/license/aquasecurity/kube-hunter)](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE)
+[![Docker image](https://images.microbadger.com/badges/image/aquasec/kube-hunter.svg)](https://microbadger.com/images/aquasec/kube-hunter "Get your own image badge on microbadger.com")
 
-Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster you don't own!**
+
+kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster you don't own!**
 
 **Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you see and share the results online. You can also run the Python code yourself as described below.
 
-**Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your own modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
+**Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
 
 [![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
 
+Table of Contents
+=================
+
+* [Hunting](#hunting)
+   * [Where should I run kube-hunter?](#where-should-i-run-kube-hunter)
+   * [Scanning options](#scanning-options)
+   * [Active Hunting](#active-hunting)
+   * [List of tests](#list-of-tests)
+   * [Nodes Mapping](#nodes-mapping)
+   * [Output](#output)
+   * [Dispatching](#dispatching)
+* [Deployment](#deployment)
+   * [On Machine](#on-machine)
+      * [Prerequisites](#prerequisites)
+   * [Container](#container)
+   * [Pod](#pod)
+         
 ## Hunting
 
 ### Where should I run kube-hunter?
@@ -17,11 +37,11 @@ Run kube-hunter on any machine (including your laptop), select Remote scanning a
 
 You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
 
-You can also run kube-hunter in a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example).
+You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example).
 
 ### Scanning options
 
-First check the **[pre-requisites](#prerequisites)**
+First check for these **[pre-requisites](#prerequisites)**.
 
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
@@ -29,7 +49,7 @@ By default, kube-hunter will open an interactive session, in which you will be a
 To specify remote machines for hunting, select option 1 or use the `--remote` option. Example:
 `./kube-hunter.py --remote some.node.com`
 
-2. **interface scanning**
+2. **Interface scanning**
 To specify interface scanning, you can use the `--interface` option. (this will scan all of the machine's network interfaces) Example:
 `./kube-hunter.py --interface`
 
@@ -39,7 +59,7 @@ To specify a specific CIDR to scan, use the `--cidr` option. Example:
 
 ### Active Hunting
 
-Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, in order to explore for further vulnerabilities.
+Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, to explore for further vulnerabilities.
 The main difference between normal and active hunting is that a normal hunt will never change state of the cluster, while active hunting can potentially do state-changing operations on the cluster, **which could be harmful**.
 
 By default, kube-hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:
@@ -112,8 +132,8 @@ If you run the kube-hunter container with the host network it will be able to pr
 
 `docker run -it --rm --network host aquasec/kube-hunter`
 
-_Note for Docker for Mac/Windows:_ Be aware that the "host" for Docker for Mac or Windows is the VM which Docker runs containers within. Therefore specifying `--network host` allows kube-hunter access to the network interfaces of that VM, rather than those of your machine.
-By default kube-hunter runs in interactive mode. You can also specify the scanning option with the parameters described above e.g.
+_Note for Docker for Mac/Windows:_ Be aware that the "host" for Docker for Mac or Windows is the VM that Docker runs containers within. Therefore specifying `--network host` allows kube-hunter access to the network interfaces of that VM, rather than those of your machine.
+By default, kube-hunter runs in interactive mode. You can also specify the scanning option with the parameters described above e.g.
 
 `docker run --rm aquasec/kube-hunter --cidr 192.168.0.0/24`
 
@@ -124,3 +144,6 @@ The `job.yaml` file defines a Job that will run kube-hunter in a pod, using defa
 * Run the job with `kubectl create` with that yaml file.
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
+
+## License
+This repository is available under the [Apache License 2.0](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE).
