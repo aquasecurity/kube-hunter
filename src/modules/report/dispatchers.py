@@ -7,23 +7,23 @@ from __main__ import config
 class HTTPDispatcher(object):
     def dispatch(self, report):
         logging.debug('Dispatching report via http')
-        dispatchMethod = os.environ.get(
+        dispatch_method = os.environ.get(
             'KUBEHUNTER_HTTP_DISPATCH_METHOD',
             'POST'
         ).upper()
-        dispatchURL = os.environ.get(
+        dispatch_url = os.environ.get(
             'KUBEHUNTER_HTTP_DISPATCH_URL',
             'https://localhost/'
         )
         try:
             r = requests.request(
-                dispatchMethod,
-                dispatchURL,
+                dispatch_method,
+                dispatch_url,
                 json=report,
                 headers={'Content-Type': 'application/json'}
             )
             r.raise_for_status()
-            logging.info('\nReport was dispatched to: {url}'.format(url=dispatchURL))
+            logging.info('\nReport was dispatched to: {url}'.format(url=dispatch_url))
             logging.debug(
                 "\tResponse Code: {status}\n\tResponse Data:\n{data}".format(
                     status=r.status_code,
@@ -35,15 +35,15 @@ class HTTPDispatcher(object):
             logging.error(
                 "\nCould not dispatch report using HTTP {method} to {url}\nResponse Code: {status}".format(
                     status=r.status_code,
-                    url=dispatchURL,
-                    method=dispatchMethod
+                    url=dispatch_url,
+                    method=dispatch_method
                 )
             )
         except Exception as e:
             # default all exceptions
             logging.error("\nCould not dispatch report using HTTP {method} to {url} - {error}".format(
-                method=dispatchMethod,
-                url=dispatchURL,
+                method=dispatch_method,
+                url=dispatch_url,
                 error=e
             ))
 
