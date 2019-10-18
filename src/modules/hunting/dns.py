@@ -12,7 +12,7 @@ from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1, srp
 class PossibleDnsSpoofing(Vulnerability, Event):
     """A malicous pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM attack on applications running in the cluster."""
     def __init__(self, kubedns_pod_ip):
-        Vulnerability.__init__(self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft)
+        Vulnerability.__init__(self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft, vid="KHV030")
         self.kubedns_pod_ip = kubedns_pod_ip
         self.evidence = "kube-dns at: {}".format(self.kubedns_pod_ip)
 
