@@ -10,6 +10,23 @@ Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 
 [![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
 
+Table of Contents
+=================
+
+* [Hunting](#hunting)
+   * [Where should I run kube-hunter?](#where-should-i-run-kube-hunter)
+   * [Scanning options](#scanning-options)
+   * [Active Hunting](#active-hunting)
+   * [List of tests](#list-of-tests)
+   * [Nodes Mapping](#nodes-mapping)
+   * [Output](#output)
+   * [Dispatching](#dispatching)
+* [Deployment](#deployment)
+   * [On Machine](#on-machine)
+      * [Prerequisites](#prerequisites)
+   * [Container](#container)
+   * [Pod](#pod)
+         
 ## Hunting
 
 ### Where should I run kube-hunter?
