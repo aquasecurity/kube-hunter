@@ -1,34 +1,12 @@
-![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png)
+---
+---
+# Welcome to kube-hunter documentation
 
-[![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
-[![codecov](https://codecov.io/gh/aquasecurity/kube-hunter/branch/master/graph/badge.svg)](https://codecov.io/gh/aquasecurity/kube-hunter)
+## Documentation for vulnerabilities
 
-Kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster you don't own!**
+For information about a specific vulnerability reported by kube-hunter, enter its 'VID' (e.g. KHV004) in the search box to the left, to get to the vulnerability article.
 
-**Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you see and share the results online. You can also run the Python code yourself as described below.
-
-**Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your own modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
-
-[![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
-
-Table of Contents
-=================
-
-* [Hunting](#hunting)
-   * [Where should I run kube-hunter?](#where-should-i-run-kube-hunter)
-   * [Scanning options](#scanning-options)
-   * [Active Hunting](#active-hunting)
-   * [List of tests](#list-of-tests)
-   * [Nodes Mapping](#nodes-mapping)
-   * [Output](#output)
-   * [Dispatching](#dispatching)
-* [Deployment](#deployment)
-   * [On Machine](#on-machine)
-      * [Prerequisites](#prerequisites)
-   * [Container](#container)
-   * [Pod](#pod)
-         
-## Hunting
+## Getting started
 
 ### Where should I run kube-hunter?
 Run kube-hunter on any machine (including your laptop), select Remote scanning and give the IP address or domain name of your Kubernetes cluster. This will give you an attackers-eye-view of your Kubernetes setup.
@@ -38,8 +16,6 @@ You can run kube-hunter directly on a machine in the cluster, and select the opt
 You can also run kube-hunter in a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example).
 
 ### Scanning options
-
-First check the **[pre-requisites](#prerequisites)**
 
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
@@ -111,7 +87,7 @@ Clone the repository:
 git clone https://github.com/aquasecurity/kube-hunter.git
 ~~~
 
-Install module dependencies. (You may prefer to do this within a [Virtual Environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/))
+Install module dependencies:
 ~~~
 cd ./kube-hunter
 pip install -r requirements.txt
@@ -122,9 +98,9 @@ Run:
 
 _If you want to use pyinstaller/py2exe you need to first run the install_imports.py script._
 ### Container
-Aqua Security maintains a containerized version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
+Aqua Security maintains a containerised version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
 
-The Dockerfile in this repository allows you to build a containerized version without the reporting plugin.
+The Dockerfile in this repository allows you to build a containerised version without the reporting plugin.
 
 If you run the kube-hunter container with the host network it will be able to probe all the interfaces on the host:
 
