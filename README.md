@@ -9,7 +9,7 @@ kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 
 **Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you see and share the results online. You can also run the Python code yourself as described below.
 
-**Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your own modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
+**Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
 
 [![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
 
@@ -37,7 +37,7 @@ Run kube-hunter on any machine (including your laptop), select Remote scanning a
 
 You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
 
-You can also run kube-hunter in a pod within the cluster. This gives an indication of how exposed your cluster would be in the event that one of your application pods is compromised (through a software vulnerability, for example).
+You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example).
 
 ### Scanning options
 
@@ -59,7 +59,7 @@ To specify a specific CIDR to scan, use the `--cidr` option. Example:
 
 ### Active Hunting
 
-Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, in order to explore for further vulnerabilities.
+Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, to explore for further vulnerabilities.
 The main difference between normal and active hunting is that a normal hunt will never change state of the cluster, while active hunting can potentially do state-changing operations on the cluster, **which could be harmful**.
 
 By default, kube-hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:
@@ -132,8 +132,8 @@ If you run the kube-hunter container with the host network it will be able to pr
 
 `docker run -it --rm --network host aquasec/kube-hunter`
 
-_Note for Docker for Mac/Windows:_ Be aware that the "host" for Docker for Mac or Windows is the VM which Docker runs containers within. Therefore specifying `--network host` allows kube-hunter access to the network interfaces of that VM, rather than those of your machine.
-By default kube-hunter runs in interactive mode. You can also specify the scanning option with the parameters described above e.g.
+_Note for Docker for Mac/Windows:_ Be aware that the "host" for Docker for Mac or Windows is the VM that Docker runs containers within. Therefore specifying `--network host` allows kube-hunter access to the network interfaces of that VM, rather than those of your machine.
+By default, kube-hunter runs in interactive mode. You can also specify the scanning option with the parameters described above e.g.
 
 `docker run --rm aquasec/kube-hunter --cidr 192.168.0.0/24`
 
