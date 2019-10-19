@@ -2,7 +2,14 @@ import logging
 
 from __main__ import config
 from src.core.events import handler
-from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
+from src.core.events.types import (
+    Event,
+    Service,
+    Vulnerability,
+    HuntFinished,
+    HuntStarted,
+    ReportDispatched,
+)
 import threading
 
 
@@ -16,25 +23,26 @@ vulnerabilities = list()
 
 hunters = handler.all_hunters
 
-def console_trim(text, prefix=' '):
+
+def console_trim(text, prefix=" "):
     a = text.split(" ")
     b = a[:]
     total_length = 0
     count_of_inserts = 0
     for index, value in enumerate(a):
         if (total_length + (len(value) + len(prefix))) >= 80:
-            b.insert(index + count_of_inserts, '\n')
+            b.insert(index + count_of_inserts, "\n")
             count_of_inserts += 1
             total_length = 0
         else:
             total_length += len(value) + len(prefix)
-    return '\n'.join([prefix + line.strip(' ') for line in ' '.join(b).split('\n')])
+    return "\n".join([prefix + line.strip(" ") for line in " ".join(b).split("\n")])
 
 
-def wrap_last_line(text, prefix='| ', suffix='|_'):
-    lines = text.split('\n')
+def wrap_last_line(text, prefix="| ", suffix="|_"):
+    lines = text.split("\n")
     lines[-1] = lines[-1].replace(prefix, suffix, 1)
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 @handler.subscribe(Service)
@@ -53,11 +61,14 @@ class Collector(object):
             services.append(self.event)
             services_lock.release()
             import datetime
-            logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  location: {location}".format(
-                name=self.event.get_name(),
-                location=self.event.location(),
-                time=datetime.time()
-            ))
+
+            logging.info(
+                "|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  location: {location}".format(
+                    name=self.event.get_name(),
+                    location=self.event.location(),
+                    time=datetime.time(),
+                )
+            )
 
         elif Vulnerability in bases:
             vulnerabilities_lock.acquire()
@@ -67,8 +78,9 @@ class Collector(object):
                 "|\n| {name}:\n|   type: vulnerability\n|   location: {location}\n|   description: \n{desc}".format(
                     name=self.event.get_name(),
                     location=self.event.location(),
-                    desc=wrap_last_line(console_trim(self.event.explain(), '|     '))
-                ))
+                    desc=wrap_last_line(console_trim(self.event.explain(), "|     ")),
+                )
+            )
 
 
 class TablesPrinted(Event):

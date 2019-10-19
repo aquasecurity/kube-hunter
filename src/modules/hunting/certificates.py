@@ -11,18 +11,28 @@ from socket import socket
 
 email_pattern = re.compile(r"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
 
+
 class CertificateEmail(Vulnerability, Event):
     """Certificate includes an email address"""
+
     def __init__(self, email):
-        Vulnerability.__init__(self, KubernetesCluster, "Certificate Includes Email Address", category=InformationDisclosure,khv="KHV021")
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            "Certificate Includes Email Address",
+            category=InformationDisclosure,
+            khv="KHV021",
+        )
         self.email = email
         self.evidence = "email: {}".format(self.email)
+
 
 @handler.subscribe(Service)
 class CertificateDiscovery(Hunter):
     """Certificate Email Hunting
     Checks for email addresses in kubernetes ssl certificates
     """
+
     def __init__(self, event):
         self.event = event
 
@@ -38,4 +48,4 @@ class CertificateDiscovery(Hunter):
         certdata = base64.decodestring(c)
         emails = re.findall(email_pattern, certdata)
         for email in emails:
-            self.publish_event( CertificateEmail(email=email) )
+            self.publish_event(CertificateEmail(email=email))

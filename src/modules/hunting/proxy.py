@@ -11,22 +11,36 @@ from ..discovery.dashboard import KubeDashboardEvent
 from ..discovery.proxy import KubeProxyEvent
 
 """ Vulnerabilities """
+
+
 class KubeProxyExposed(Vulnerability, Event):
     """All oprations on the cluster are exposed"""
+
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, "Proxy Exposed", category=InformationDisclosure, vid="KHV049")
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            "Proxy Exposed",
+            category=InformationDisclosure,
+            vid="KHV049",
+        )
+
 
 class Service(Enum):
     DASHBOARD = "kubernetes-dashboard"
+
 
 @handler.subscribe(KubeProxyEvent)
 class KubeProxy(Hunter):
     """Proxy Hunting
     Hunts for a dashboard behind the proxy 
     """
+
     def __init__(self, event):
         self.event = event
-        self.api_url = "http://{host}:{port}/api/v1".format(host=self.event.host, port=self.event.port)
+        self.api_url = "http://{host}:{port}/api/v1".format(
+            host=self.event.host, port=self.event.port
+        )
 
     def execute(self):
         self.publish_event(KubeProxyExposed())
@@ -34,7 +48,9 @@ class KubeProxy(Hunter):
             for service in services:
                 if service == Service.DASHBOARD.value:
                     logging.debug(service)
-                    curr_path = "api/v1/namespaces/{ns}/services/{sv}/proxy".format(ns=namespace,sv=service) # TODO: check if /proxy is a convention on other services
+                    curr_path = "api/v1/namespaces/{ns}/services/{sv}/proxy".format(
+                        ns=namespace, sv=service
+                    )  # TODO: check if /proxy is a convention on other services
                     self.publish_event(KubeDashboardEvent(path=curr_path, secure=False))
 
     @property
@@ -60,34 +76,52 @@ class KubeProxy(Hunter):
             names.append(item["metadata"]["name"])
         return names
 
+
 @handler.subscribe(KubeProxyExposed)
 class ProveProxyExposed(ActiveHunter):
     """Build Date Hunter
     Hunts when proxy is exposed, extracts the build date of kubernetes
     """
+
     def __init__(self, event):
         self.event = event
 
     def execute(self):
-        version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
-            host=self.event.host,
-            port=self.event.port,
-        ), verify=False).text)
+        version_metadata = json.loads(
+            requests.get(
+                "http://{host}:{port}/version".format(
+                    host=self.event.host, port=self.event.port
+                ),
+                verify=False,
+            ).text
+        )
         if "buildDate" in version_metadata:
             self.event.evidence = "build date: {}".format(version_metadata["buildDate"])
+
 
 @handler.subscribe(KubeProxyExposed)
 class K8sVersionDisclosureProve(ActiveHunter):
     """K8s Version Hunter
     Hunts Proxy when exposed, extracts the version
     """
+
     def __init__(self, event):
         self.event = event
 
     def execute(self):
-        version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
-            host=self.event.host,
-            port=self.event.port,
-        ), verify=False).text)
+        version_metadata = json.loads(
+            requests.get(
+                "http://{host}:{port}/version".format(
+                    host=self.event.host, port=self.event.port
+                ),
+                verify=False,
+            ).text
+        )
         if "gitVersion" in version_metadata:
-            self.publish_event(K8sVersionDisclosure(version=version_metadata["gitVersion"], from_endpoint="/version", extra_info="on the kube-proxy"))
+            self.publish_event(
+                K8sVersionDisclosure(
+                    version=version_metadata["gitVersion"],
+                    from_endpoint="/version",
+                    extra_info="on the kube-proxy",
+                )
+            )

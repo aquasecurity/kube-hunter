@@ -52,10 +52,12 @@ class EventQueue(Queue, object):
             def __new__unsubscribe_self(self, cls):
                 handler.hooks[event].remove((hook, predicate))
                 return object.__new__(self)
+
             hook.__new__ = __new__unsubscribe_self
 
             self.subscribe_event(event, hook=hook, predicate=predicate)
             return hook
+
         return wrapper
 
     # getting uninstantiated event object
@@ -75,23 +77,26 @@ class EventQueue(Queue, object):
         if EventFilterBase in hook.__mro__:
             if hook not in self.filters[event]:
                 self.filters[event].append((hook, predicate))
-                logging.debug('{} filter subscribed to {}'.format(hook, event))
+                logging.debug("{} filter subscribed to {}".format(hook, event))
 
         # registering hunters
         elif hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
-            logging.debug('{} subscribed to {}'.format(hook, event))
-
+            logging.debug("{} subscribed to {}".format(hook, event))
 
     def apply_filters(self, event):
-        # if filters are subscribed, apply them on the event 
+        # if filters are subscribed, apply them on the event
         for hooked_event in self.filters.keys():
             if hooked_event in event.__class__.__mro__:
                 for filter_hook, predicate in self.filters[hooked_event]:
                     if predicate and not predicate(event):
                         continue
 
-                    logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
+                    logging.debug(
+                        "Event {} got filtered with {}".format(
+                            event.__class__, filter_hook
+                        )
+                    )
                     event = filter_hook(event).execute()
                     # if filter decided to remove event, returning None
                     if not event:
@@ -105,7 +110,7 @@ class EventQueue(Queue, object):
             event.previous = caller.event
             event.hunter = caller.__class__
 
-        # applying filters on the event, before publishing it to subscribers. 
+        # applying filters on the event, before publishing it to subscribers.
         # if filter returned None, not proceeding to publish
         event = self.apply_filters(event)
         if event:
@@ -124,7 +129,11 @@ class EventQueue(Queue, object):
                             if Vulnerability in event.__class__.__mro__:
                                 caller.__class__.publishedVulnerabilities += 1
 
-                        logging.debug('Event {} got published with {}'.format(event.__class__, event))
+                        logging.debug(
+                            "Event {} got published with {}".format(
+                                event.__class__, event
+                            )
+                        )
                         self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon
@@ -153,5 +162,6 @@ class EventQueue(Queue, object):
         self.running = False
         with self.mutex:
             self.queue.clear()
+
 
 handler = EventQueue(800)

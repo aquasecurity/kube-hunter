@@ -2,7 +2,17 @@ import logging
 import requests
 import json
 import threading
-from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
+from src.core.types import (
+    InformationDisclosure,
+    DenialOfService,
+    RemoteCodeExec,
+    IdentityTheft,
+    PrivilegeEscalation,
+    AccessRisk,
+    UnauthenticatedAccess,
+    KubernetesCluster,
+)
+
 
 class EventFilterBase(object):
     def __init__(self, event):
@@ -13,6 +23,7 @@ class EventFilterBase(object):
     # Return None to indicate the event should be discarded
     def execute(self):
         return self.event
+
 
 class Event(object):
     def __init__(self):
@@ -30,7 +41,7 @@ class Event(object):
     # Event's logical location to be used mainly for reports.
     # If event don't implement it check previous event
     # This is because events are composed (previous -> previous ...)
-    # and not inheritted 
+    # and not inheritted
     def location(self):
         location = None
         if self.previous:
@@ -70,15 +81,17 @@ class Service(object):
 
 
 class Vulnerability(object):
-    severity = dict({
-        InformationDisclosure: "medium",
-        DenialOfService: "medium",
-        RemoteCodeExec: "high",
-        IdentityTheft: "high",
-        PrivilegeEscalation: "high",
-        AccessRisk: "low",
-        UnauthenticatedAccess: "low"
-    })
+    severity = dict(
+        {
+            InformationDisclosure: "medium",
+            DenialOfService: "medium",
+            RemoteCodeExec: "high",
+            IdentityTheft: "high",
+            PrivilegeEscalation: "high",
+            AccessRisk: "low",
+            UnauthenticatedAccess: "low",
+        }
+    )
 
     # TODO: make vid mandatry once migration is done
     def __init__(self, component, name, category=None, vid=None):
@@ -105,6 +118,7 @@ class Vulnerability(object):
     def get_severity(self):
         return self.severity.get(self.category, "low")
 
+
 global event_id_count_lock
 event_id_count_lock = threading.Lock()
 event_id_count = 0
@@ -124,18 +138,19 @@ class NewHostEvent(Event):
 
     def __str__(self):
         return str(self.host)
-    
+
     # Event's logical location to be used mainly for reports.
     def location(self):
         return str(self.host)
 
+
 class OpenPortEvent(Event):
     def __init__(self, port):
         self.port = port
-    
+
     def __str__(self):
         return str(self.port)
-    
+
     # Event's logical location to be used mainly for reports.
     def location(self):
         if self.host:
@@ -158,10 +173,19 @@ class ReportDispatched(Event):
 
 
 """ Core Vulnerabilites """
+
+
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint """
+
     def __init__(self, version, from_endpoint, extra_info=""):
-        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure, vid="KHV002")
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            "K8s Version Disclosure",
+            category=InformationDisclosure,
+            vid="KHV002",
+        )
         self.version = version
         self.from_endpoint = from_endpoint
         self.extra_info = extra_info

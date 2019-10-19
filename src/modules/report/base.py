@@ -1,5 +1,12 @@
-from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
+from .collector import (
+    services,
+    vulnerabilities,
+    hunters,
+    services_lock,
+    vulnerabilities_lock,
+)
 from src.core.types import Discovery
+
 
 class BaseReporter(object):
     def get_nodes(self):
@@ -16,24 +23,34 @@ class BaseReporter(object):
 
     def get_services(self):
         services_lock.acquire()
-        services_data = [{"service": service.get_name(),
-                 "location": "{}:{}{}".format(service.host, service.port, service.get_path()),
-                 "description": service.explain()}
-                for service in services]
+        services_data = [
+            {
+                "service": service.get_name(),
+                "location": "{}:{}{}".format(
+                    service.host, service.port, service.get_path()
+                ),
+                "description": service.explain(),
+            }
+            for service in services
+        ]
         services_lock.release()
         return services_data
 
     def get_vulnerabilities(self):
         vulnerabilities_lock.acquire()
-        vulnerabilities_data = [{"location": vuln.location(),
-                 "vid": vuln.get_vid(),
-                 "category": vuln.category.name,
-                 "severity": vuln.get_severity(),
-                 "vulnerability": vuln.get_name(),
-                 "description": vuln.explain(),
-                 "evidence": str(vuln.evidence),
-                 "hunter": vuln.hunter.get_name()}
-                for vuln in vulnerabilities]
+        vulnerabilities_data = [
+            {
+                "location": vuln.location(),
+                "vid": vuln.get_vid(),
+                "category": vuln.category.name,
+                "severity": vuln.get_severity(),
+                "vulnerability": vuln.get_name(),
+                "description": vuln.explain(),
+                "evidence": str(vuln.evidence),
+                "hunter": vuln.hunter.get_name(),
+            }
+            for vuln in vulnerabilities
+        ]
         vulnerabilities_lock.release()
         return vulnerabilities_data
 
@@ -42,5 +59,11 @@ class BaseReporter(object):
         for hunter, docs in hunters.items():
             if not Discovery in hunter.__mro__:
                 name, doc = hunter.parse_docs(docs)
-                hunters_data.append({"name": name, "description": doc, "vulnerabilities": hunter.publishedVulnerabilities})
+                hunters_data.append(
+                    {
+                        "name": name,
+                        "description": doc,
+                        "vulnerabilities": hunter.publishedVulnerabilities,
+                    }
+                )
         return hunters_data

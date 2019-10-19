@@ -3,7 +3,14 @@ from __future__ import print_function
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
-from .collector import services, vulnerabilities, hunters, handler, services_lock, vulnerabilities_lock
+from .collector import (
+    services,
+    vulnerabilities,
+    hunters,
+    handler,
+    services_lock,
+    vulnerabilities_lock,
+)
 from .base import BaseReporter
 
 EVIDENCE_PREVIEW = 40
@@ -12,7 +19,6 @@ KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/kb"
 
 
 class PlainReporter(BaseReporter):
-
     def get_report(self):
         """generates report tables"""
         output = ""
@@ -76,13 +82,26 @@ class PlainReporter(BaseReporter):
         services_table.header_style = "upper"
         services_lock.acquire()
         for service in services:
-            services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
+            services_table.add_row(
+                [
+                    service.get_name(),
+                    "{}:{}{}".format(service.host, service.port, service.get_path()),
+                    service.explain(),
+                ]
+            )
         detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
         services_lock.release()
         return detected_services_ret
 
     def vulns_table(self):
-        column_names = ["ID", "Location", "Category", "Vulnerability", "Description", "Evidence"]
+        column_names = [
+            "ID",
+            "Location",
+            "Category",
+            "Vulnerability",
+            "Description",
+            "Evidence",
+        ]
         vuln_table = PrettyTable(column_names, hrules=ALL)
         vuln_table.align = "l"
         vuln_table.max_width = MAX_TABLE_WIDTH
@@ -93,11 +112,24 @@ class PlainReporter(BaseReporter):
 
         vulnerabilities_lock.acquire()
         for vuln in vulnerabilities:
-            evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
-            row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain(), evidence]
+            evidence = (
+                str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..."
+                if len(str(vuln.evidence)) > EVIDENCE_PREVIEW
+                else str(vuln.evidence)
+            )
+            row = [
+                vuln.get_vid(),
+                vuln.location(),
+                vuln.category.name,
+                vuln.get_name(),
+                vuln.explain(),
+                evidence,
+            ]
             vuln_table.add_row(row)
         vulnerabilities_lock.release()
-        return "\nVulnerabilities\nFor further information about a vulnerability, search its ID in: \n{}\n{}\n".format(KB_LINK, vuln_table)
+        return "\nVulnerabilities\nFor further information about a vulnerability, search its ID in: \n{}\n{}\n".format(
+            KB_LINK, vuln_table
+        )
 
     def hunters_table(self):
         column_names = ["Name", "Description", "Vulnerabilities"]
@@ -111,5 +143,7 @@ class PlainReporter(BaseReporter):
 
         hunter_statistics = self.get_hunter_statistics()
         for item in hunter_statistics:
-            hunters_table.add_row([item.get("name"), item.get("description"), item.get("vulnerabilities")])
+            hunters_table.add_row(
+                [item.get("name"), item.get("description"), item.get("vulnerabilities")]
+            )
         return "\nHunter Statistics\n{}\n".format(hunters_table)
