@@ -67,7 +67,7 @@ class KubectlCpVulnerability(Vulnerability, Event):
 class KubeStateMetricsVulnerability(Vulnerability, Event):
     """"""
     def __init__(self, version):
-        Vulnerability.__init__(self, KubectlClient, "kube-state-metrics Vulnerable To CVE-2019-17110", category=InformationDisclosure, vid="KHV0XX")
+        Vulnerability.__init__(self, KubectlClient, "kube-state-metrics Vulnerable To CVE-2019-17110", category=InformationDisclosure, vid="KVH051")
         self.version = version
         self.evidence = "kubectl version: {}".format(self.version)
 
