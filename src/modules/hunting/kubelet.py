@@ -56,7 +56,7 @@ class ExposedRunHandler(Vulnerability, Event):
 
 
 class ExposedPortForwardHandler(Vulnerability, Event):
-    """An attacker could set port forwaring rule on a pod"""
+    """An attacker could set port forwarding rule on a pod"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet, "Exposed Port Forward", category=RemoteCodeExec, vid="KHV041")    
 
@@ -173,7 +173,7 @@ class SecureKubeletPortHunter(Hunter):
     Hunts specific endpoints on an open secured Kubelet
     """
     class DebugHandlers(object):    
-        """ all methods will return the handler name if successfull """
+        """ all methods will return the handler name if successful """
         def __init__(self, path, pod, session=None):
             self.path = path
             self.session = session if session else requests.Session()
@@ -322,7 +322,7 @@ class SecureKubeletPortHunter(Hunter):
         else:
             pass # no pod to check on.
 
-    # trying to get a pod from default namespace, if doesnt exist, gets a kube-system one
+    # trying to get a pod from default namespace, if doesn't exist, gets a kube-system one
     def get_random_pod(self):
         if self.pods_endpoint_data: 
             pods_data = self.pods_endpoint_data["items"]
