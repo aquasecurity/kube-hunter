@@ -9,7 +9,7 @@ from .capabilities import CapNetRawEnabled
 from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 
 class PossibleArpSpoofing(Vulnerability, Event):
-    """A malicous pod running on the cluster could potentially run an ARP Spoof attack and perform a MITM between pods on the node."""
+    """A malicious pod running on the cluster could potentially run an ARP Spoof attack and perform a MITM between pods on the node."""
     def __init__(self):
         Vulnerability.__init__(self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft,vid="KHV020")
 
@@ -26,7 +26,7 @@ class ArpSpoofHunter(ActiveHunter):
         return ans[ARP].hwsrc if ans else None
 
     def detect_l3_on_host(self, arp_responses):
-        """ returns True for an existance of an L3 network plugin """
+        """ returns True for an existence of an L3 network plugin """
         logging.debug("Attempting to detect L3 network plugin using ARP")
         unique_macs = list(set(response[ARP].hwsrc for _, response in arp_responses))
         
