@@ -9,6 +9,7 @@ from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, \
     PrivilegeEscalation, DenialOfService, KubectlClient
 from ..discovery.kubectl import KubectlClientEvent
+from ..discovery.kube_state_metrics import KubeStateMetricsEvent
 
 from packaging import version
 
@@ -59,6 +60,16 @@ class KubectlCpVulnerability(Vulnerability, Event):
         Vulnerability.__init__(self, KubectlClient, "Kubectl Vulnerable To CVE-2019-1002101", category=RemoteCodeExec, vid="KHV028")
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
+
+
+""" kube-state-metrics CVE """
+
+class KubeStateMetricsVulnerability(Vulnerability, Event):
+    """"""
+    def __init__(self, version):
+        Vulnerability.__init__(self, KubectlClient, "kube-state-metrics Vulnerable To CVE-2019-17110", category=InformationDisclosure, vid="KHV0XX")
+        self.version = version
+        self.evidence = "kubectl version: {}".format(self.version)
 
 
 class CveUtils:
@@ -173,6 +184,24 @@ class KubectlCVEHunter(Hunter):
             IncompleteFixToKubectlCpVulnerability: ['1.12.9', '1.13.6', '1.14.2'] 
         }
         logging.debug('Kubectl Cve Hunter determining vulnerable version: {}'.format(self.event.version))
+        for vulnerability, fix_versions in cve_mapping.items():
+            if CveUtils.is_vulnerable(fix_versions, self.event.version, config.ignore_downstream):
+                self.publish_event(vulnerability(binary_version=self.event.version))
+
+
+@handler.subscribe(KubeStateMetricsEvent)
+class KubeStateMetricsCVEHunter(Hunter):
+    """kube-state-metrics CVE Hunter
+    Checks if the kube-state-metrics is vulnerable to CVE-2019-17110
+    """
+    def __init__(self, event):
+        self.event = event
+
+    def execute(self):
+        cve_mapping = {
+            KubeStateMetricsVulnerability: ['1.7.0', '1.7.1'] 
+        }
+        logging.debug('kube-state-metrics Cve Hunter determining vulnerable version: {}'.format(self.event.version))
         for vulnerability, fix_versions in cve_mapping.items():
             if CveUtils.is_vulnerable(fix_versions, self.event.version, config.ignore_downstream):
                 self.publish_event(vulnerability(binary_version=self.event.version))
