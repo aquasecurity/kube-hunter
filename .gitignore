@@ -5,3 +5,7 @@ venv/
 .vscode
 .coverage
 .idea
+
+# Directory Cache Files
+.DS_Store
+thumbs.db
