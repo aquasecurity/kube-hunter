@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import argparse
+import argparse      #libraries
 import logging
 import threading
 
@@ -100,7 +100,7 @@ hunt_started_lock = threading.Lock()
 hunt_started = False
 
 
-def main():
+def main():              #main begins here
     global hunt_started
     scan_options = [
         config.pod, 
@@ -147,4 +147,4 @@ def main():
 
 if __name__ == '__main__':
         main()
-
+#end
