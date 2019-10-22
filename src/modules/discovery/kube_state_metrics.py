@@ -17,7 +17,7 @@ class KubeStateMetricsEvent(Event):
 @handler.subscribe(HuntStarted)
 class KubeStateMetricsDiscovery(Discovery):
     """kube-state-metrics version Discovery
-    Checks the version of kube-state-metrics part of CVE-2019-17110 vulnerability check
+    Checks the version of kube-state-metrics service
     """
     def __init__(self, event):
         self.event = event
