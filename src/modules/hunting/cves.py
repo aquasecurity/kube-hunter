@@ -65,11 +65,11 @@ class KubectlCpVulnerability(Vulnerability, Event):
 """ kube-state-metrics CVE """
 
 class KubeStateMetricsVulnerability(Vulnerability, Event):
-    """"""
+    """The kube-state-metrics service is vulnerable to CVE-2019-17110, an attacker could potentially expose the entire secret content to end up in metric labels"""
     def __init__(self, version):
-        Vulnerability.__init__(self, KubectlClient, "kube-state-metrics Vulnerable To CVE-2019-17110", category=InformationDisclosure, vid="KVH051")
+        Vulnerability.__init__(self, KubeStateMetrics, "kube-state-metrics Vulnerable To CVE-2019-17110", category=AccessRisk, vid="KVH051")
         self.version = version
-        self.evidence = "kubectl version: {}".format(self.version)
+        self.evidence = "kube-state-metrics version: {}".format(self.version)
 
 
 class CveUtils:
