@@ -1,6 +1,6 @@
 <!---
     Thank you for contributing to Aqua Security.
-    Fields marked with (*) are required. Please don't remove the template.
+    Please don't remove the template.
 -->
 
 ## Description
@@ -33,4 +33,4 @@ Any Terminal Output Before Changes.
  - [ ] I have added automated testing to cover this case.
  
 ## Notes
-Please mention if you have not ticked any of the above boxes.
+Please mention if you have not checked any of the above boxes.
