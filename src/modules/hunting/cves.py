@@ -75,7 +75,7 @@ class KubeStateMetricsVulnerability(Vulnerability, Event):
 class CveUtils:
     @staticmethod
     def get_base_release(full_ver):
-        # if LecacyVersion, converting manually to a base version
+        # if LegacyVersion, converting manually to a base version
         if type(full_ver) == version.LegacyVersion:
             return version.parse('.'.join(full_ver._version.split('.')[:2]))
         else:
@@ -83,7 +83,7 @@ class CveUtils:
 
     @staticmethod
     def to_legacy(full_ver):
-        # converting version to verison.LegacyVersion
+        # converting version to version.LegacyVersion
         return version.LegacyVersion('.'.join(map(str, full_ver._version.release)))
 
     @staticmethod
@@ -94,7 +94,7 @@ class CveUtils:
         
     @staticmethod
     def version_compare(v1, v2):
-        """Function compares two versions, handling differences with convertion to LegacyVersion"""
+        """Function compares two versions, handling differences with conversion to LegacyVersion"""
         # getting raw version, while striping 'v' char at the start. if exists. 
         # removing this char lets us safely compare the two version.
         v1_raw, v2_raw = CveUtils.to_raw_version(v1).strip('v'), CveUtils.to_raw_version(v2).strip('v')
@@ -134,7 +134,7 @@ class CveUtils:
 
                 # if the check version and the current fix has the same base release 
                 if base_check_v == base_fix_v:
-                    # when check_version is legacy, we use a custom compare func, to handle differnces between versions.                    
+                    # when check_version is legacy, we use a custom compare func, to handle differences between versions.
                     if version_compare_func(check_v, fix_v) == -1:
                         # determine vulnerable if smaller and with same base version
                         vulnerable = True

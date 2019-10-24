@@ -12,7 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 """ Services """
 class ReadOnlyKubeletEvent(Service, Event):
-    """The read-only port on the kubelet serves health probing endpoints, and is relied upon by many kubernetes componenets"""
+    """The read-only port on the kubelet serves health probing endpoints, and is relied upon by many kubernetes components"""
     def __init__(self):
         Service.__init__(self, name="Kubelet API (readonly)")
 
