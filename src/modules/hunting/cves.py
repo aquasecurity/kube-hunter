@@ -7,7 +7,7 @@ from __main__ import config
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, \
-    PrivilegeEscalation, DenialOfService, KubectlClient
+    PrivilegeEscalation, DenialOfService, KubectlClient, KubeStateMetricsClient
 from ..discovery.kubectl import KubectlClientEvent
 from ..discovery.kube_state_metrics import KubeStateMetricsEvent
 
@@ -67,7 +67,7 @@ class KubectlCpVulnerability(Vulnerability, Event):
 class KubeStateMetricsVulnerability(Vulnerability, Event):
     """The kube-state-metrics service is vulnerable to CVE-2019-17110, an attacker could potentially expose the entire secret content to end up in metric labels"""
     def __init__(self, version):
-        Vulnerability.__init__(self, KubeStateMetrics, "kube-state-metrics Vulnerable To CVE-2019-17110", category=AccessRisk, vid="KVH052")
+        Vulnerability.__init__(self, KubeStateMetricsClient, "kube-state-metrics Vulnerable To CVE-2019-17110", category=AccessRisk, vid="KVH052")
         self.version = version
         self.evidence = "kube-state-metrics version: {}".format(self.version)
 

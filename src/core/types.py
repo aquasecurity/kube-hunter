@@ -51,6 +51,11 @@ class Azure(KubernetesCluster):
     name = "Azure"
 
 
+class KubeStateMetricsClient():
+    """The kube-state-metrics service binary is an add-on agent to generate and expose cluster-level metrics"""
+    name = "KubeStateMetrics Client"
+
+
 """ Categories """
 class InformationDisclosure(object):
     name = "Information Disclosure"
