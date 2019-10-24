@@ -1,0 +1,15 @@
+---
+---
+[
+  {% for page in site.pages %}
+    {
+
+      "title"    : "{{ page.title | escape }}",
+      "url"      : "{{ site.baseurl }}{{ page.url }}",
+      "category" : "{{ page.category }}",
+      "tags"     : "{{ page.tags | join: ', ' }}",
+      "date"     : "{{ page.date }}"
+
+    } {% unless forloop.last %},{% endunless %}
+  {% endfor %}
+]
