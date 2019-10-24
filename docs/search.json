@@ -2,6 +2,7 @@
 ---
 [
   {% for page in site.pages %}
+  {% if page.path contains 'kb/' %}
     {
 
       "title"    : "{{ page.title | escape }}",
@@ -10,5 +11,6 @@
       "vid"		 : "{{ page.vid }}"
 
     } {% unless forloop.last %},{% endunless %}
+  {% endif %}
   {% endfor %}
 ]
