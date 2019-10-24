@@ -43,12 +43,28 @@
 
         <div>
             <div>
-                <input type="text" id="searchInput" placeholder="Find vulnerability by id">
-                <button id="searchButton" class="searchButton">Go</button>
+                <!-- <input type="text" id="searchInput" placeholder="Find vulnerability by id">
+                <button id="searchButton" class="searchButton">Go</button> -->
             </div>
         </div>
       </header>
       <section>
+      <div id="search-container">
+        <input type="text" id="search-input" placeholder="Find vulnerability by text">
+        <ul id="results-container"></ul>
+      </div>
+
+      <!-- Script pointing to search-script.js -->
+      <script src="{{ "/search-script.js" | relative_url }}" type="text/javascript"/></script>
+
+      <!-- Configuration -->
+      <script>
+      SimpleJekyllSearch({
+        searchInput: document.getElementById('search-input'),
+        resultsContainer: document.getElementById('results-container'),
+        json: '/search.json'
+       })
+      </script>
 
       {{ content }}
 
