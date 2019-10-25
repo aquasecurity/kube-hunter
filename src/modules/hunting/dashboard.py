@@ -9,7 +9,7 @@ from ...core.events.types import Vulnerability, Event
 from ..discovery.dashboard import KubeDashboardEvent
 
 class DashboardExposed(Vulnerability, Event):
-    """All oprations on the cluster are exposed"""
+    """All operations on the cluster are exposed"""
     def __init__(self, nodes):
         Vulnerability.__init__(self, KubernetesCluster, "Dashboard Exposed", category=RemoteCodeExec, vid="KHV029")
         self.evidence = "nodes: {}".format(' '.join(nodes)) if nodes else None
