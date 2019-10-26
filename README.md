@@ -147,7 +147,7 @@ By default, kube-hunter runs in interactive mode. You can also specify the scann
 This option lets you discover what running a malicious container can do/discover on your cluster. This gives a perspective on what an attacker could do if they were able to compromise a pod, perhaps through a software vulnerability. This may reveal significantly more vulnerabilities.
 
 The `job.yaml` file defines a Job that will run kube-hunter in a pod, using default Kubernetes pod access settings.
-* Run the job with `kubectl create -f ./job.yaml` with that yaml file.
+* Run the job with `kubectl create -f ./job.yaml`
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
 
