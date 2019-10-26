@@ -36,11 +36,11 @@ Table of Contents
 
 There are three different ways to run kube-hunter, each providing a different approach to detecting weaknesses in your cluster:
 
-1. You can run kube-hunter on any machine (including your laptop), then select Remote scanning and give the IP address or domain name of your Kubernetes cluster. This will give you an attackers-eye-view of your Kubernetes setup.
+Run kube-hunter on any machine (including your laptop), select Remote scanning and give the IP address or domain name of your Kubernetes cluster. This will give you an attackers-eye-view of your Kubernetes setup.
 
-2. You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
+You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
 
-3. You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example).
+You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example).
 
 ### Scanning options
 
