@@ -54,7 +54,7 @@ class HostScanEvent(Event):
 class HostDiscoveryHelpers:
     @staticmethod
     def get_cloud(host):
-        if config.azurechk:
+        if config.infrastructure_check:
             try:
                 logging.debug("Checking whether the cluster is deployed on azure's cloud")
                 # azurespeed.com provide their API via HTTP only; the service can be queried with 
