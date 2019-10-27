@@ -19,7 +19,7 @@ Thank you for taking interest in contributing to kube-hunter!
 
 ## Hunters
 
-If you are contributing a new Hunter:
+If you are contributing a new Hunter(adding your own module to hunt for new security issues):
 1. When you open an issue to present the Hunter, please specify which `Vulnerability` classes you plan to add.
 1. A maintainer will assign each `Vulnerability` a VID for you to include in your Hunter code.
 1. Please add a KB article to `/docs/kb/` explaining the vulnerability and suggesting remediation steps. Look at other articles for examples.
