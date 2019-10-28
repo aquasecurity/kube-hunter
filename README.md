@@ -105,8 +105,8 @@ You can run the kube-hunter python code directly on your machine.
 #### Prerequisites
 
 You will need the following installed:
-* python 3.x
-* pip
+* [python 3.x](https://www.python.org/downloads/)
+* [pip](https://pypi.org/project/pip/)
 
 Clone the repository:
 ~~~
