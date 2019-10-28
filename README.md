@@ -1,9 +1,15 @@
-![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png)
+<p align="center">
+ 
+<img height=200px src="https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png" alt="kube-hunter" >         
+</p>
 
-[![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
+<div align="center">
+   
+ [![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
 [![License](https://img.shields.io/github/license/aquasecurity/kube-hunter)](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE)
 [![Docker image](https://images.microbadger.com/badges/image/aquasec/kube-hunter.svg)](https://microbadger.com/images/aquasec/kube-hunter "Get your own image badge on microbadger.com")
-
+ 
+ </div>
 
 kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster that you don't own!**
 
