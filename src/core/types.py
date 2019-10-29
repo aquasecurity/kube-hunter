@@ -51,31 +51,75 @@ class Azure(KubernetesCluster):
     name = "Azure"
 
 
-""" Categories """
+""" Categories 
+
+Defines the category of each vulnerability 
+That could be exploited by an attacker.
+"""
 class InformationDisclosure(object):
+    """ Security issue where the attacker can
+    gain access to sensitive information in
+    the Virtual Machine. 
+    """
     name = "Information Disclosure"
 
 
 class RemoteCodeExec(object):
+    """ Remote execution of code, it is, you can
+    execute code in the VM from anywhere, 
+    wether arbitrary code or specific code.
+    """
     name = "Remote Code Execution"
 
 
 class IdentityTheft(object):
+    """ This isssue allows the attacker 
+    to gain the identity of some other 
+    user without permission. 
+    """
     name = "Identity Theft"
 
 
 class UnauthenticatedAccess(object):
+    """ This issue allows the attacker to
+    access some zone of the application
+    or the Virtual Machine without any
+    authentication. 
+    """
     name = "Unauthenticated Access"
 
 
 class AccessRisk(object):
+    """ This issue may represent a possibility
+    of someone gain access to the system, it is,
+    anything that changes the behaviour of the
+    system may give the attacker a possible 
+    vulnerability to be exploited
+    """
     name = "Access Risk"
 
 
 class PrivilegeEscalation(KubernetesCluster):
+    """ This issue means that an attacker that
+    exploits the failure may reach a higher 
+    privilige than the privilege that the user
+    should have. For example, a common privilege
+    escalation is when a common user reaches the
+    root level.
+    """
     name = "Privilege Escalation"
 
 class DenialOfService(object):
+    """ That issue allows the attacker
+    to deny the application's service.
+    Some common attacks are deny of HTTP
+    requests, so no remote user can make
+    use of the application's service, or 
+    shutdown the server so no one can access
+    the machine, or lock the application
+    into a loop so no one else can receive
+    a response from the service.
+    """
     name = "Denial of Service"
 
 from .events import handler # import is in the bottom to break import loops
