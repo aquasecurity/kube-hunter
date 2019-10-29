@@ -7,8 +7,12 @@ spec:
     spec:
       containers:
       - name: kube-hunter
-        image: aquasec/kube-hunter 
+        image: aquasec/kube-hunter
         command: ["python", "kube-hunter.py"]
         args: ["--pod"]
       restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
   backoffLimit: 4
