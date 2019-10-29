@@ -4,3 +4,6 @@ logo: https://raw.githubusercontent.com/aquasecurity/kube-hunter/master/kube-hun
 show_downloads: false
 google_analytics: UA-63272154-1
 theme: jekyll-theme-minimal
+
+gems: 
+    - jekyll-sitemap
