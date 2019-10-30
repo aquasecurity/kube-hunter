@@ -1,7 +1,7 @@
 from io import StringIO
 from ruamel.yaml import YAML
 from .base import BaseReporter
-from __main__ import config
+from conf import config
 
 
 class YAMLReporter(BaseReporter):

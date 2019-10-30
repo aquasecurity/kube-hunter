@@ -20,8 +20,10 @@ parser.add_argument('--dispatch', type=str, default='stdout', help="where to sen
 parser.add_argument('--statistics', action="store_true", help="set hunting statistics")
 
 import plugins
+import conf
 
 config = parser.parse_args()
+conf.init(config)
 
 try:
     loglevel = getattr(logging, config.log.upper())
@@ -98,7 +100,6 @@ def list_hunters():
 global hunt_started_lock
 hunt_started_lock = threading.Lock()
 hunt_started = False
-
 
 def main():
     global hunt_started

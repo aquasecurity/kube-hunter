@@ -17,9 +17,11 @@ parser.add_argument('--statistics', action="store_true", help="set hunting stati
 
 config = parser.parse_args()
 
+import conf
 import tests
 
 def main():
+    conf.init(config)
     exit(pytest.main(['.']))
 
 

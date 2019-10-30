@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from prettytable import ALL, PrettyTable
 
-from __main__ import config
+from conf import config
 from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
 from .base import BaseReporter
 

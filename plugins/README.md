@@ -5,7 +5,7 @@ This folder contains modules that will load before any parsing of arguments by k
 An example for using a plugin to add an argument:
 ```python
 # example.py
-from __main__ import parser
+from src.core.conf import config
 
 parser.add_argument('--exampleflag', action="store_true", help="enables active hunting")
 ```

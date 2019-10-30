@@ -4,12 +4,11 @@ from collections import defaultdict
 from queue import Queue
 from threading import Thread
 
-from __main__ import config
+from conf import config
 
 from ..types import ActiveHunter, HunterBase
 
 from ...core.events.types import Vulnerability, EventFilterBase
-
 
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue, object):
