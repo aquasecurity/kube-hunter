@@ -41,7 +41,7 @@ You can also run kube-hunter in a pod within the cluster. This indicates how exp
 
 ### Scanning options
 
-First check for these **[pre-requisites](#prerequisites)**.
+First check for these **[prerequisites](#prerequisites)**.
 
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
