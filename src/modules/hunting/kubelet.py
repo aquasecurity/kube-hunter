@@ -6,7 +6,7 @@ import re
 import requests
 import urllib3
 
-from __main__ import config
+from conf import config
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from ..discovery.kubelet import ReadOnlyKubeletEvent, SecureKubeletEvent

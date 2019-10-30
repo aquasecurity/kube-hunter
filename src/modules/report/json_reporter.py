@@ -1,6 +1,6 @@
 import json
 from .base import BaseReporter
-from __main__ import config
+from conf import config
 
 class JSONReporter(BaseReporter):
     def get_report(self):
