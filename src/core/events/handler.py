@@ -23,6 +23,9 @@ class EventQueue(Queue, object):
 
         self.hooks = defaultdict(list)
         self.filters = defaultdict(list)
+        self.multi_hooks = defaultdict(list) # for hooks which listens for multiple events.
+        self.hook_dependencies = defaultdict(set) # dependencies which were defined for a given hook.
+        self.hook_fulfilled_deps = defaultdict(set) # keep track of already fulfilled dependencies.
         self.running = True
         self.workers = list()
 
@@ -44,6 +47,13 @@ class EventQueue(Queue, object):
 
         return wrapper
 
+    def multiple_subscribe(self, events, predicates=None):
+        def wrapper(hook):
+            self.subscribe_events(events, hook=hook, predicates=predicates)
+            return hook
+
+        return wrapper
+
     # wrapper takes care of the subscribe once mechanism
     def subscribe_once(self, event, hook=None, predicate=None):
         def wrapper(hook):
@@ -59,10 +69,12 @@ class EventQueue(Queue, object):
         return wrapper
 
     # getting uninstantiated event object
-    def subscribe_event(self, event, hook=None, predicate=None):
+
+    # register hunter in tables, return True if the hunter should be used otherwise False (active mode vs passive mode)
+    def _register_hunters(self, hook=None):
         if ActiveHunter in hook.__mro__:
             if not config.active:
-                return
+                return False
             else:
                 self.active_hunters[hook] = hook.__doc__
         elif HunterBase in hook.__mro__:
@@ -71,20 +83,49 @@ class EventQueue(Queue, object):
         if HunterBase in hook.__mro__:
             self.all_hunters[hook] = hook.__doc__
 
-        # registering filters
-        if EventFilterBase in hook.__mro__:
-            if hook not in self.filters[event]:
-                self.filters[event].append((hook, predicate))
-                logging.debug('{} filter subscribed to {}'.format(hook, event))
+        return True
 
-        # registering hunters
-        elif hook not in self.hooks[event]:
+    def _register_filter(self, event, hook=None, predicate=None):
+        if hook not in self.filters[event]:
+            self.filters[event].append((hook, predicate))
+            logging.debug('{} filter subscribed to {}'.format(hook, event))
+
+    def _register_hook(self, event, hook=None, predicate=None):
+        if hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
             logging.debug('{} subscribed to {}'.format(hook, event))
 
+    def subscribe_event(self, event, hook=None, predicate=None):
+        if not self._register_hunters(hook):
+            return
+
+        # registering filters
+        if EventFilterBase in hook.__mro__:
+            self._register_filter(event, hook, predicate)
+        # registering hunters
+        else:
+            self._register_hook(event, hook, predicate)
+
+    def subscribe_events(self, events, hook=None, predicates=None):
+        if not self._register_hunters(hook):
+            return False
+
+        if predicates is None:
+            predicates = [None] * len(events)
+
+        # registering filters.
+        if EventFilterBase in hook.__mro__:
+            for event, predicate in zip(events, predicates):
+                self._register_filter(event, hook, predicate)
+        # registering hunters.
+        else:
+            for event, predicate in zip(events, predicates):
+                self.multi_hooks[event].append((hook, predicate))
+
+            self.hook_dependencies[hook] = set(events)
 
     def apply_filters(self, event):
-        # if filters are subscribed, apply them on the event 
+        # if filters are subscribed, apply them on the event
         for hooked_event in self.filters.keys():
             if hooked_event in event.__class__.__mro__:
                 for filter_hook, predicate in self.filters[hooked_event]:
@@ -98,21 +139,39 @@ class EventQueue(Queue, object):
                         return None
         return event
 
-    # getting instantiated event object
-    def publish_event(self, event, caller=None):
-        # setting event chain
+    def _set_event_chain(self, event, caller):
         if caller:
             event.previous = caller.event
             event.hunter = caller.__class__
 
-        # applying filters on the event, before publishing it to subscribers. 
+    def _increase_vuln_count(self, event, caller):
+        if config.statistics and caller:
+            if Vulnerability in event.__class__.__mro__:
+                caller.__class__.publishedVulnerabilities += 1
+
+    def mark_and_fire_if_possible(self, hooked_event, hook):
+        # Sanity check.
+        assert (hooked_event in self.hook_dependencies[hook])
+
+        self.hook_fulfilled_deps[hook].add(hooked_event)
+
+        if len(self.hook_fulfilled_deps[hook]) == len(self.hook_dependencies[hook]):
+            # fire it!
+            self.put(hook(self.hook_fulfilled_deps[hook]))
+            # reset the state.
+            self.hook_fulfilled_deps[hook] = set()
+
+    # getting instantiated event object
+    def publish_event(self, event, caller=None):
+        # setting event chain
+        self._set_event_chain(event, caller)
+
+        # applying filters on the event, before publishing it to subscribers.
         # if filter returned None, not proceeding to publish
         event = self.apply_filters(event)
         if event:
             # If event was rewritten, make sure it's linked to its parent ('previous') event
-            if caller:
-                event.previous = caller.event
-                event.hunter = caller.__class__
+            self._set_event_chain(event, caller)
 
             for hooked_event in self.hooks.keys():
                 if hooked_event in event.__class__.__mro__:
@@ -120,12 +179,19 @@ class EventQueue(Queue, object):
                         if predicate and not predicate(event):
                             continue
 
-                        if config.statistics and caller:
-                            if Vulnerability in event.__class__.__mro__:
-                                caller.__class__.publishedVulnerabilities += 1
+                        self._increase_vuln_count(event, caller)
 
                         logging.debug('Event {} got published with {}'.format(event.__class__, event))
                         self.put(hook(event))
+
+                    for hook, predicate in self.multi_hooks[hooked_event]:
+                        if predicate and not predicate(event):
+                            continue
+
+                        logging.debug('Event {} got published with {}'.format(event.__class__, event))
+                        self._increase_vuln_count(event, caller)
+                        self.mark_and_fire_if_possible(hooked_event, hook)
+
 
     # executes callbacks on dedicated thread as a daemon
     def worker(self):

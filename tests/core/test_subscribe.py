@@ -26,25 +26,38 @@ class RegularHunter(Hunter):
         global counter
         counter += 1
 
+@handler.multiple_subscribe([RegularEvent, OnceOnlyEvent])
+class SmartHunter(Hunter):
+    def __init__(self, events):
+        global counter
+        counter += 1
 
 def test_subscribe_mechanism():
     global counter
-    
+
     # first test normal subscribe and publish works
     handler.publish_event(RegularEvent())
     handler.publish_event(RegularEvent())
     handler.publish_event(RegularEvent())
-    
+
     time.sleep(0.02)
     assert counter == 3
     counter = 0
-    
+
+    # testing the multiple subscription mechanism
+    handler.publish_event(OnceOnlyEvent())
+
+    time.sleep(0.02)
+    # SmartHunter and OnceHunter should run only.
+    assert counter == 2
+    counter = 0
+
     # testing the subscribe_once mechanism
     handler.publish_event(OnceOnlyEvent())
     handler.publish_event(OnceOnlyEvent())
     handler.publish_event(OnceOnlyEvent())
 
     time.sleep(0.02)
-    # should have been triggered once
-    assert counter == 1
-        
+    # should have been triggered once before, so never here.
+    assert counter == 0
+
