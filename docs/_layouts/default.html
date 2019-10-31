@@ -43,8 +43,12 @@
 
         <div>
             <div>
-                <input type="text" id="searchInput" placeholder="Find vulnerability by id">
-                <button id="searchButton" class="searchButton">Go</button>
+              Lookup Vulnerability<br />
+              <input type="text" id="searchInput" placeholder="Vulnerability ID">
+              <button id="searchButton" class="searchButton">Find</button>
+            </div>
+            <div>
+              <a href="{{ site.baseurl }}{% link kbindex.html %}">All vulnerabilies</a>
             </div>
         </div>
       </header>
@@ -62,7 +66,7 @@
     </div>
     <script src="{{ "/assets/js/scale.fix.js" | relative_url }}"></script>
     <script type="text/javascript">
-        var articleUrlTemplate = "{{ site.baseurl }}{% link kb/KHV002.md %}";
+        var articleUrlTemplate = "{{ site.baseurl }}{% link _kb/KHV002.md %}";
         var searchInput = document.getElementById("searchInput");
         var searchButton = document.getElementById("searchButton");
         searchInput.addEventListener("keyup", function(event) {
