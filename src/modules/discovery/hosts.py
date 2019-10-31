@@ -16,6 +16,8 @@ from ...core.events import handler
 from ...core.events.types import Event, NewHostEvent, Vulnerability
 from ...core.types import Discovery, InformationDisclosure, Azure
 
+from src.modules.external_services import ExternalIPService, ExternalServiceFailure
+
 class RunningAsPodEvent(Event):
     def __init__(self):
         self.name = 'Running from within a pod'
@@ -85,6 +87,7 @@ class FromPodHostDiscovery(Discovery):
     """
     def __init__(self, event):
         self.event = event
+        self.ext_ip_service = ExternalIPService()
 
     def execute(self):
         # Scan any hosts that the user specified
@@ -120,7 +123,7 @@ class FromPodHostDiscovery(Discovery):
 
    # for pod scanning
     def traceroute_discovery(self):
-        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        external_ip = self.ext_ip_service.try_get() # getting external ip, to determine if cloud cluster
         cloud = HostDiscoveryHelpers.get_cloud(external_ip)
         from scapy.all import ICMP, IP, Ether, srp1
 
@@ -149,6 +152,7 @@ class HostDiscovery(Discovery):
     """
     def __init__(self, event):
         self.event = event
+        self.ext_ip_service = ExternalIPService()
 
     def execute(self):
         if config.cidr:
@@ -170,8 +174,8 @@ class HostDiscovery(Discovery):
     def scan_interfaces(self):
         try:
             logging.debug("HostDiscovery hunter attempting to get external IP address")
-            external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
-        except requests.ConnectionError as e:
+            external_ip = self.ext_ip_service.try_get() # getting external ip, to determine if cloud cluster
+        except ExternalServiceFailure as e:
             logging.debug("unable to determine local IP address: {0}".format(e))
             logging.info("~ default to 127.0.0.1")
             external_ip = "127.0.0.1"
