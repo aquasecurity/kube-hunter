@@ -5,9 +5,10 @@
 [![Docker image](https://images.microbadger.com/badges/image/aquasec/kube-hunter.svg)](https://microbadger.com/images/aquasec/kube-hunter "Get your own image badge on microbadger.com")
 
 
-kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster that you don't own!**
+kube-hunter hunts for security weakness in Kubernetes clusters. The tool was developed to increase awareness and visibility about security issues in Kubernetes environment. 
+**Attention** You should NOT run kube-hunter on a Kubernetes cluster that you don't own!
 
-**Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you to see and share the results online. You can also run the Python code yourself as described below.
+**Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online and receive a token allowing you to see as well as share the results online. You can also run the Python code yourself as described below.
 
 **Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
 
@@ -35,7 +36,7 @@ Table of Contents
 ### Where should I run kube-hunter?
 Run kube-hunter on any machine (including your laptop), select Remote scanning and give the IP address or domain name of your Kubernetes cluster. This will give you an attackers-eye-view of your Kubernetes setup.
 
-You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
+You can run kube-hunter directly on a machine in the cluster, and then select the option to probe all the local network interfaces.
 
 You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example).
 
