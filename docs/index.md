@@ -6,6 +6,8 @@
 
 For information about a specific vulnerability reported by kube-hunter, enter its 'VID' (e.g. KHV004) in the search box to the left, to get to the vulnerability article.
 
+For a complete list of all documented vulnerabilities, [click here]({{ site.baseurl }}{% link kbindex.html %})
+
 ## Getting started
 
 ### Where should I run kube-hunter?
