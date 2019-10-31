@@ -67,8 +67,7 @@ class CveUtils:
         # if LegacyVersion, converting manually to a base version
         if type(full_ver) == version.LegacyVersion:
             return version.parse('.'.join(full_ver._version.split('.')[:2]))
-        else:
-            return version.parse('.'.join(map(str, full_ver._version.release[:2])))
+        return version.parse('.'.join(map(str, full_ver._version.release[:2])))
 
     @staticmethod
     def to_legacy(full_ver):
