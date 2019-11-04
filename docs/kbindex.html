@@ -1,0 +1,13 @@
+---
+---
+
+<h1>All articles</h1>
+  <ul>
+    {% for article in site.kb %}
+    <li>
+      <h3>
+          <a href="{{ article.url | prepend: site.baseurl }}">{{ article.vid }} - {{ article.title | escape }}</a>
+      </h3>
+    </li>
+    {% endfor %}
+</ul>

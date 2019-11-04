@@ -12,7 +12,7 @@ from ..discovery.proxy import KubeProxyEvent
 
 """ Vulnerabilities """
 class KubeProxyExposed(Vulnerability, Event):
-    """All oprations on the cluster are exposed"""
+    """All operations on the cluster are exposed"""
     def __init__(self):
         Vulnerability.__init__(self, KubernetesCluster, "Proxy Exposed", category=InformationDisclosure, vid="KHV049")
 

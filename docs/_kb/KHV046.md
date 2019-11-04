@@ -1,0 +1,20 @@
+---
+vid: KHV046
+title: Exposed Kubelet Cmdline
+categories: [Information Disclosure]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+When the Kubelet is run in debug mode, a Pod running in the cluster is able to access the Kubelet's `debug/pprof/cmdline` endpoint and examine how the kubelet was executed on the node, specifically the command line flags that were used, which tells the attacker about what capabilities the kubelet has which might be exploited.
+
+## Remediation
+
+Disable `--enable-debugging-handlers` kubelet flag.
+
+## References
+
+- [cmdline handler in Kubelet code](https://github.com/kubernetes/kubernetes/blob/4a6935b31fcc4d1498c977d90387e02b6b93288f/pkg/kubelet/server/server.go#L327)
+- [Kubelet - options](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/#options)
