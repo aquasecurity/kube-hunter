@@ -1,5 +1,7 @@
 from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
 from src.core.types import Discovery
+from __main__ import config
+
 
 class BaseReporter(object):
     def get_nodes(self):
@@ -44,3 +46,17 @@ class BaseReporter(object):
                 name, doc = hunter.parse_docs(docs)
                 hunters_data.append({"name": name, "description": doc, "vulnerabilities": hunter.publishedVulnerabilities})
         return hunters_data
+
+    def get_report(self):
+        report = {
+            "nodes": self.get_nodes(),
+            "services": self.get_services(),
+            "vulnerabilities": self.get_vulnerabilities()
+        }
+
+        if config.statistics:
+            report["hunter_statistics"] = self.get_hunter_statistics()
+
+        report["kburl"] = "https://aquasecurity.github.io/kube-hunter/kb/{vid}"
+
+        return report
