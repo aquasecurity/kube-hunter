@@ -14,5 +14,6 @@ defaults:
     values:
       layout: "default"
 
+url: "https://aquasecurity.github.io/kube-hunter"
 plugins:
   - jekyll-sitemap
