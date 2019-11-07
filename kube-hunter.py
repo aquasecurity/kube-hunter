@@ -115,10 +115,9 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-
-        hunt_started_lock.acquire()
-        hunt_started = True
-        hunt_started_lock.release()
+        
+        with hunt_started_lock:
+            hunt_started = True
         handler.publish_event(HuntStarted())
         if config.pod:
             handler.publish_event(RunningAsPodEvent())
