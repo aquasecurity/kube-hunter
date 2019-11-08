@@ -7,7 +7,7 @@ setup(
     name="kube-hunter",
     version="0.1.0",
     author="Aqua Security",
-    author_email="info@aquasec.in",
+    author_email="support@aquasec.com",
     description="Hunt for security weaknesses in Kubernetes clusters",
     long_description=long_description,
     long_description_content_type="text/markdown",
