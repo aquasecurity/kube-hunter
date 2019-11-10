@@ -318,7 +318,7 @@ class SecureKubeletPortHunter(Hunter):
                 if debug_handlers.test_logs_endpoint():
                     self.publish_event(ExposedSystemLogs())
             except Exception as ex:
-                logging.debug(str(ex.message))
+                logging.debug(str(ex))
         else:
             pass # no pod to check on.
 

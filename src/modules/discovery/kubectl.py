@@ -35,7 +35,7 @@ class KubectlClientDiscovery(Discovery):
                 version_info = version_info.decode()
                 start = version_info.find('GitVersion')
                 version = version_info[start + len("GitVersion':\"") : version_info.find("\",", start)]
-        except Exception as x:
+        except Exception:
             logging.debug("Could not find kubectl client")
         return version
     

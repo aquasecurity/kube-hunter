@@ -13,3 +13,7 @@ defaults:
       path: "" # an empty string here means all files in the project
     values:
       layout: "default"
+
+url: "https://aquasecurity.github.io/kube-hunter"
+plugins:
+  - jekyll-sitemap

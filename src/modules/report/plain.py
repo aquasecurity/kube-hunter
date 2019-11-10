@@ -3,7 +3,7 @@ from __future__ import print_function
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
-from .collector import services, vulnerabilities, hunters, handler, services_lock, vulnerabilities_lock
+from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
 from .base import BaseReporter
 
 EVIDENCE_PREVIEW = 40
@@ -16,16 +16,14 @@ class PlainReporter(BaseReporter):
     def get_report(self):
         """generates report tables"""
         output = ""
-
-        vulnerabilities_lock.acquire()
-        vulnerabilities_len = len(vulnerabilities)
-        vulnerabilities_lock.release()
+        
+        with vulnerabilities_lock:
+            vulnerabilities_len = len(vulnerabilities)
 
         hunters_len = len(hunters.items())
-
-        services_lock.acquire()
-        services_len = len(services)
-        services_lock.release()
+        
+        with services_lock:
+            services_len = len(services)
 
         if services_len:
             output += self.nodes_table()
@@ -73,11 +71,10 @@ class PlainReporter(BaseReporter):
         services_table.sortby = "Service"
         services_table.reversesort = True
         services_table.header_style = "upper"
-        services_lock.acquire()
-        for service in services:
-            services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-        detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
-        services_lock.release()
+        with services_lock:
+            for service in services:
+                services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
+            detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
         return detected_services_ret
 
     def vulns_table(self):
@@ -90,12 +87,11 @@ class PlainReporter(BaseReporter):
         vuln_table.padding_width = 1
         vuln_table.header_style = "upper"
 
-        vulnerabilities_lock.acquire()
-        for vuln in vulnerabilities:
-            evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
-            row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain(), evidence]
-            vuln_table.add_row(row)
-        vulnerabilities_lock.release()
+        with vulnerabilities_lock:
+            for vuln in vulnerabilities:
+                evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
+                row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain(), evidence]
+                vuln_table.add_row(row)
         return "\nVulnerabilities\nFor further information about a vulnerability, search its ID in: \n{}\n{}\n".format(KB_LINK, vuln_table)
 
     def hunters_table(self):
