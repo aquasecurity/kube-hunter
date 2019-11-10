@@ -32,7 +32,7 @@ if config.log.lower() != "none":
 
 from src.modules.report.plain import PlainReporter
 from src.modules.report.yaml import YAMLReporter
-from src.modules.report.json_reporter import JSONReporter
+from src.modules.report.json import JSONReporter
 reporters = {
     'yaml': YAMLReporter,
     'json': JSONReporter,
