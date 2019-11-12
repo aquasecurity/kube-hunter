@@ -49,9 +49,8 @@ class Collector(object):
         global vulnerabilities
         bases = self.event.__class__.__mro__
         if Service in bases:
-            services_lock.acquire()
-            services.append(self.event)
-            services_lock.release()
+            with services_lock:
+                services.append(self.event)
             import datetime
             logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  location: {location}".format(
                 name=self.event.get_name(),
@@ -60,9 +59,8 @@ class Collector(object):
             ))
 
         elif Vulnerability in bases:
-            vulnerabilities_lock.acquire()
-            vulnerabilities.append(self.event)
-            vulnerabilities_lock.release()
+            with vulnerabilities_lock:
+                vulnerabilities.append(self.event)
             logging.info(
                 "|\n| {name}:\n|   type: vulnerability\n|   location: {location}\n|   description: \n{desc}".format(
                     name=self.event.get_name(),

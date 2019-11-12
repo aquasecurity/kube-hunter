@@ -1,6 +1,3 @@
-import logging
-import requests
-import json
 import threading
 from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
 
@@ -117,10 +114,10 @@ class NewHostEvent(Event):
         global event_id_count
         self.host = host
         self.cloud = cloud
-        event_id_count_lock.acquire()
-        self.event_id = event_id_count
-        event_id_count += 1
-        event_id_count_lock.release()
+
+        with event_id_count_lock:
+            self.event_id = event_id_count
+            event_id_count += 1
 
     def __str__(self):
         return str(self.host)

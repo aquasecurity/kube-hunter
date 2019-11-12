@@ -32,7 +32,7 @@ if config.log.lower() != "none":
 
 from src.modules.report.plain import PlainReporter
 from src.modules.report.yaml import YAMLReporter
-from src.modules.report.json_reporter import JSONReporter
+from src.modules.report.json import JSONReporter
 reporters = {
     'yaml': YAMLReporter,
     'json': JSONReporter,
@@ -115,10 +115,9 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-
-        hunt_started_lock.acquire()
-        hunt_started = True
-        hunt_started_lock.release()
+        
+        with hunt_started_lock:
+            hunt_started = True
         handler.publish_event(HuntStarted())
         if config.pod:
             handler.publish_event(RunningAsPodEvent())

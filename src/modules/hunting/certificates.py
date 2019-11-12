@@ -31,7 +31,7 @@ class CertificateDiscovery(Hunter):
             logging.debug("Passive hunter is attempting to get server certificate")
             addr = (str(self.event.host), self.event.port)
             cert = ssl.get_server_certificate(addr)
-        except ssl.SSLError as e:
+        except ssl.SSLError:
             # If the server doesn't offer SSL on this port we won't get a certificate
             return
         c = cert.strip(ssl.PEM_HEADER).strip(ssl.PEM_FOOTER)

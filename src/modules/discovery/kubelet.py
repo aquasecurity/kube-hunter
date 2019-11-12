@@ -58,7 +58,7 @@ class KubeletDiscovery(Discovery):
         try:
             return requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).status_code
         except Exception as ex:
-            logging.debug("Failed pinging https port 10250 on {} : {}".format(self.event.host, ex.message))
+            logging.debug("Failed pinging https port 10250 on {} : {}".format(self.event.host, ex))
 
     def execute(self):
         if self.event.port == KubeletPorts.SECURED.value:
