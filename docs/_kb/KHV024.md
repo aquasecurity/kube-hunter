@@ -1,0 +1,20 @@
+---
+vid: KHV024
+title: Possible Ping Flood Attack
+categories: [Denial Of Service]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+Cluster is found to be vulnerable to CVE-2019-9512. Please see the Vulnerability description for additional information.
+
+## Remediation
+
+Please see the Vulnerability description for remediation.
+
+## References
+
+- [HTTP/2 Denial of Service Advisory](https://github.com/Netflix/security-bulletins/blob/master/advisories/third-party/2019-002.md)
+- [CVE-2019-9512](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-9512)

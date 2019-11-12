@@ -1,0 +1,15 @@
+---
+vid: KHV021
+title: Certificate Includes Email Address
+categories: [Information Disclosure]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+The Kubernetes API Server advertises a public certificate for TLS. This certificate includes an email address, that may provide additional information for an attacker on your organization, or be abused for further email based attacks. 
+
+## Remediation
+
+Do not include email address in the Kubernetes API server certificate. (You should continue to use certificates to secure the API Server!)

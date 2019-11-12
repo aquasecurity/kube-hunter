@@ -1,16 +1,14 @@
 import logging
 import time
-from abc import ABCMeta
 from collections import defaultdict
 from queue import Queue
-from threading import Lock, Thread
+from threading import Thread
 
 from __main__ import config
 
-from ..types import ActiveHunter, Hunter, HunterBase
+from ..types import ActiveHunter, HunterBase
 
-from ...core.events.types import HuntFinished, Vulnerability, EventFilterBase
-import threading
+from ...core.events.types import Vulnerability, EventFilterBase
 
 
 # Inherits Queue object, handles events asynchronously
@@ -26,7 +24,7 @@ class EventQueue(Queue, object):
         self.running = True
         self.workers = list()
 
-        for i in range(num_worker):
+        for _ in range(num_worker):
             t = Thread(target=self.worker)
             t.daemon = True
             t.start()
@@ -63,8 +61,7 @@ class EventQueue(Queue, object):
         if ActiveHunter in hook.__mro__:
             if not config.active:
                 return
-            else:
-                self.active_hunters[hook] = hook.__doc__
+            self.active_hunters[hook] = hook.__doc__
         elif HunterBase in hook.__mro__:
             self.passive_hunters[hook] = hook.__doc__
 

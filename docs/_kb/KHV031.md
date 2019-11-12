@@ -1,0 +1,20 @@
+---
+vid: KHV031
+title: Etcd Remote Write Access Event
+categories: [Remote Code Execution]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+Etcd (Kubernetes' Database) is writable without authentication. This gives full control of your Kubernetes cluster to an attacker with access to etcd.
+
+## Remediation
+
+Ensure your etcd is accepting connections only from the Kubernetes API, using the `--trusted-ca-file` etcd flag. This is usually done by the installer, or cloud platform. 
+
+## References
+
+- [etcd - Transport security model](https://etcd.io/docs/v3.4.0/op-guide/security/)
+- [Operating etcd clusters for Kubernetes - Securing etcd clusters](https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#securing-etcd-clusters)
