@@ -35,6 +35,9 @@ Table of Contents
 ## Hunting
 
 ### Where should I run kube-hunter?
+
+There are three different ways to run kube-hunter, each providing a different approach to detecting weaknesses in your cluster:
+
 Run kube-hunter on any machine (including your laptop), select Remote scanning and give the IP address or domain name of your Kubernetes cluster. This will give you an attackers-eye-view of your Kubernetes setup.
 
 You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
@@ -48,21 +51,24 @@ First check for these **[pre-requisites](#prerequisites)**.
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
 1. **Remote scanning**
+
 To specify remote machines for hunting, select option 1 or use the `--remote` option. Example:
 `./kube-hunter.py --remote some.node.com`
 
 2. **Interface scanning**
-To specify interface scanning, you can use the `--interface` option. (this will scan all of the machine's network interfaces) Example:
+
+To specify interface scanning, you can use the `--interface` option (this will scan all of the machine's network interfaces). Example:
 `./kube-hunter.py --interface`
 
 3. **Network scanning**
+
 To specify a specific CIDR to scan, use the `--cidr` option. Example:
 `./kube-hunter.py --cidr 192.168.0.0/24`
 
 ### Active Hunting
 
 Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, to explore for further vulnerabilities.
-The main difference between normal and active hunting is that a normal hunt will never change state of the cluster, while active hunting can potentially do state-changing operations on the cluster, **which could be harmful**.
+The main difference between normal and active hunting is that a normal hunt will never change the state of the cluster, while active hunting can potentially do state-changing operations on the cluster, **which could be harmful**.
 
 By default, kube-hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:
 `./kube-hunter.py --remote some.domain.com --active`
@@ -89,7 +95,7 @@ Available log levels are:
 * WARNING
 
 ### Dispatching
-By default, the report will be dispatched to `stdout`, but you can specify different methods, by using the `--dispatch` option. Example:
+By default, the report will be dispatched to `stdout`, but you can specify different methods by using the `--dispatch` option. Example:
 `./kube-hunter.py --report json --dispatch http`
 Available dispatch methods are:
 
@@ -143,7 +149,7 @@ By default, kube-hunter runs in interactive mode. You can also specify the scann
 This option lets you discover what running a malicious container can do/discover on your cluster. This gives a perspective on what an attacker could do if they were able to compromise a pod, perhaps through a software vulnerability. This may reveal significantly more vulnerabilities.
 
 The `job.yaml` file defines a Job that will run kube-hunter in a pod, using default Kubernetes pod access settings.
-* Run the job with `kubectl create` with that yaml file.
+* Run the job with `kubectl create -f ./job.yaml`
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
 
