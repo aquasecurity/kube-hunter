@@ -14,7 +14,7 @@ email_pattern = re.compile(r"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
 class CertificateEmail(Vulnerability, Event):
     """Certificate includes an email address"""
     def __init__(self, email):
-        Vulnerability.__init__(self, KubernetesCluster, "Certificate Includes Email Address", category=InformationDisclosure)
+        Vulnerability.__init__(self, KubernetesCluster, "Certificate Includes Email Address", category=InformationDisclosure,khv="KHV021")
         self.email = email
         self.evidence = "email: {}".format(self.email)
 
@@ -31,7 +31,7 @@ class CertificateDiscovery(Hunter):
             logging.debug("Passive hunter is attempting to get server certificate")
             addr = (str(self.event.host), self.event.port)
             cert = ssl.get_server_certificate(addr)
-        except ssl.SSLError as e:
+        except ssl.SSLError:
             # If the server doesn't offer SSL on this port we won't get a certificate
             return
         c = cert.strip(ssl.PEM_HEADER).strip(ssl.PEM_FOOTER)

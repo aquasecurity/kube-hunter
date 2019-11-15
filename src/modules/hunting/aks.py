@@ -13,7 +13,7 @@ from ...core.types import Hunter, ActiveHunter, IdentityTheft, Azure, CloudTypes
 class AzureSpnExposure(Vulnerability, Event):
     """The SPN is exposed, potentially allowing an attacker to gain access to the Azure subscription"""
     def __init__(self, container):
-        Vulnerability.__init__(self, Azure, "Azure SPN Exposure", category=IdentityTheft)
+        Vulnerability.__init__(self, Azure, "Azure SPN Exposure", category=IdentityTheft, vid="KHV004")
         self.container = container
 
 @handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud==CloudTypes.AKS)
@@ -58,11 +58,11 @@ class ProveAzureSpnExposure(ActiveHunter):
         self.base_url = "https://{}:{}".format(self.event.host, self.event.port)
 
     def run(self, command, container):
-        run_url = "{base}/run/{podNamespace}/{podID}/{containerName}".format(
+        run_url = "{base}/run/{pod_namespace}/{pod_id}/{container_name}".format(
             base=self.base_url,
-            podNamespace=container["namespace"],
-            podID=container["pod"],
-            containerName=container["name"]
+            pod_namespace=container["namespace"],
+            pod_id=container["pod"],
+            container_name=container["name"]
         )
         return requests.post(run_url, verify=False, params={'cmd': command}).text
 

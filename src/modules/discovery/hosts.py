@@ -127,7 +127,6 @@ class FromPodHostDiscovery(Discovery):
                 if self.event.kubeservicehost not in IPNetwork("{}/{}".format(pod_subnet[0], pod_subnet[1])):
                     self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
 
-
     def pod_subnet_discovery(self):
         # normal option when running as a pod is to scan it's own subnet
         # The gateway connects us to the host, and we can discover the 

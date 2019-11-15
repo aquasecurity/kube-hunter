@@ -1,0 +1,19 @@
+---
+vid: KHV036
+title: Anonymous Authentication
+categories: [Remote Code Execution]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+The kubelet is configured to allow anonymous (unauthenticated) requests to it's HTTP api. This may expose certein information, and capabilities to an attacker with access to the kubelet API.
+
+## Remediation
+
+Ensure kubelet is protected using `--anonymous-auth=false` kubelet flag. Allow only legitimate users using `--client-ca-file` or `--authentication-token-webhook` kubelet flags. This is usually done by the installer or cloud provider.
+
+## References
+
+- [Kubelet authentication/authorization](https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet-authentication-authorization/)

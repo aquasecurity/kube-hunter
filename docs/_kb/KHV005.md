@@ -1,0 +1,24 @@
+---
+vid: KHV005
+title: Access to Kubernetes API
+categories: [Information Disclosure, Unauthenticated Access]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+Kubernetes API was accessed with Pod Service Account or without Authentication (see report message for details).
+
+## Remediation
+
+Secure acess to your Kubernetes API.
+
+It is recommended to explicitly specify a Service Account for all of your workloads (`serviceAccountName` in `Pod.Spec`), and manage their permissions according to the least privilege principal.
+
+Consider opting out automatic mounting of SA token using `automountServiceAccountToken: false` on `ServiceAccount` resource or `Pod.spec`.
+
+
+## References
+
+- [Configure Service Accounts for Pods](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/)

@@ -1,0 +1,20 @@
+---
+vid: KHV007
+title: Specific Access to Kubernetes API
+categories: [Access Risk]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+kube-hunter was able to perform the action specified by the reported vulnerability (check the report for more information). This may or may not be a problem, depending on your cluster setup and preferences.
+
+## Remediation
+
+Review the RBAC permissions to Kubernetes API server for the anonymous and default service account.
+
+## References
+
+- [Using RBAC Authorization](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+- [KHV005 - Access to Kubernetes API]({{ site.baseurl }}{% link _kb/KHV005.md %})

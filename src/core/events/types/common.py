@@ -1,6 +1,3 @@
-import logging
-import requests
-import json
 import threading
 from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
 
@@ -80,12 +77,17 @@ class Vulnerability(object):
         UnauthenticatedAccess: "low"
     })
 
-    def __init__(self, component, name, category=None):
+    # TODO: make vid mandatry once migration is done
+    def __init__(self, component, name, category=None, vid=None):
+        self.vid = vid
         self.component = component
         self.category = category
         self.name = name
         self.evidence = ""
         self.role = "Node"
+
+    def get_vid(self):
+        return self.vid
 
     def get_category(self):
         if self.category:
@@ -112,10 +114,10 @@ class NewHostEvent(Event):
         global event_id_count
         self.host = host
         self.cloud = cloud
-        event_id_count_lock.acquire()
-        self.event_id = event_id_count
-        event_id_count += 1
-        event_id_count_lock.release()
+
+        with event_id_count_lock:
+            self.event_id = event_id_count
+            event_id_count += 1
 
     def __str__(self):
         return str(self.host)
@@ -156,7 +158,7 @@ class ReportDispatched(Event):
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint """
     def __init__(self, version, from_endpoint, extra_info=""):
-        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure)
+        Vulnerability.__init__(self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure, vid="KHV002")
         self.version = version
         self.from_endpoint = from_endpoint
         self.extra_info = extra_info

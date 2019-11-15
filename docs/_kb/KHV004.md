@@ -1,0 +1,24 @@
+---
+vid: KHV004
+title: Azure SPN Exposure
+categories: [Identity Theft]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+Kubernetes has native integration with Microsoft Azure, for that a Kubernetes installation on Azure will require API access to manage the cluster's resources in Azure (for example, to create a cloud load balancer). Some installations of Kubernetes on Azure rely on a shared file on the node that contains credentials to the Azure API under `/etc/kubernetes/azure.json`. A Pod with access to this file may become a gateway for an attacker to control your Azure environment.
+
+## Remediation
+
+The better solution would be to use Azure Managed Identities instead of a static SPN. However this functionality is not mature yet, and is currently available in alpha stage only for aks-engine (non-managed Kubernetes).
+
+You can update or rotate the cluster SPN credentials, in order to prevent leaked credentials to persist over time.
+
+## References
+
+- [Service principals with Azure Kubernetes Service (AKS)](https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/kubernetes-service-principal.md)
+- [What is managed identities for Azure resources?](https://docs.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/overview)
+- [aks-engine Features - Managed Identity](https://github.com/Azure/aks-engine/blob/master/docs/topics/features.md#managed-identity)
+- [Update or rotate the credentials for a service principal in Azure Kubernetes Service (AKS)](https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/update-credentials.md)

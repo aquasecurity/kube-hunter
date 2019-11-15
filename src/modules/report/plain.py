@@ -3,11 +3,12 @@ from __future__ import print_function
 from prettytable import ALL, PrettyTable
 
 from __main__ import config
-from .collector import services, vulnerabilities, hunters, handler, services_lock, vulnerabilities_lock
+from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
 from .base import BaseReporter
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
+KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/kb"
 
 
 class PlainReporter(BaseReporter):
@@ -15,16 +16,14 @@ class PlainReporter(BaseReporter):
     def get_report(self):
         """generates report tables"""
         output = ""
-
-        vulnerabilities_lock.acquire()
-        vulnerabilities_len = len(vulnerabilities)
-        vulnerabilities_lock.release()
+        
+        with vulnerabilities_lock:
+            vulnerabilities_len = len(vulnerabilities)
 
         hunters_len = len(hunters.items())
-
-        services_lock.acquire()
-        services_len = len(services)
-        services_lock.release()
+        
+        with services_lock:
+            services_len = len(services)
 
         if services_len:
             output += self.nodes_table()
@@ -54,13 +53,12 @@ class PlainReporter(BaseReporter):
         nodes_table.sortby = "Type"
         nodes_table.reversesort = True
         nodes_table.header_style = "upper"
-        # TODO: replace with sets
-        id_memory = list()
+        id_memory = set()
         services_lock.acquire()
         for service in services:
             if service.event_id not in id_memory:
                 nodes_table.add_row(["Node/Master", service.host])
-                id_memory.append(service.event_id)
+                id_memory.add(service.event_id)
         nodes_ret = "\nNodes\n{}\n".format(nodes_table)
         services_lock.release()
         return nodes_ret
@@ -73,15 +71,14 @@ class PlainReporter(BaseReporter):
         services_table.sortby = "Service"
         services_table.reversesort = True
         services_table.header_style = "upper"
-        services_lock.acquire()
-        for service in services:
-            services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-        detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
-        services_lock.release()
+        with services_lock:
+            for service in services:
+                services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
+            detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
         return detected_services_ret
 
     def vulns_table(self):
-        column_names = ["Location", "Category", "Vulnerability", "Description", "Evidence"]
+        column_names = ["ID", "Location", "Category", "Vulnerability", "Description", "Evidence"]
         vuln_table = PrettyTable(column_names, hrules=ALL)
         vuln_table.align = "l"
         vuln_table.max_width = MAX_TABLE_WIDTH
@@ -90,14 +87,12 @@ class PlainReporter(BaseReporter):
         vuln_table.padding_width = 1
         vuln_table.header_style = "upper"
 
-        vulnerabilities_lock.acquire()
-        for vuln in vulnerabilities:
-            row = [vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain()]
-            evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
-            row.append(evidence)
-            vuln_table.add_row(row)
-        vulnerabilities_lock.release()
-        return "\nVulnerabilities\n{}\n".format(vuln_table)
+        with vulnerabilities_lock:
+            for vuln in vulnerabilities:
+                evidence = str(vuln.evidence)[:EVIDENCE_PREVIEW] + "..." if len(str(vuln.evidence)) > EVIDENCE_PREVIEW else str(vuln.evidence)
+                row = [vuln.get_vid(), vuln.location(), vuln.category.name, vuln.get_name(), vuln.explain(), evidence]
+                vuln_table.add_row(row)
+        return "\nVulnerabilities\nFor further information about a vulnerability, search its ID in: \n{}\n{}\n".format(KB_LINK, vuln_table)
 
     def hunters_table(self):
         column_names = ["Name", "Description", "Vulnerabilities"]

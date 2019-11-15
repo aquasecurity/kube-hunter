@@ -10,9 +10,9 @@ from .arp import PossibleArpSpoofing
 from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1, srp
 
 class PossibleDnsSpoofing(Vulnerability, Event):
-    """A malicous pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM attack on applications running in the cluster."""
+    """A malicious pod running on the cluster could potentially run a DNS Spoof attack and perform a MITM attack on applications running in the cluster."""
     def __init__(self, kubedns_pod_ip):
-        Vulnerability.__init__(self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft)
+        Vulnerability.__init__(self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft, vid="KHV030")
         self.kubedns_pod_ip = kubedns_pod_ip
         self.evidence = "kube-dns at: {}".format(self.kubedns_pod_ip)
 
@@ -20,7 +20,7 @@ class PossibleDnsSpoofing(Vulnerability, Event):
 @handler.subscribe(PossibleArpSpoofing)
 class DnsSpoofHunter(ActiveHunter):
     """DNS Spoof Hunter
-    Checks for the possibility for a malicous pod to compromise DNS requests of the cluster (results are based on the running node)
+    Checks for the possibility for a malicious pod to compromise DNS requests of the cluster (results are based on the running node)
     """
     def __init__(self, event):
         self.event = event
@@ -39,7 +39,7 @@ class DnsSpoofHunter(ActiveHunter):
     def get_kube_dns_ip_mac(self):
         kubedns_svc_ip = self.extract_nameserver_ip()
 
-        # getting actuall pod ip of kube-dns service, by comparing the src mac of a dns response and arp scanning.
+        # getting actual pod ip of kube-dns service, by comparing the src mac of a dns response and arp scanning.
         dns_info_res = srp1(Ether() / IP(dst=kubedns_svc_ip) / UDP(dport=53) / DNS(rd=1,qd=DNSQR()), verbose=0)
         kubedns_pod_mac = dns_info_res.src
         self_ip = dns_info_res[IP].dst

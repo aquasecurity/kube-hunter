@@ -1,0 +1,15 @@
+---
+vid: KHV029
+title: Dashboard Exposed
+categories: [Remote Code Execution]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+An open Kubernetes Dashboard was detected. The Kubernetes Dashboard can be used by an attacker to learn about the cluster and potentially to create new resources.
+
+## Remediation
+
+Do not leave the Dashboard insecured.

@@ -1,0 +1,20 @@
+---
+vid: KHV034
+title: Etcd is accessible using insecure connection (HTTP)
+categories: [Unauthenticated Access]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+The etcd server (Kubernetes database) port is accessible over plain HTTP, and therefore unencrypted and potentially insecured.
+
+## Remediation
+
+Ensure your setup is exposing etcd only on an HTTPS port by using the etcd flags `--key-file` and `--cert-file`.
+
+## References
+
+- [etcd - Transport security model](https://etcd.io/docs/v3.4.0/op-guide/security/)
+- [Operating etcd clusters for Kubernetes - Securing etcd clusters](https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#securing-etcd-clusters)

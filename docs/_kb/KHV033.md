@@ -1,0 +1,12 @@
+---
+vid: KHV033
+title: Etcd Remote version disclosure
+categories: [Information Disclosure]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+The fact that your infrastructure is using etcd, and the specific version of etcd used is publicly available, and could be used by an attacker to target your environment with known vulnerabilities in the specific version of etcd you are using.
+
