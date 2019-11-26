@@ -27,7 +27,7 @@ class Event(object):
     # Event's logical location to be used mainly for reports.
     # If event don't implement it check previous event
     # This is because events are composed (previous -> previous ...)
-    # and not inheritted 
+    # and not inherited
     def location(self):
         location = None
         if self.previous:
@@ -77,7 +77,7 @@ class Vulnerability(object):
         UnauthenticatedAccess: "low"
     })
 
-    # TODO: make vid mandatry once migration is done
+    # TODO: make vid mandatory once migration is done
     def __init__(self, component, name, category=None, vid=None):
         self.vid = vid
         self.component = component
@@ -154,7 +154,7 @@ class ReportDispatched(Event):
     pass
 
 
-""" Core Vulnerabilites """
+""" Core Vulnerabilities """
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint """
     def __init__(self, version, from_endpoint, extra_info=""):
