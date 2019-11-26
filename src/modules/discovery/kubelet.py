@@ -12,7 +12,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 """ Services """
 class ReadOnlyKubeletEvent(Service, Event):
-    """The read-only port on the kubelet serves health probing endpoints, and is relied upon by many kubernetes componenets"""
+    """The read-only port on the kubelet serves health probing endpoints, and is relied upon by many kubernetes components"""
     def __init__(self):
         Service.__init__(self, name="Kubelet API (readonly)")
 
@@ -58,7 +58,7 @@ class KubeletDiscovery(Discovery):
         try:
             return requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).status_code
         except Exception as ex:
-            logging.debug("Failed pinging https port 10250 on {} : {}".format(self.event.host, ex.message))
+            logging.debug("Failed pinging https port 10250 on {} : {}".format(self.event.host, ex))
 
     def execute(self):
         if self.event.port == KubeletPorts.SECURED.value:

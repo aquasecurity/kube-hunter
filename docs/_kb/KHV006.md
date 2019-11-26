@@ -1,0 +1,23 @@
+---
+vid: KHV006
+title: Insecure (HTTP) access to Kubernetes API
+categories: [Unauthenticated Access]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+The API Server port is accessible over plain HTTP, and therefore unencrypted and potentially insecured.
+
+## Remediation
+
+Ensure your setup is exposing kube-api only on an HTTPS port.
+
+Do not enable kube-api's `--insecure-port` flag in production.
+
+
+## References
+
+- [API Server Ports and IPs](https://kubernetes.io/docs/reference/access-authn-authz/controlling-access/#api-server-ports-and-ips)
+- [kube-apiserver command reference](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/)

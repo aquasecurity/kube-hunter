@@ -121,13 +121,12 @@ class FromPodHostDiscovery(Discovery):
    # for pod scanning
     def traceroute_discovery(self):
         external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
-        cloud = HostDiscoveryHelpers.get_cloud(external_ip)
         from scapy.all import ICMP, IP, Ether, srp1
 
         node_internal_ip = srp1(Ether() / IP(dst="google.com" , ttl=1) / ICMP(), verbose=0)[IP].src
         return [ [node_internal_ip,"24"], ], external_ip
 
-    # quering azure's interface metadata api | works only from a pod
+    # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
         logging.debug("From pod attempting to access azure's metadata")
         machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).text)

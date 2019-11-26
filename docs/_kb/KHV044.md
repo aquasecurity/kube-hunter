@@ -1,0 +1,22 @@
+---
+vid: KHV044
+title: Privileged Container
+categories: [Access Risk]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+A privileged container is given access to all devices on the host and can work at the kernel level. It is declared using the `Pod.spec.containers[].securityContext.privileged` attribute. This may be useful for infrastructure containers that perform setup work on the host, but is a dangerous attack vector.
+
+## Remediation
+
+Minimize the use of privileged containers.
+
+Use Pod Security Policies to enforce using `privileged: false` policy. 
+
+## References
+
+- [Privileged mode for pod containers](https://kubernetes.io/docs/concepts/workloads/pods/pod/#privileged-mode-for-pod-containers)
+- [Pod Security Policies - Privileged](https://kubernetes.io/docs/concepts/policy/pod-security-policy/#privileged)

@@ -1,0 +1,20 @@
+---
+vid: KHV026
+title: Arbitrary Access To Cluster Scoped Resources
+categories: [PrivilegeEscalation]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+Cluster is found to be vulnerable to CVE-2019-11247. Please see the Vulnerability description for additional information.
+
+## Remediation
+
+Please see the Vulnerability description for remediation.
+
+## References
+
+- [CVE-2019-11247: API server allows access to custom resources via wrong scope](https://github.com/kubernetes/kubernetes/issues/80983)
+- [CVE-2019-11247](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-11247)

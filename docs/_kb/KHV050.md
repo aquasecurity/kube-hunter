@@ -1,0 +1,22 @@
+---
+vid: KHV050
+title: Read access to Pod service account token
+categories: [Access Risk]
+---
+
+# {{ page.vid }} - {{ page.title }}
+
+## Issue description
+
+Every Pod in Kubernetes is associated with a Service Account which by default has access to the Kubernetes API. This access is made available to Pods by an auto-generated token that is made available to the Pod by Kubernetes. An attacker with access to a Pod can read the token and access the Kubernetes API.
+
+## Remediation
+
+It is recommended to explicitly specify a Service Account for all of your workloads (`serviceAccountName` in `Pod.Spec`), and manage their permissions according to the least privilege principle.
+
+Consider opting out automatic mounting of SA token using `automountServiceAccountToken: false` on `ServiceAccount` resource or `Pod.spec`.
+
+
+## References
+
+- [Configure Service Accounts for Pods](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/)

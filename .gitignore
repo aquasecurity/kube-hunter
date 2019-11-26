@@ -1,6 +1,11 @@
 *.pyc
+.venv
 .dockerignore
 *aqua*
 venv/
 .vscode
 .idea
+
+# Directory Cache Files
+.DS_Store
+thumbs.db
