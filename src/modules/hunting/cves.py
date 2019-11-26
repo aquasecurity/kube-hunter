@@ -154,7 +154,7 @@ class K8sClusterCveHunter(Hunter):
             ServerApiClusterScopedResourcesAccess: ["1.13.9", "1.14.5", "1.15.2"]
         }        
         for vulnerability, fix_versions in cve_mapping.items():
-            if CveUtils.is_vulnerable(fix_versions, self.event.version, config.ignore_downstream):
+            if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(self.event.version))
 
 
@@ -173,5 +173,5 @@ class KubectlCVEHunter(Hunter):
         }
         logging.debug('Kubectl Cve Hunter determining vulnerable version: {}'.format(self.event.version))
         for vulnerability, fix_versions in cve_mapping.items():
-            if CveUtils.is_vulnerable(fix_versions, self.event.version, config.ignore_downstream):
+            if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(binary_version=self.event.version))
