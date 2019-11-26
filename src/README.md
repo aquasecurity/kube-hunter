@@ -25,7 +25,7 @@ When you write your module, you can decide on which Event to subscribe to, meani
 
 -----------------------
 ### Hunter Types  
-There are three hunter types which you can implement: a `Hunter`, `ActiveHunter` and `Discovery`.  Hunters just probe the state of a cluster, whereas ActiveHunter modules can attempt operations that could change the state of the cluster. Discovery is Hunter for discovery purposes only.
+There are three hunter types which you can implement: a `Hunter`, `ActiveHunter` and `Discovery`. Hunters just probe the state of a cluster, whereas ActiveHunter modules can attempt operations that could change the state of the cluster. Discovery is Hunter for discovery purposes only.
 ##### Hunter  
 Example:  
 ~~~python  
