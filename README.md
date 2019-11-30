@@ -1,13 +1,17 @@
 ![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png)
 
 [![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
+[![codecov](https://codecov.io/gh/aquasecurity/kube-hunter/branch/master/graph/badge.svg)](https://codecov.io/gh/aquasecurity/kube-hunter)
 [![License](https://img.shields.io/github/license/aquasecurity/kube-hunter)](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE)
 [![Docker image](https://images.microbadger.com/badges/image/aquasec/kube-hunter.svg)](https://microbadger.com/images/aquasec/kube-hunter "Get your own image badge on microbadger.com")
+
 
 
 kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster that you don't own!**
 
 **Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you to see and share the results online. You can also run the Python code yourself as described below.
+
+**Explore vulnerabilities**: The kube-hunter knowledge base includes articles about discoverable vulnerabilities and issues. When kube-hunter reports an issue, it will show its VID (Vulnerability ID) so you can look it up in the KB at https://aquasecurity.github.io/kube-hunter/
 
 **Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your First kube-hunter Module](src/README.md).
 
@@ -146,7 +150,8 @@ By default, kube-hunter runs in interactive mode. You can also specify the scann
 ### Pod
 This option lets you discover what running a malicious container can do/discover on your cluster. This gives a perspective on what an attacker could do if they were able to compromise a pod, perhaps through a software vulnerability. This may reveal significantly more vulnerabilities.
 
-The `job.yaml` file defines a Job that will run kube-hunter in a pod, using default Kubernetes pod access settings.
+The example `job.yaml` file defines a Job that will run kube-hunter in a pod, using default Kubernetes pod access settings. (You may wish to modify this definition, for example to run as a non-root user, or to run in a different namespace.)
+
 * Run the job with `kubectl create -f ./job.yaml`
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`

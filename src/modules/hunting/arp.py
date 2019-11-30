@@ -26,7 +26,7 @@ class ArpSpoofHunter(ActiveHunter):
         return ans[ARP].hwsrc if ans else None
 
     def detect_l3_on_host(self, arp_responses):
-        """ returns True for an existance of an L3 network plugin """
+        """ returns True for an existence of an L3 network plugin """
         logging.debug("Attempting to detect L3 network plugin using ARP")
         unique_macs = list(set(response[ARP].hwsrc for _, response in arp_responses))
         
