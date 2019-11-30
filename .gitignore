@@ -4,6 +4,7 @@
 *aqua*
 venv/
 .vscode
+.coverage
 .idea
 
 # Directory Cache Files
