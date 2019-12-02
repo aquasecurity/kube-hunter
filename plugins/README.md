@@ -1,13 +1,13 @@
 # Plugins
 
-This folder contains modules that will load before any parsing of arguments by kubehunter's main module  
+This folder contains modules that will load before any parsing of arguments by kube-hunter main module.
 
 An example for using a plugin to add an argument:
 ```python
 # example.py
-from src.core.conf import config
+from src.conf import config
 
-parser.add_argument('--exampleflag', action="store_true", help="enables active hunting")
+config.parser.add_argument('--exampleflag', action="store_true", help="enables active hunting")
 ```
 What we did here was just add a file to the `plugins/` folder, import the parser, and adding an argument.
 

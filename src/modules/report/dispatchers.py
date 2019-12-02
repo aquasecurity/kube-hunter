@@ -1,7 +1,7 @@
 import logging
 import os
 import requests
-from conf import config
+from src.conf import config
 
 
 class HTTPDispatcher(object):

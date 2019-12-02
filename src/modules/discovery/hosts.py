@@ -9,7 +9,7 @@ from enum import Enum
 import requests
 from netaddr import IPNetwork, IPAddress
 
-from conf import config
+from src.conf import config
 from netifaces import AF_INET, ifaddresses, interfaces
 
 from ...core.events import handler

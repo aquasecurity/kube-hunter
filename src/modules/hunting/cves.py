@@ -2,7 +2,7 @@ import logging
 import json
 import requests
 
-from conf import config
+from src.conf import config
 
 from ...core.events import handler
 from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure

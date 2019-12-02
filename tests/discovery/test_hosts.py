@@ -5,7 +5,7 @@ from queue import Empty
 from src.modules.discovery.hosts import FromPodHostDiscovery, RunningAsPodEvent, HostScanEvent, AzureMetadataApi
 from src.core.events.types import Event, NewHostEvent
 from src.core.events import handler
-from conf import config
+from src.conf import config
 
 def test_FromPodHostDiscovery():
 

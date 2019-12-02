@@ -1,6 +1,6 @@
 import logging
 
-from conf import config
+from src.conf import config
 from src.core.events import handler
 from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
 import threading

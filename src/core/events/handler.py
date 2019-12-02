@@ -4,7 +4,7 @@ from collections import defaultdict
 from queue import Queue
 from threading import Thread
 
-from conf import config
+from src.conf import config
 
 from ..types import ActiveHunter, HunterBase
 

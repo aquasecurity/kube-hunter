@@ -1,6 +1,6 @@
 from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
 from src.core.types import Discovery
-from __main__ import config
+from src.conf import config
 
 
 class BaseReporter(object):
