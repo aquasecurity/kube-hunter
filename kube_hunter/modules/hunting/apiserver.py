@@ -225,8 +225,9 @@ class AccessApiServer(Hunter):
                 for item in resp["items"]:
                     items.append(item["metadata"]["name"])
                 return items
+            logging.debug("Got HTTP {} respone: {}".format(r.status_code, r.text))
         except (requests.exceptions.ConnectionError, KeyError):
-            pass
+            logging.debug("Failed retrieving items from API server at {}".format(path))
 
         return None
 

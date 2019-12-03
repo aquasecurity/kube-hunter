@@ -33,7 +33,7 @@ class HTTPDispatcher(object):
             )
         except requests.HTTPError as e:
             # specific http exceptions
-            logging.error(
+            logging.exception(
                 "\nCould not dispatch report using HTTP {method} to {url}\nResponse Code: {status}".format(
                     status=r.status_code,
                     url=dispatch_url,
@@ -42,10 +42,9 @@ class HTTPDispatcher(object):
             )
         except Exception as e:
             # default all exceptions
-            logging.error("\nCould not dispatch report using HTTP {method} to {url} - {error}".format(
+            logging.exception("\nCould not dispatch report using HTTP {method} to {url}".format(
                 method=dispatch_method,
-                url=dispatch_url,
-                error=e
+                url=dispatch_url
             ))
 
 class STDOUTDispatcher(object):

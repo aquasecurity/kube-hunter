@@ -152,7 +152,7 @@ class HostDiscovery(Discovery):
             try:
                 ip, sn = config.cidr.split('/')
             except ValueError as e:
-                logging.error("unable to parse cidr: {0}".format(e))
+                logging.exception("unable to parse cidr")
                 return
             cloud = HostDiscoveryHelpers.get_cloud(ip)
             for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):

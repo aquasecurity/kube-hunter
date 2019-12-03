@@ -92,7 +92,7 @@ class ApiServiceClassify(EventFilterBase):
                 else:
                     self.event = ApiServer()
         except Exception as e:
-            logging.error("Could not access /version on API service: {}".format(e))
+            logging.exception("Could not access /version on API service")
 
     def execute(self):
         discovered_protocol = self.event.protocol
