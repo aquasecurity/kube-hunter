@@ -79,8 +79,8 @@ class Vulnerability(object):
         UnauthenticatedAccess: "low"
     })
 
-    # TODO: make vid mandatory once migration is done
-    def __init__(self, component, name, category=None, vid=None):
+    # TODO: make vid mandatry once migration is done
+    def __init__(self, component, name, category=None, vid="None"):
         self.vid = vid
         self.component = component
         self.category = category
