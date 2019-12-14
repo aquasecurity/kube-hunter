@@ -16,7 +16,7 @@ kube-hunter/
                     # your module
                 report/
                     # your module
-        kube-hunter.py  
+            __main__.py  
 ~~~  
 ### Design Pattern   
 Kube-hunter is built with the [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern).    
@@ -247,5 +247,5 @@ __Note: In filters, you should not change attributes in the event.previous. This
 Although we haven't been rigorous about this in the past, please add tests to support your code changes. Tests are executed like this: 
 
 ```bash
-python runtest.py
+pytest
 ```

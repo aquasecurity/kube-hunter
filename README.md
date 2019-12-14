@@ -55,17 +55,17 @@ By default, kube-hunter will open an interactive session, in which you will be a
 1. **Remote scanning**
 
 To specify remote machines for hunting, select option 1 or use the `--remote` option. Example:
-`./kube-hunter.py --remote some.node.com`
+`kube-hunter --remote some.node.com`
 
 2. **Interface scanning**
 
 To specify interface scanning, you can use the `--interface` option (this will scan all of the machine's network interfaces). Example:
-`./kube-hunter.py --interface`
+`kube-hunter --interface`
 
 3. **Network scanning**
 
 To specify a specific CIDR to scan, use the `--cidr` option. Example:
-`./kube-hunter.py --cidr 192.168.0.0/24`
+`kube-hunter --cidr 192.168.0.0/24`
 
 ### Active Hunting
 
@@ -73,23 +73,23 @@ Active hunting is an option in which kube-hunter will exploit vulnerabilities it
 The main difference between normal and active hunting is that a normal hunt will never change the state of the cluster, while active hunting can potentially do state-changing operations on the cluster, **which could be harmful**.
 
 By default, kube-hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:
-`./kube-hunter.py --remote some.domain.com --active`
+`kube-hunter --remote some.domain.com --active`
 
 ### List of tests
 You can see the list of tests with the `--list` option: Example:
-`./kube-hunter.py --list`
+`kube-hunter --list`
 
 To see active hunting tests as well as passive:
-`./kube-hunter.py --list --active`
+`kube-hunter --list --active`
 
 ### Nodes Mapping 
 To see only a mapping of your nodes network, run with `--mapping` option. Example:
-`./kube-hunter.py --cidr 192.168.0.0/24 --mapping`
+`kube-hunter --cidr 192.168.0.0/24 --mapping`
 This will output all the Kubernetes nodes kube-hunter has found.
 
 ### Output
 To control logging, you can specify a log level, using the `--log` option. Example:
-`./kube-hunter.py --active --log WARNING`
+`kube-hunter --active --log WARNING`
 Available log levels are:
 
 * DEBUG
@@ -98,7 +98,7 @@ Available log levels are:
 
 ### Dispatching
 By default, the report will be dispatched to `stdout`, but you can specify different methods by using the `--dispatch` option. Example:
-`./kube-hunter.py --report json --dispatch http`
+`kube-hunter --report json --dispatch http`
 Available dispatch methods are:
 
 * stdout (default)
@@ -111,13 +111,27 @@ There are three methods for deploying kube-hunter:
 
 ### On Machine
 
-You can run the kube-hunter python code directly on your machine.
+You can run kube-hunter directly on your machine.
+
 #### Prerequisites
 
 You will need the following installed:
 * python 3.x
 * pip
 
+##### Install with pip
+
+Install:
+~~~
+pip install kube-hunter
+~~~
+
+Run:
+~~~
+kube-hunter
+~~~
+
+##### Run from source
 Clone the repository:
 ~~~
 git clone https://github.com/aquasecurity/kube-hunter.git
@@ -130,15 +144,18 @@ pip install -r requirements.txt
 ~~~
 
 Run:
-`./kube-hunter.py`
+~~~
+python3 kube_hunter
+~~~
 
 _If you want to use pyinstaller/py2exe you need to first run the install_imports.py script._
+
 ### Container
 Aqua Security maintains a containerized version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note, that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
 
 The Dockerfile in this repository allows you to build a containerized version without the reporting plugin.
 
-If you run the kube-hunter container with the host network, it will be able to probe all the interfaces on the host:
+If you run kube-hunter container with the host network, it will be able to probe all the interfaces on the host:
 
 `docker run -it --rm --network host aquasec/kube-hunter`
 
