@@ -4,7 +4,7 @@ from collections import defaultdict
 from queue import Queue
 from threading import Thread
 
-from src.conf import config
+from kube_hunter.conf import config
 
 from ..types import ActiveHunter, HunterBase
 

@@ -1,5 +1,5 @@
 import json
-from .base import BaseReporter
+from kube_hunter.modules.report.base import BaseReporter
 
 
 class JSONReporter(BaseReporter):

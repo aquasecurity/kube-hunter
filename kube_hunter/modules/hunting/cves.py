@@ -2,15 +2,16 @@ import logging
 import json
 import requests
 
-from src.conf import config
-
-from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
-from ...core.types import Hunter, ActiveHunter, KubernetesCluster, RemoteCodeExec, AccessRisk, InformationDisclosure, \
-    PrivilegeEscalation, DenialOfService, KubectlClient
-from ..discovery.kubectl import KubectlClientEvent
-
 from packaging import version
+
+from kube_hunter.conf import config
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
+from kube_hunter.core.types import Hunter, ActiveHunter, KubernetesCluster, \
+    RemoteCodeExec, AccessRisk, InformationDisclosure, PrivilegeEscalation, \
+    DenialOfService, KubectlClient
+from kube_hunter.modules.discovery.kubectl import KubectlClientEvent
+
 
 """ Cluster CVES """
 class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
@@ -79,16 +80,16 @@ class CveUtils:
         if type(v) != version.LegacyVersion:
             return '.'.join(map(str, v._version.release))
         return v._version
-        
+
     @staticmethod
     def version_compare(v1, v2):
         """Function compares two versions, handling differences with conversion to LegacyVersion"""
-        # getting raw version, while striping 'v' char at the start. if exists. 
+        # getting raw version, while striping 'v' char at the start. if exists.
         # removing this char lets us safely compare the two version.
         v1_raw, v2_raw = CveUtils.to_raw_version(v1).strip('v'), CveUtils.to_raw_version(v2).strip('v')
         new_v1 = version.LegacyVersion(v1_raw)
         new_v2 = version.LegacyVersion(v2_raw)
-        
+
         return CveUtils.basic_compare(new_v1, new_v2)
 
     @staticmethod
@@ -108,7 +109,7 @@ class CveUtils:
         vulnerable = False
         check_v = version.parse(check_version)
         base_check_v = CveUtils.get_base_release(check_v)
-        
+
         # default to classic compare, unless the check_version is legacy.
         version_compare_func = CveUtils.basic_compare
         if type(check_v) == version.LegacyVersion:
@@ -120,7 +121,7 @@ class CveUtils:
                 fix_v = version.parse(fix_v)
                 base_fix_v = CveUtils.get_base_release(fix_v)
 
-                # if the check version and the current fix has the same base release 
+                # if the check version and the current fix has the same base release
                 if base_check_v == base_fix_v:
                     # when check_version is legacy, we use a custom compare func, to handle differences between versions.
                     if version_compare_func(check_v, fix_v) == -1:
@@ -128,7 +129,7 @@ class CveUtils:
                         vulnerable = True
                         break
 
-        # if we did't find a fix in the fix releases, checking if the version is smaller that the first fix 
+        # if we did't find a fix in the fix releases, checking if the version is smaller that the first fix
         if not vulnerable and version_compare_func(check_v, version.parse(fix_versions[0])) == -1:
             vulnerable = True
 
@@ -152,7 +153,7 @@ class K8sClusterCveHunter(Hunter):
             ResetFloodHttp2Implementation: ["1.13.10", "1.14.6", "1.15.3"],
             PingFloodHttp2Implementation: ["1.13.10", "1.14.6", "1.15.3"],
             ServerApiClusterScopedResourcesAccess: ["1.13.9", "1.14.5", "1.15.2"]
-        }        
+        }
         for vulnerability, fix_versions in cve_mapping.items():
             if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(self.event.version))
@@ -169,7 +170,7 @@ class KubectlCVEHunter(Hunter):
     def execute(self):
         cve_mapping = {
             KubectlCpVulnerability: ['1.11.9', '1.12.7', '1.13.5' '1.14.0'],
-            IncompleteFixToKubectlCpVulnerability: ['1.12.9', '1.13.6', '1.14.2'] 
+            IncompleteFixToKubectlCpVulnerability: ['1.12.9', '1.13.6', '1.14.2']
         }
         logging.debug('Kubectl Cve Hunter determining vulnerable version: {}'.format(self.event.version))
         for vulnerability, fix_versions in cve_mapping.items():

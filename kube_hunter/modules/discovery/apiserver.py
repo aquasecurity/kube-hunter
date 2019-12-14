@@ -2,9 +2,9 @@ import json
 import requests
 import logging
 
-from ...core.types import Discovery
-from ...core.events import handler
-from ...core.events.types import OpenPortEvent, Service, Event, EventFilterBase
+from kube_hunter.core.types import Discovery
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFilterBase
 
 KNOWN_API_PORTS = [443, 6443, 8080]
 
@@ -20,7 +20,7 @@ class ApiServer(Service, Event):
     def __init__(self):
         Service.__init__(self, name="API Server")
         self.protocol = "https"
-        
+
 class MetricsServer(Service, Event):
     """The Metrics server is in charge of providing resource usage metrics for pods and nodes to the API server."""
     def __init__(self):
@@ -39,7 +39,7 @@ class ApiServiceDiscovery(Discovery):
         self.event = event
         self.session = requests.Session()
         self.session.verify = False
-    
+
     def execute(self):
         logging.debug("Attempting to discover an API service on {}:{}".format(self.event.host, self.event.port))
         protocols = ["http", "https"]
@@ -62,10 +62,10 @@ class ApiServiceDiscovery(Discovery):
 # We swap the filtered event with a new corresponding Service to next be published
 # The classification can be regarding the context of the execution,
 # Currently we classify: Metrics Server and Api Server
-# If running as a pod: 
+# If running as a pod:
 # We know the Api server IP, so we can classify easily
-# If not: 
-# We determine by accessing the /version on the service. 
+# If not:
+# We determine by accessing the /version on the service.
 # Api Server will contain a major version field, while the Metrics will not
 @handler.subscribe(K8sApiService)
 class ApiServiceClassify(EventFilterBase):
@@ -80,7 +80,7 @@ class ApiServiceClassify(EventFilterBase):
         # Using the auth token if we can, for the case that authentication is needed for our checks
         if self.event.auth_token:
             self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
-            
+
     def classify_using_version_endpoint(self):
         """Tries to classify by accessing /version. if could not access succeded, returns"""
         try:
@@ -109,6 +109,6 @@ class ApiServiceClassify(EventFilterBase):
 
         # in any case, making sure to link previously discovered protocol
         self.event.protocol = discovered_protocol
-        # If some check classified the Service, 
+        # If some check classified the Service,
         # the event will have been replaced.
         return self.event

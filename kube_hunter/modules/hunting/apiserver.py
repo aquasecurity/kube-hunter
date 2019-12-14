@@ -4,18 +4,16 @@ import requests
 import uuid
 import copy
 
-from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, K8sVersionDisclosure
-from ..discovery.apiserver import ApiServer
-from ...core.types import Hunter, ActiveHunter, KubernetesCluster
-from ...core.types import RemoteCodeExec, AccessRisk, InformationDisclosure, UnauthenticatedAccess
+from kube_hunter.modules.discovery.apiserver import ApiServer
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
+from kube_hunter.core.types import Hunter, ActiveHunter, KubernetesCluster
+from kube_hunter.core.types import RemoteCodeExec, AccessRisk, InformationDisclosure, UnauthenticatedAccess
 
-
-""" Vulnerabilities """
 
 class ServerApiAccess(Vulnerability, Event):
     """ The API Server port is accessible. Depending on your RBAC settings this could expose access to or control of your cluster. """
- 
+
     def __init__(self, evidence, using_token):
         if using_token:
             name = "Access to API using service account token"
@@ -28,7 +26,7 @@ class ServerApiAccess(Vulnerability, Event):
 
 class ServerApiHTTPAccess(Vulnerability, Event):
     """ The API Server port is accessible over HTTP, and therefore unencrypted. Depending on your RBAC settings this could expose access to or control of your cluster. """
- 
+
     def __init__(self, evidence):
         name = "Insecure (HTTP) access to API"
         category = UnauthenticatedAccess
@@ -37,7 +35,7 @@ class ServerApiHTTPAccess(Vulnerability, Event):
 
 class ApiInfoDisclosure(Vulnerability, Event):
     def __init__(self, evidence, using_token, name):
-        if using_token: 
+        if using_token:
             name +=" using service account token"
         else:
             name +=" as anonymous user"
@@ -219,7 +217,7 @@ class AccessApiServer(Hunter):
         return False
 
     def get_items(self, path):
-        try: 
+        try:
             items = []
             r = requests.get(path, headers=self.headers, verify=False)
             if r.status_code ==200:
@@ -229,7 +227,7 @@ class AccessApiServer(Hunter):
                 return items
         except (requests.exceptions.ConnectionError, KeyError):
             pass
-        
+
         return None
 
     def get_pods(self, namespace=None):
@@ -315,7 +313,7 @@ class AccessApiServerActive(ActiveHunter):
 
         try:
             res = requests.post(path.format(name=name), verify=False, data=data, headers=headers)
-            if res.status_code in [200, 201, 202]: 
+            if res.status_code in [200, 201, 202]:
                 parsed_content = json.loads(res.content)
                 return parsed_content['metadata']['name']
         except (requests.exceptions.ConnectionError, KeyError):
@@ -330,7 +328,7 @@ class AccessApiServerActive(ActiveHunter):
             headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
         try:
             res = requests.patch(path, headers=headers, verify=False, data=data)
-            if res.status_code not in [200, 201, 202]: 
+            if res.status_code not in [200, 201, 202]:
                 return None
             parsed_content = json.loads(res.content)
             # TODO is there a patch timestamp we could use?
@@ -345,7 +343,7 @@ class AccessApiServerActive(ActiveHunter):
             headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
         try:
             res = requests.delete(path, headers=headers, verify=False)
-            if res.status_code in [200, 201, 202]: 
+            if res.status_code in [200, 201, 202]:
                 parsed_content = json.loads(res.content)
                 return parsed_content['metadata']['deletionTimestamp']
         except (requests.exceptions.ConnectionError, KeyError):
@@ -398,7 +396,7 @@ class AccessApiServerActive(ActiveHunter):
         random_name = (str(uuid.uuid4()))[0:5]
         json = '{{"kind":"Namespace","apiVersion":"v1","metadata":{{"name":"{random_str}","labels":{{"name":"{random_str}"}}}}}}'.format(random_str=random_name)
         return self.create_item(path="{path}/api/v1/namespaces".format(path=self.path), name=random_name, data=json)
-        
+
     def delete_namespace(self, namespace):
         delete_timestamp = self.delete_item("{path}/api/v1/namespaces/{name}".format(path=self.path, name=namespace))
         if delete_timestamp is None:
@@ -432,7 +430,7 @@ class AccessApiServerActive(ActiveHunter):
                         }}""".format(random_str=name, namespace=namespace)
         return self.create_item(path="{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles".format(
                                 path=self.path, namespace=namespace), name=name, data=role)
-        
+
     def create_a_cluster_role(self):
         name = (str(uuid.uuid4()))[0:5]
         cluster_role = """{{
@@ -521,7 +519,7 @@ class AccessApiServerActive(ActiveHunter):
                     if delete_time:
                         self.publish_event(DeleteAPod('Pod Name: {pod_name}  deletion time: {delete_time}'.format(
                                                     pod_name=pod_name, delete_evidence=delete_time)))
-                
+
                 # Try creating, patching and deleting an unprivileged pod
                 pod_name = self.create_a_pod(namespace, False)
                 if pod_name:
@@ -569,7 +567,7 @@ class ApiVersionHunter(Hunter):
         self.session.verify = False
         if self.event.auth_token:
             self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
-        
+
     def execute(self):
         if self.event.auth_token:
             logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token on {}:{} \t'.format(self.event.host, self.event.port))

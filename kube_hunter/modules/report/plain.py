@@ -2,9 +2,9 @@ from __future__ import print_function
 
 from prettytable import ALL, PrettyTable
 
-from src.conf import config
-from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
-from .base import BaseReporter
+from kube_hunter.conf import config
+from kube_hunter.modules.report.base import BaseReporter
+from kube_hunter.modules.report.collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
@@ -16,12 +16,12 @@ class PlainReporter(BaseReporter):
     def get_report(self):
         """generates report tables"""
         output = ""
-        
+
         with vulnerabilities_lock:
             vulnerabilities_len = len(vulnerabilities)
 
         hunters_len = len(hunters.items())
-        
+
         with services_lock:
             services_len = len(services)
 

@@ -4,14 +4,14 @@ import argparse
 import logging
 import threading
 
-from src.conf import config
-from src.modules.report.plain import PlainReporter
-from src.modules.report.yaml import YAMLReporter
-from src.modules.report.json import JSONReporter
-from src.modules.report.dispatchers import STDOUTDispatcher, HTTPDispatcher
-from src.core.events import handler
-from src.core.events.types import HuntFinished, HuntStarted
-from src.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
+from kube_hunter.conf import config
+from kube_hunter.modules.report.plain import PlainReporter
+from kube_hunter.modules.report.yaml import YAMLReporter
+from kube_hunter.modules.report.json import JSONReporter
+from kube_hunter.modules.report.dispatchers import STDOUTDispatcher, HTTPDispatcher
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import HuntFinished, HuntStarted
+from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
 
 
 # TODO: move log level parsing to conf module
@@ -50,7 +50,7 @@ else:
 
 # TODO: importing the root module is the way to subscribe events automatically
 #       make an explicit behavior to do that
-import src
+import kube_hunter
 
 
 def interactive_set_config():
@@ -58,7 +58,7 @@ def interactive_set_config():
     options = [("Remote scanning", "scans one or more specific IPs or DNS names"),
     ("Interface scanning","scans subnets on all local network interfaces"),
     ("IP range scanning","scans a given IP range")]
-    
+
     print("Choose one of the options below:")
     for i, (option, explanation) in enumerate(options):
         print("{}. {} ({})".format(i+1, option.ljust(20), explanation))
@@ -67,9 +67,9 @@ def interactive_set_config():
         config.remote = input("Remotes (separated by a ','): ").replace(' ', '').split(',')
     elif choice == '2':
         config.interface = True
-    elif choice == '3': 
+    elif choice == '3':
         config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
-    else: 
+    else:
         return False
     return True
 
@@ -94,9 +94,9 @@ hunt_started = False
 def main():
     global hunt_started
     scan_options = [
-        config.pod, 
+        config.pod,
         config.cidr,
-        config.remote, 
+        config.remote,
         config.interface
     ]
     try:
@@ -106,7 +106,7 @@ def main():
 
         if not any(scan_options):
             if not interactive_set_config(): return
-        
+
         with hunt_started_lock:
             hunt_started = True
         handler.publish_event(HuntStarted())
@@ -114,7 +114,7 @@ def main():
             handler.publish_event(RunningAsPodEvent())
         else:
             handler.publish_event(HostScanEvent())
-        
+
         # Blocking to see discovery output
         handler.join()
     except KeyboardInterrupt:

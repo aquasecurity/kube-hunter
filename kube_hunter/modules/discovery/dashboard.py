@@ -3,15 +3,15 @@ import logging
 
 import requests
 
-from ...core.events import handler
-from ...core.events.types import Event, OpenPortEvent, Service
-from ...core.types import Discovery
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Event, OpenPortEvent, Service
+from kube_hunter.core.types import Discovery
 
 
 class KubeDashboardEvent(Service, Event):
     """A web-based Kubernetes user interface. allows easy usage with operations on the cluster"""
     def __init__(self, **kargs):
-        Service.__init__(self, name="Kubernetes Dashboard", **kargs)     
+        Service.__init__(self, name="Kubernetes Dashboard", **kargs)
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
 class KubeDashboard(Discovery):

@@ -2,10 +2,10 @@ import logging
 
 import requests
 
-from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, OpenPortEvent
-from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure, RemoteCodeExec, \
-    UnauthenticatedAccess, AccessRisk
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Vulnerability, Event, OpenPortEvent
+from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, \
+    InformationDisclosure, RemoteCodeExec, UnauthenticatedAccess, AccessRisk
 
 
 """ Vulnerabilities """
@@ -125,4 +125,3 @@ class EtcdRemoteAccess(Hunter):
                 self.publish_event(EtcdAccessEnabledWithoutAuthEvent(self.version_evidence))
             if self.db_keys_disclosure():
                 self.publish_event(EtcdRemoteReadAccessEvent(self.keys_evidence))
-

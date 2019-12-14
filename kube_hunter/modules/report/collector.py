@@ -1,9 +1,9 @@
 import logging
-
-from src.conf import config
-from src.core.events import handler
-from src.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
 import threading
+
+from kube_hunter.conf import config
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
 
 
 global services_lock
@@ -15,6 +15,7 @@ vulnerabilities_lock = threading.Lock()
 vulnerabilities = list()
 
 hunters = handler.all_hunters
+
 
 def console_trim(text, prefix=' '):
     a = text.split(" ")
@@ -57,7 +58,6 @@ class Collector(object):
                 location=self.event.location(),
                 time=datetime.time()
             ))
-
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)

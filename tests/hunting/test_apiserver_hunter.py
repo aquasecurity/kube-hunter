@@ -1,19 +1,19 @@
 import requests_mock
 import time
 
-from src.modules.hunting.apiserver import AccessApiServer, AccessApiServerWithToken, ServerApiAccess, AccessApiServerActive
-from src.modules.hunting.apiserver import ListNamespaces, ListPodsAndNamespaces, ListRoles, ListClusterRoles
-from src.modules.hunting.apiserver import ApiServerPassiveHunterFinished
-from src.modules.hunting.apiserver import CreateANamespace, DeleteANamespace
-from src.modules.discovery.apiserver import ApiServer
-from src.core.events.types import Event, K8sVersionDisclosure
-from src.core.types import UnauthenticatedAccess, InformationDisclosure
-from src.core.events import handler
+from kube_hunter.modules.hunting.apiserver import AccessApiServer, AccessApiServerWithToken, ServerApiAccess, AccessApiServerActive
+from kube_hunter.modules.hunting.apiserver import ListNamespaces, ListPodsAndNamespaces, ListRoles, ListClusterRoles
+from kube_hunter.modules.hunting.apiserver import ApiServerPassiveHunterFinished
+from kube_hunter.modules.hunting.apiserver import CreateANamespace, DeleteANamespace
+from kube_hunter.modules.discovery.apiserver import ApiServer
+from kube_hunter.core.events.types import Event, K8sVersionDisclosure
+from kube_hunter.core.types import UnauthenticatedAccess, InformationDisclosure
+from kube_hunter.core.events import handler
 
 counter = 0
 
 def test_ApiServerToken():
-    global counter 
+    global counter
     counter = 0
 
     e = ApiServer()
@@ -29,7 +29,7 @@ def test_ApiServerToken():
     assert counter == 0
 
 def test_AccessApiServer():
-    global counter 
+    global counter
     counter = 0
 
     e = ApiServer()
@@ -40,7 +40,7 @@ def test_AccessApiServer():
     with requests_mock.Mocker() as m:
         m.get('https://mockKubernetes:443/api', text='{}')
         m.get('https://mockKubernetes:443/api/v1/namespaces', text='{"items":[{"metadata":{"name":"hello"}}]}')
-        m.get('https://mockKubernetes:443/api/v1/pods', 
+        m.get('https://mockKubernetes:443/api/v1/pods',
             text='{"items":[{"metadata":{"name":"podA", "namespace":"namespaceA"}}, \
                             {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}')
         m.get('https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/roles', status_code=403)
@@ -62,11 +62,11 @@ def test_AccessApiServer():
         # TODO check that these responses reflect what Kubernetes does
         m.get('https://mockKubernetesToken:443/api', text='{}')
         m.get('https://mockKubernetesToken:443/api/v1/namespaces', text='{"items":[{"metadata":{"name":"hello"}}]}')
-        m.get('https://mockKubernetesToken:443/api/v1/pods', 
+        m.get('https://mockKubernetesToken:443/api/v1/pods',
             text='{"items":[{"metadata":{"name":"podA", "namespace":"namespaceA"}}, \
                             {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}')
         m.get('https://mockkubernetesToken:443/apis/rbac.authorization.k8s.io/v1/roles', status_code=403)
-        m.get('https://mockkubernetesToken:443/apis/rbac.authorization.k8s.io/v1/clusterroles', 
+        m.get('https://mockkubernetesToken:443/apis/rbac.authorization.k8s.io/v1/clusterroles',
             text='{"items":[{"metadata":{"name":"my-role"}}]}')
 
         e.auth_token = "so-secret"
@@ -89,7 +89,7 @@ class test_ListNamespaces(object):
             assert event.auth_token is None
         global counter
         counter += 1
-        
+
 
 @handler.subscribe(ListPodsAndNamespaces)
 class test_ListPodsAndNamespaces(object):
@@ -100,7 +100,7 @@ class test_ListPodsAndNamespaces(object):
             if pod["name"] == "podA":
                 assert pod["namespace"] == "namespaceA"
             if pod["name"] == "podB":
-                assert pod["namespace"] == "namespaceB"                
+                assert pod["namespace"] == "namespaceB"
         if event.host == "mockKubernetesToken":
             assert event.auth_token == "so-secret"
             assert "token" in event.name
@@ -117,7 +117,7 @@ class test_ListPodsAndNamespaces(object):
 class test_ListRoles(object):
     def __init__(self, event):
         print("ListRoles")
-        assert 0 
+        assert 0
         global counter
         counter += 1
 
@@ -206,7 +206,7 @@ def test_AccessApiServerActive():
   "status": {
     "phase": "Terminating"
   }
-}        
+}
         """)
 
         h = AccessApiServerActive(e)

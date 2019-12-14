@@ -1,13 +1,14 @@
-from ...core.types import Hunter, KubernetesCluster, InformationDisclosure
-from ...core.events import handler
-from ...core.events.types import Vulnerability, Event, Service
-
 import ssl
 import logging
 import base64
 import re
 
 from socket import socket
+
+from kube_hunter.core.types import Hunter, KubernetesCluster, InformationDisclosure
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Vulnerability, Event, Service
+
 
 email_pattern = re.compile(r"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
 

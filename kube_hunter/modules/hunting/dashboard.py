@@ -1,12 +1,12 @@
 import logging
 import json
-from ...core.types import Hunter, RemoteCodeExec, KubernetesCluster
-
 import requests
 
-from ...core.events import handler
-from ...core.events.types import Vulnerability, Event
-from ..discovery.dashboard import KubeDashboardEvent
+from kube_hunter.core.types import Hunter, RemoteCodeExec, KubernetesCluster
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Vulnerability, Event
+from kube_hunter.modules.discovery.dashboard import KubeDashboardEvent
+
 
 class DashboardExposed(Vulnerability, Event):
     """All operations on the cluster are exposed"""
@@ -27,6 +27,6 @@ class KubeDashboard(Hunter):
         r = requests.get("http://{}:{}/api/v1/node".format(self.event.host, self.event.port))
         if r.status_code == 200 and "nodes" in r.text:
             return list(map(lambda node: node["objectMeta"]["name"], json.loads(r.text)["nodes"]))
-        
+
     def execute(self):
-        self.publish_event(DashboardExposed(nodes=self.get_nodes()))        
+        self.publish_event(DashboardExposed(nodes=self.get_nodes()))

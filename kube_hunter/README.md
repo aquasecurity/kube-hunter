@@ -7,7 +7,7 @@ First, let's go through kube-hunter's basic architecture.
 kube-hunter/  
         plugins/  
            # your plugin
-        src/  
+        kube_hunter/  
             core/  
             modules/  
                 discovery/  
@@ -192,7 +192,7 @@ To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vul
 A filter can change an event's attribute or remove it completely before it gets published to Hunters.
 
 To create a filter:
-* create a class that inherits from `EventFilterBase` (from `src.core.events.types`)   
+* create a class that inherits from `EventFilterBase` (from `kube_hunter.core.events.types`)   
 * use `@handler.subscribe(Event)` to filter a specific `Event`
 * define a `__init__(self, event)` method, and save the event in your class  
 * implement `self.execute(self)` method, __returns a new event, or None to remove event__  
@@ -206,10 +206,10 @@ To prevent an event from being published, return `None` from the execute method 
 To alter event attributes, return a new event, based on the `self.event` after your modifications, it will replace the event itself before it is published.  
 __Make sure to return the event from the execute method, or the event will not get published__  
  
-For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `src/modules/report/`
+For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `kube_hunter/modules/report/`
 ```python
-from src.core.events import handler
-from src.core.events.types import Service, EventFilterBase
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Service, EventFilterBase
 
 @handler.subscribe(Service)
 class LocalHostFilter(EventFilterBase):
@@ -224,9 +224,9 @@ That means other Hunters that are subscribed to this Service will not get trigge
 That opens up a wide variety of possible operations, as this not only can __filter out__ events, but you can actually __change event attributes__, for example:
 
 ```python
-from src.core.events import handler
-from src.core.types import InformationDisclosure
-from src.core.events.types import Vulnerability, EventFilterBase
+from kube_hunter.core.events import handler
+from kube_hunter.core.types import InformationDisclosure
+from kube_hunter.core.events.types import Vulnerability, EventFilterBase
 
 @handler.subscribe(Vulnerability)
 class CensorInformation(EventFilterBase):

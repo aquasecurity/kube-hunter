@@ -1,7 +1,8 @@
 from io import StringIO
 from ruamel.yaml import YAML
-from .base import BaseReporter
-from src.conf import config
+
+from kube_hunter.conf import config
+from kube_hunter.modules.report.base import BaseReporter
 
 
 class YAMLReporter(BaseReporter):

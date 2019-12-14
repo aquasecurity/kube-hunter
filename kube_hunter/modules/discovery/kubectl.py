@@ -1,11 +1,11 @@
 
 import logging
-import subprocess 
+import subprocess
 import json
 
-from ...core.types import Discovery
-from ...core.events import handler
-from ...core.events.types import HuntStarted, Event
+from kube_hunter.core.types import Discovery
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import HuntStarted, Event
 
 
 class KubectlClientEvent(Event):
@@ -16,7 +16,7 @@ class KubectlClientEvent(Event):
     def location(self):
         return "local machine"
 
-# Will be triggered on start of every hunt 
+# Will be triggered on start of every hunt
 @handler.subscribe(HuntStarted)
 class KubectlClientDiscovery(Discovery):
     """Kubectl Client Discovery
@@ -38,9 +38,9 @@ class KubectlClientDiscovery(Discovery):
         except Exception:
             logging.debug("Could not find kubectl client")
         return version
-    
+
     def execute(self):
         logging.debug("Attempting to discover a local kubectl client")
-        version = self.get_kubectl_binary_version() 
+        version = self.get_kubectl_binary_version()
         if version:
             self.publish_event(KubectlClientEvent(version=version))

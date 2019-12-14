@@ -3,11 +3,10 @@ import logging
 
 import requests
 
-from .kubelet import ExposedRunHandler
-
-from ...core.events import handler
-from ...core.events.types import Event, Vulnerability
-from ...core.types import Hunter, ActiveHunter, IdentityTheft, Azure
+from kube_hunter.modules.hunting.kubelet import ExposedRunHandler
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Event, Vulnerability
+from kube_hunter.core.types import Hunter, ActiveHunter, IdentityTheft, Azure
 
 
 class AzureSpnExposure(Vulnerability, Event):
@@ -24,7 +23,7 @@ class AzureSpnHunter(Hunter):
     def __init__(self, event):
         self.event = event
         self.base_url = "https://{}:{}".format(self.event.host, self.event.port)
-        
+
     # getting a container that has access to the azure.json file
     def get_key_container(self):
         logging.debug("Passive Hunter is attempting to find container with access to azure.json file")
@@ -37,7 +36,7 @@ class AzureSpnHunter(Hunter):
                         path = mount["mountPath"]
                         if '/etc/kubernetes/azure.json'.startswith(path):
                             return {
-                                "name": container["name"],                                                        
+                                "name": container["name"],
                                 "pod": pod_data["metadata"]["name"],
                                 "namespace": pod_data["metadata"]["namespace"]
                             }
@@ -51,7 +50,7 @@ class AzureSpnHunter(Hunter):
 @handler.subscribe(AzureSpnExposure)
 class ProveAzureSpnExposure(ActiveHunter):
     """Azure SPN Hunter
-    Gets the azure subscription file on the host by executing inside a container 
+    Gets the azure subscription file on the host by executing inside a container
     """
     def __init__(self, event):
         self.event = event
@@ -73,5 +72,5 @@ class ProveAzureSpnExposure(ActiveHunter):
             self.event.subscriptionId = subscription["subscriptionId"]
             self.event.aadClientId = subscription["aadClientId"]
             self.event.aadClientSecret = subscription["aadClientSecret"]
-            self.event.tenantId = subscription["tenantId"]     
+            self.event.tenantId = subscription["tenantId"]
             self.event.evidence = "subscription: {}".format(self.event.subscriptionId)

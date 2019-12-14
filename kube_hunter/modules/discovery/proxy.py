@@ -1,17 +1,17 @@
 import logging
 import requests
-from collections import defaultdict
-from ...core.types import Discovery
 
+from collections import defaultdict
 from requests import get
 
-from ...core.events import handler
-from ...core.events.types import Service, Event, OpenPortEvent
+from kube_hunter.core.types import Discovery
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Service, Event, OpenPortEvent
 
 class KubeProxyEvent(Event, Service):
     """proxies from a localhost address to the Kubernetes apiserver"""
     def __init__(self):
-        Service.__init__(self, name="Kubernetes Proxy") 
+        Service.__init__(self, name="Kubernetes Proxy")
 
 @handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 8001)
 class KubeProxy(Discovery):
@@ -32,4 +32,4 @@ class KubeProxy(Discovery):
 
     def execute(self):
         if self.accesible:
-            self.publish_event(KubeProxyEvent())        
+            self.publish_event(KubeProxyEvent())

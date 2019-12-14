@@ -1,6 +1,6 @@
-from .collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
-from src.core.types import Discovery
-from src.conf import config
+from kube_hunter.conf import config
+from kube_hunter.core.types import Discovery
+from kube_hunter.modules.report.collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
 
 
 class BaseReporter(object):

@@ -1,16 +1,14 @@
 import json
 import logging
 import os
-
-
 import requests
 
-from ...core.events import handler
-from ...core.events.types import Vulnerability, Event
-from ...core.types import Hunter, KubernetesCluster, AccessRisk
-from ..discovery.hosts import RunningAsPodEvent
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Vulnerability, Event
+from kube_hunter.core.types import Hunter, KubernetesCluster, AccessRisk
+from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
 
-""" Vulnerabilities """
+
 class ServiceAccountTokenAccess(Vulnerability, Event):
     """ Accessing the pod service account token gives an attacker the option to use the server API """
 

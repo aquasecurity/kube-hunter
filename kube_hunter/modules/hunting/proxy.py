@@ -1,16 +1,16 @@
 import logging
-from enum import Enum
-
 import requests
 import json
 
-from ...core.events import handler
-from ...core.events.types import Event, Vulnerability, K8sVersionDisclosure
-from ...core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure
-from ..discovery.dashboard import KubeDashboardEvent
-from ..discovery.proxy import KubeProxyEvent
+from enum import Enum
 
-""" Vulnerabilities """
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Event, Vulnerability, K8sVersionDisclosure
+from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure
+from kube_hunter.modules.discovery.dashboard import KubeDashboardEvent
+from kube_hunter.modules.discovery.proxy import KubeProxyEvent
+
+
 class KubeProxyExposed(Vulnerability, Event):
     """All operations on the cluster are exposed"""
     def __init__(self):
@@ -22,7 +22,7 @@ class Service(Enum):
 @handler.subscribe(KubeProxyEvent)
 class KubeProxy(Hunter):
     """Proxy Hunting
-    Hunts for a dashboard behind the proxy 
+    Hunts for a dashboard behind the proxy
     """
     def __init__(self, event):
         self.event = event

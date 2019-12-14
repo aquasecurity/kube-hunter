@@ -2,18 +2,19 @@ import logging
 import json
 import uuid
 
-from ...core.events import handler
-from ...core.events.types import Event, Vulnerability
-from ...core.types import ActiveHunter, Hunter, KubernetesCluster, PrivilegeEscalation
-from .kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Event, Vulnerability
+from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, PrivilegeEscalation
+from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
 
-""" Vulnerabilities """
+
 class WriteMountToVarLog(Vulnerability, Event):
     """A pod can create symlinks in the /var/log directory on the host, which can lead to a root directory traveral"""
     def __init__(self, pods):
         Vulnerability.__init__(self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation, vid="KHV047")
         self.pods = pods
         self.evidence = "pods: {}".format(', '.join((pod["metadata"]["name"] for pod in self.pods)))
+
 
 class DirectoryTraversalWithKubelet(Vulnerability, Event):
     """An attacker can run commands on pods with mount to /var/log, and traverse read all files on the host filesystem"""
@@ -22,10 +23,11 @@ class DirectoryTraversalWithKubelet(Vulnerability, Event):
         self.output = output
         self.evidence = "output: {}".format(self.output)
 
+
 @handler.subscribe(ExposedPodsHandler)
 class VarLogMountHunter(Hunter):
     """Mount Hunter - /var/log
-    Hunt pods that have write access to host's /var/log. in such case, 
+    Hunt pods that have write access to host's /var/log. in such case,
     the pod can traverse read files on the host machine
     """
     def __init__(self, event):
@@ -38,7 +40,7 @@ class VarLogMountHunter(Hunter):
                 if "Directory" in volume["hostPath"]["type"]:
                     if volume["hostPath"]["path"].startswith(path):
                         return volume
-    
+
     def execute(self):
         pe_pods = []
         for pod in self.event.pods:

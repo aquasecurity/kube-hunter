@@ -4,17 +4,16 @@ import logging
 import socket
 import sys
 import time
-from enum import Enum
-
 import requests
-from netaddr import IPNetwork, IPAddress
 
-from src.conf import config
+from enum import Enum
+from netaddr import IPNetwork, IPAddress
 from netifaces import AF_INET, ifaddresses, interfaces
 
-from ...core.events import handler
-from ...core.events.types import Event, NewHostEvent, Vulnerability
-from ...core.types import Discovery, InformationDisclosure, Azure
+from kube_hunter.conf import config
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
+from kube_hunter.core.types import Discovery, InformationDisclosure, Azure
 
 class RunningAsPodEvent(Event):
     def __init__(self):
@@ -29,7 +28,7 @@ class RunningAsPodEvent(Event):
         location = "Local to Pod"
         if 'HOSTNAME' in os.environ:
             location += "(" + os.environ['HOSTNAME'] + ")"
-        
+
         return location
 
     def get_service_account_file(self, file):
@@ -56,7 +55,7 @@ class HostDiscoveryHelpers:
     def get_cloud(host):
         try:
             logging.debug("Checking whether the cluster is deployed on azure's cloud")
-            # azurespeed.com provide their API via HTTP only; the service can be queried with 
+            # azurespeed.com provide their API via HTTP only; the service can be queried with
             # HTTPS, but doesn't show a proper certificate. Since no encryption is worse then
             # any encryption, we go with the verify=false option for the time being. At least
             # this prevents leaking internal IP addresses to passive eavesdropping.
@@ -91,7 +90,7 @@ class FromPodHostDiscovery(Discovery):
         if config.remote or config.cidr:
             self.publish_event(HostScanEvent())
         else:
-            # Discover cluster subnets, we'll scan all these hosts 
+            # Discover cluster subnets, we'll scan all these hosts
             if self.is_azure_pod():
                 subnets, cloud = self.azure_metadata_discovery()
             else:
@@ -109,7 +108,6 @@ class FromPodHostDiscovery(Discovery):
             if should_scan_apiserver:
                 self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
 
-            
     def is_azure_pod(self):
         try:
             logging.debug("From pod attempting to access Azure Metadata API")
@@ -158,13 +156,13 @@ class HostDiscovery(Discovery):
                 return
             cloud = HostDiscoveryHelpers.get_cloud(ip)
             for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):
-                self.publish_event(NewHostEvent(host=ip, cloud=cloud))                
+                self.publish_event(NewHostEvent(host=ip, cloud=cloud))
         elif config.interface:
             self.scan_interfaces()
         elif len(config.remote) > 0:
             for host in config.remote:
                 self.publish_event(NewHostEvent(host=host, cloud=HostDiscoveryHelpers.get_cloud(host)))
- 
+
     # for normal scanning
     def scan_interfaces(self):
         try:
@@ -186,7 +184,7 @@ class HostDiscovery(Discovery):
                     continue
                 for ip in HostDiscoveryHelpers.generate_subnet(ip, sn):
                     yield ip
-                    
+
 # for comparing prefixes
 class InterfaceTypes(Enum):
     LOCALHOST = "127"

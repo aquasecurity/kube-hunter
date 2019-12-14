@@ -1,7 +1,8 @@
 import logging
 import os
 import requests
-from src.conf import config
+
+from kube_hunter.conf import config
 
 
 class HTTPDispatcher(object):

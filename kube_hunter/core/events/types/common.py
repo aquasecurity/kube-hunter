@@ -1,5 +1,7 @@
 import threading
-from src.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
+
+from kube_hunter.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
+
 
 class EventFilterBase(object):
     def __init__(self, event):

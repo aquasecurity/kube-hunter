@@ -1,10 +1,10 @@
 import logging
 
 from socket import socket
-from ...core.types import Discovery
 
-from ...core.events import handler
-from ...core.events.types import NewHostEvent, OpenPortEvent
+from kube_hunter.core.types import Discovery
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import NewHostEvent, OpenPortEvent
 
 
 default_ports = [8001, 8080, 10250, 10255, 30000, 443, 6443, 2379]
@@ -30,7 +30,7 @@ class PortDiscovery(Discovery):
     def test_connection(host, port):
         s = socket()
         s.settimeout(1.5)
-        try: 
+        try:
             success = s.connect_ex((str(host), port))
             if success == 0:
                 return True
