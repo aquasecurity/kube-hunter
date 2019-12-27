@@ -8,7 +8,7 @@ from .base import BaseReporter
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
-KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/kb"
+KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/_kb"
 
 
 class PlainReporter(BaseReporter):
