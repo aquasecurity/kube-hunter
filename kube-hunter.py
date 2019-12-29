@@ -14,42 +14,34 @@ from kube_hunter.core.events.types import HuntFinished, HuntStarted
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
 
 
-# TODO: move log level parsing to conf module
 loglevel = getattr(logging, config.log.upper(), logging.INFO)
 
-# TODO: use --quiet flag for this logic
 if config.log.lower() != "none":
     logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
 
-# TODO: move this mapping to report module, consider using factory for abstraction
 reporters = {
     'yaml': YAMLReporter,
     'json': JSONReporter,
     'plain': PlainReporter
 }
 
-# TODO: move report config handling to conf module
 if config.report.lower() in reporters.keys():
     config.reporter = reporters[config.report.lower()]()
 else:
     logging.warning('Unknown reporter selected, using plain')
     config.reporter = reporters['plain']()
 
-# TODO: move this mapping to report module, consider using factory for abstraction
 dispatchers = {
     'stdout': STDOUTDispatcher,
     'http': HTTPDispatcher
 }
 
-# TODO: move dispatch config handling to conf module
 if config.dispatch.lower() in dispatchers.keys():
     config.dispatcher = dispatchers[config.dispatch.lower()]()
 else:
     logging.warning('Unknown dispatcher selected, using stdout')
     config.dispatcher = dispatchers['stdout']()
 
-# TODO: importing the root module is the way to subscribe events automatically
-#       make an explicit behavior to do that
 import kube_hunter
 
 
