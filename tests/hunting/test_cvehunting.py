@@ -1,9 +1,9 @@
 import time
 import requests_mock
 
-from src.core.events import handler
-from src.core.events.types import K8sVersionDisclosure
-from src.modules.hunting.cves import K8sClusterCveHunter, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos, CveUtils
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import K8sVersionDisclosure
+from kube_hunter.modules.hunting.cves import K8sClusterCveHunter, ServerApiVersionEndPointAccessPE, ServerApiVersionEndPointAccessDos, CveUtils
 
 cve_counter = 0
 

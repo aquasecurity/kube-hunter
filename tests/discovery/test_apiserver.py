@@ -1,14 +1,14 @@
 import requests_mock
 import time
 
-from src.modules.discovery.apiserver import ApiServer, ApiServiceDiscovery
-from src.core.events.types import Event
-from src.core.events import handler
+from kube_hunter.modules.discovery.apiserver import ApiServer, ApiServiceDiscovery
+from kube_hunter.core.events.types import Event
+from kube_hunter.core.events import handler
 
 counter = 0
 
 def test_ApiServer():
-    global counter 
+    global counter
     counter = 0
     with requests_mock.Mocker() as m:
         m.get('https://mockOther:443', text='elephant')
@@ -22,7 +22,7 @@ def test_ApiServer():
 
         a = ApiServiceDiscovery(e)
         a.execute()
-        
+
         e.host = 'mockKubernetes'
         a.execute()
 
