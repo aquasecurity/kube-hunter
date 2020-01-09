@@ -80,7 +80,7 @@ class Vulnerability(object):
     })
 
     # TODO: make vid mandatory once migration is done
-    def __init__(self, component, name, category=None, vid=None):
+    def __init__(self, component, name, category=None, vid="None"):
         self.vid = vid
         self.component = component
         self.category = category
