@@ -1,6 +1,8 @@
+-r requirements.txt
+
 flake8
 pytest >= 2.9.1
-coverage<5.0
+coverage < 5.0
 pytest-cov
 setuptools >= 30.3.0
 setuptools_scm
