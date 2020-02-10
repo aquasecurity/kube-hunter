@@ -7,6 +7,23 @@ venv/
 .coverage
 .idea
 
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
 # Directory Cache Files
 .DS_Store
 thumbs.db
