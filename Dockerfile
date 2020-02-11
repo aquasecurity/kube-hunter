@@ -22,4 +22,4 @@ COPY --from=builder /kube-hunter /kube-hunter
 
 WORKDIR /kube-hunter
 
-ENTRYPOINT ["python",  "kube-hunter.py"]
+ENTRYPOINT ["python", "-u",  "kube-hunter.py"]

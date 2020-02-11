@@ -73,6 +73,9 @@ class HostDiscoveryHelpers:
         logging.debug("HostDiscoveryHelpers.generate_subnet {0}/{1}".format(ip, sn))
         subnet = IPNetwork('{ip}/{sn}'.format(ip=ip, sn=sn))
         for ip in IPNetwork(subnet):
+            if config.ignore and ip in config.ignore:
+                logging.debug("HostDiscoveryHelpers.generate_subnet ignoring {0}".format(ip))
+                continue
             logging.debug("HostDiscoveryHelpers.generate_subnet yielding {0}".format(ip))
             yield ip
 

@@ -4,6 +4,8 @@ import argparse
 import logging
 import threading
 
+from netaddr import IPAddress
+
 from kube_hunter.conf import config
 from kube_hunter.modules.report.plain import PlainReporter
 from kube_hunter.modules.report.yaml import YAMLReporter
@@ -41,6 +43,12 @@ if config.dispatch.lower() in dispatchers.keys():
 else:
     logging.warning('Unknown dispatcher selected, using stdout')
     config.dispatcher = dispatchers['stdout']()
+
+if config.ignore:
+    ips = []
+    for ip in config.ignore.split(','):
+        ips.append(IPAddress(ip))
+    config.ignore = ips
 
 import kube_hunter
 

@@ -67,6 +67,8 @@ To specify interface scanning, you can use the `--interface` option (this will s
 To specify a specific CIDR to scan, use the `--cidr` option. Example:
 `./kube-hunter.py --cidr 192.168.0.0/24`
 
+IPs can be ignored from a CIDR range by using the `--ignore` flag. It supports multiple values by separating with a comma.
+
 ### Active Hunting
 
 Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, to explore for further vulnerabilities.
