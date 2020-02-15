@@ -7,3 +7,5 @@ pytest-cov
 setuptools >= 30.3.0
 setuptools_scm
 twine
+pyinstaller
+staticx
