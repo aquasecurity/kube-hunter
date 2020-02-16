@@ -16,6 +16,10 @@ deps:
 lint:
 	flake8 $(SRC)
 
+.PHONY: test
+test:
+	pytest
+
 .PHONY: build
 build:
 	python setup.py sdist bdist_wheel
