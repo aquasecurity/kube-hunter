@@ -6,6 +6,8 @@ from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFilterBase
 
+from kube_hunter.conf import config
+
 KNOWN_API_PORTS = [443, 6443, 8080]
 
 class K8sApiService(Service, Event):
@@ -49,7 +51,7 @@ class ApiServiceDiscovery(Discovery):
 
     def has_api_behaviour(self, protocol):
         try:
-            r = self.session.get("{}://{}:{}".format(protocol, self.event.host, self.event.port), timeout=30)
+            r = self.session.get("{}://{}:{}".format(protocol, self.event.host, self.event.port), timeout=config.discovery_timeout)
             if ('k8s' in r.text) or ('"code"' in r.text and r.status_code != 200):
                 return True
         except requests.exceptions.SSLError:
