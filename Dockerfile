@@ -10,6 +10,9 @@ RUN apk add --no-cache \
     apk upgrade --no-cache
 
 WORKDIR /kube-hunter
+COPY setup.py setup.cfg Makefile ./
+RUN make deps
+
 COPY . .
 RUN make install
 

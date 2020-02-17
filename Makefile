@@ -1,4 +1,4 @@
-.SILENT:
+.SILENT: clean
 
 NAME            := kube-hunter
 SRC             := kube_hunter
@@ -10,6 +10,13 @@ STATIC_COMPILED := $(COMPILED).static
 
 .PHONY: deps
 deps:
+	requires=$(shell mktemp)
+	python setup.py -q dependencies > \$requires
+	pip install -r \$requires
+	rm \$requires
+
+.PHONY: dev-deps
+dev-deps:
 	pip install -r requirements-dev.txt
 
 .PHONY: lint
