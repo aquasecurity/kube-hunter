@@ -2,8 +2,11 @@
 
 flake8
 pytest >= 2.9.1
+requests-mock
 coverage < 5.0
 pytest-cov
 setuptools >= 30.3.0
 setuptools_scm
 twine
+pyinstaller
+staticx

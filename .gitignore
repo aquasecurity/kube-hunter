@@ -23,6 +23,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+*.spec
+.eggs
 
 # Directory Cache Files
 .DS_Store
