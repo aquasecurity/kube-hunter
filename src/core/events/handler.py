@@ -47,7 +47,8 @@ class EventQueue(Queue, object):
 
         return wrapper
 
-    def multiple_subscribe(self, events, predicates=None):
+    # decorator wrapping for multiple subscriptions
+    def subscribe_many(self, events, predicates=None):
         def wrapper(hook):
             self.subscribe_events(events, hook=hook, predicates=predicates)
             return hook
@@ -122,7 +123,7 @@ class EventQueue(Queue, object):
             for event, predicate in zip(events, predicates):
                 self.multi_hooks[event].append((hook, predicate))
 
-            self.hook_dependencies[hook] = set(events)
+            self.hook_dependencies[hook] = frozenset(events)
 
     def apply_filters(self, event):
         # if filters are subscribed, apply them on the event
