@@ -1,7 +1,9 @@
-from .exceptions import ExternalServiceFailure, ExternalProviderFailure
+from collections import namedtuple
 
 import requests
-from collections import namedtuple
+
+from .exceptions import ExternalProviderFailure, ExternalServiceFailure
+
 
 def generic_text_http_provider(url):
     try:
