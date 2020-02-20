@@ -5,6 +5,12 @@ import logging
 import threading
 
 from kube_hunter.conf import config
+
+loglevel = getattr(logging, config.log.upper(), logging.INFO)
+
+if config.log.lower() != "none":
+    logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
+
 from kube_hunter.modules.report.plain import PlainReporter
 from kube_hunter.modules.report.yaml import YAMLReporter
 from kube_hunter.modules.report.json import JSONReporter
@@ -12,12 +18,6 @@ from kube_hunter.modules.report.dispatchers import STDOUTDispatcher, HTTPDispatc
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import HuntFinished, HuntStarted
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
-
-
-loglevel = getattr(logging, config.log.upper(), logging.INFO)
-
-if config.log.lower() != "none":
-    logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
 
 reporters = {
     'yaml': YAMLReporter,
