@@ -1,9 +1,10 @@
 import logging
-from kube_hunter.conf.parser import arg_parse
+from kube_hunter.conf.parser import parse_args
 
-config = arg_parse()
+config = parse_args()
 
 loglevel = getattr(logging, config.log.upper(), logging.INFO)
 
 if config.log.lower() != "none":
-    logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
+    logging.basicConfig(level=loglevel, format='%(message)s',
+                        datefmt='%H:%M:%S')

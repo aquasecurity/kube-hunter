@@ -1,6 +1,6 @@
-from kube_hunter.conf import config
 from kube_hunter.core.types import Discovery
-from kube_hunter.modules.report.collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
+from kube_hunter.modules.report.collector import services, vulnerabilities, \
+    hunters, services_lock, vulnerabilities_lock
 
 
 class BaseReporter(object):
@@ -11,14 +11,16 @@ class BaseReporter(object):
             for service in services:
                 node_location = str(service.host)
                 if node_location not in node_locations:
-                    nodes.append({"type": "Node/Master", "location": str(service.host)})
+                    nodes.append({"type": "Node/Master",
+                                  "location": str(service.host)})
                     node_locations.add(node_location)
         return nodes
 
     def get_services(self):
         with services_lock:
             services_data = [{"service": service.get_name(),
-                     "location": "{}:{}{}".format(service.host, service.port, service.get_path()),
+                     "location": "{}:{}{}".format(service.host, service.port,
+                                                  service.get_path()),
                      "description": service.explain()}
                     for service in services]
         return services_data
@@ -41,17 +43,19 @@ class BaseReporter(object):
         for hunter, docs in hunters.items():
             if not Discovery in hunter.__mro__:
                 name, doc = hunter.parse_docs(docs)
-                hunters_data.append({"name": name, "description": doc, "vulnerabilities": hunter.publishedVulnerabilities})
+                hunters_data.append({"name": name, "description": doc,
+                                     "vulnerabilities":
+                                         hunter.publishedVulnerabilities})
         return hunters_data
 
-    def get_report(self):
+    def get_report(self, *, statistics, **kwargs):
         report = {
             "nodes": self.get_nodes(),
             "services": self.get_services(),
             "vulnerabilities": self.get_vulnerabilities()
         }
 
-        if config.statistics:
+        if statistics:
             report["hunter_statistics"] = self.get_hunter_statistics()
 
         report["kburl"] = "https://aquasecurity.github.io/kube-hunter/kb/{vid}"
