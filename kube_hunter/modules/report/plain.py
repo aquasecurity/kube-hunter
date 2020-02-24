@@ -64,8 +64,9 @@ class PlainReporter(BaseReporter):
         return nodes_ret
 
     def services_table(self):
-        services_table = \
-            PrettyTable(["Service", "Location", "Description"], hrules=ALL)
+        services_table = PrettyTable(
+            ["Service", "Location", "Description"],
+            hrules=ALL)
         services_table.align = "l"
         services_table.max_width = MAX_TABLE_WIDTH
         services_table.padding_width = 1
@@ -74,13 +75,20 @@ class PlainReporter(BaseReporter):
         services_table.header_style = "upper"
         with services_lock:
             for service in services:
-                services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-            detected_services_ret = \
-                "\nDetected Services\n{}\n".format(services_table)
+                services_table.add_row(
+                    [service.get_name(),
+                     f"{service.host}:"
+                     f"{service.port}"
+                     f"{service.get_path()}",
+                     service.explain()])
+            detected_services_ret = "\nDetected Services\n" \
+                                    f"{services_table}\n"
         return detected_services_ret
 
     def vulns_table(self):
-        column_names = ["ID", "Location", "Category", "Vulnerability", "Description", "Evidence"]
+        column_names = ["ID", "Location",
+                        "Category", "Vulnerability",
+                        "Description", "Evidence"]
         vuln_table = PrettyTable(column_names, hrules=ALL)
         vuln_table.align = "l"
         vuln_table.max_width = MAX_TABLE_WIDTH

@@ -18,24 +18,27 @@ class BaseReporter(object):
 
     def get_services(self):
         with services_lock:
-            services_data = [{"service": service.get_name(),
-                     "location": "{}:{}{}".format(service.host, service.port,
-                                                  service.get_path()),
-                     "description": service.explain()}
-                    for service in services]
+            services_data = [{
+                "service": service.get_name(),
+                "location": f"{service.host}:"
+                             f"{service.port}"
+                             f"{service.get_path()}",
+                "description": service.explain()
+            } for service in services]
         return services_data
 
     def get_vulnerabilities(self):
         with vulnerabilities_lock:
-            vulnerabilities_data = [{"location": vuln.location(),
-                     "vid": vuln.get_vid(),
-                     "category": vuln.category.name,
-                     "severity": vuln.get_severity(),
-                     "vulnerability": vuln.get_name(),
-                     "description": vuln.explain(),
-                     "evidence": str(vuln.evidence),
-                     "hunter": vuln.hunter.get_name()}
-                    for vuln in vulnerabilities]
+            vulnerabilities_data = [{
+                "location": vuln.location(),
+                "vid": vuln.get_vid(),
+                "category": vuln.category.name,
+                "severity": vuln.get_severity(),
+                "vulnerability": vuln.get_name(),
+                "description": vuln.explain(),
+                "evidence": str(vuln.evidence),
+                "hunter": vuln.hunter.get_name()
+            } for vuln in vulnerabilities]
         return vulnerabilities_data
 
     def get_hunter_statistics(self):
@@ -43,9 +46,10 @@ class BaseReporter(object):
         for hunter, docs in hunters.items():
             if not Discovery in hunter.__mro__:
                 name, doc = hunter.parse_docs(docs)
-                hunters_data.append({"name": name, "description": doc,
-                                     "vulnerabilities":
-                                         hunter.publishedVulnerabilities})
+                hunters_data.append({
+                    "name": name,
+                    "description": doc,
+                    "vulnerabilities": hunter.publishedVulnerabilities})
         return hunters_data
 
     def get_report(self, *, statistics, **kwargs):
