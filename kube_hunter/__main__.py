@@ -1,66 +1,40 @@
 #!/usr/bin/env python3
 
-import argparse
 import logging
 import threading
 
 from kube_hunter.conf import config
-from kube_hunter.modules.report.plain import PlainReporter
-from kube_hunter.modules.report.yaml import YAMLReporter
-from kube_hunter.modules.report.json import JSONReporter
-from kube_hunter.modules.report.dispatchers import STDOUTDispatcher, HTTPDispatcher
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import HuntFinished, HuntStarted
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
+from kube_hunter.modules.report import get_reporter, get_dispatcher
 
-
-loglevel = getattr(logging, config.log.upper(), logging.INFO)
-
-if config.log.lower() != "none":
-    logging.basicConfig(level=loglevel, format='%(message)s', datefmt='%H:%M:%S')
-
-reporters = {
-    'yaml': YAMLReporter,
-    'json': JSONReporter,
-    'plain': PlainReporter
-}
-
-if config.report.lower() in reporters.keys():
-    config.reporter = reporters[config.report.lower()]()
-else:
-    logging.warning('Unknown reporter selected, using plain')
-    config.reporter = reporters['plain']()
-
-dispatchers = {
-    'stdout': STDOUTDispatcher,
-    'http': HTTPDispatcher
-}
-
-if config.dispatch.lower() in dispatchers.keys():
-    config.dispatcher = dispatchers[config.dispatch.lower()]()
-else:
-    logging.warning('Unknown dispatcher selected, using stdout')
-    config.dispatcher = dispatchers['stdout']()
+config.reporter = get_reporter(config.report)
+config.dispatcher = get_dispatcher(config.dispatch)
 
 import kube_hunter
 
 
 def interactive_set_config():
     """Sets config manually, returns True for success"""
-    options = [("Remote scanning", "scans one or more specific IPs or DNS names"),
-    ("Interface scanning","scans subnets on all local network interfaces"),
-    ("IP range scanning","scans a given IP range")]
+    options = [("Remote scanning",
+                "scans one or more specific IPs or DNS names"),
+               ("Interface scanning",
+                "scans subnets on all local network interfaces"),
+               ("IP range scanning", "scans a given IP range")]
 
     print("Choose one of the options below:")
     for i, (option, explanation) in enumerate(options):
         print("{}. {} ({})".format(i+1, option.ljust(20), explanation))
     choice = input("Your choice: ")
     if choice == '1':
-        config.remote = input("Remotes (separated by a ','): ").replace(' ', '').split(',')
+        config.remote = input("Remotes (separated by a ','): ").\
+            replace(' ', '').split(',')
     elif choice == '2':
         config.interface = True
     elif choice == '3':
-        config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(' ', '')
+        config.cidr = input("CIDR (example - 192.168.1.0/24): ").\
+            replace(' ', '')
     else:
         return False
     return True
@@ -82,6 +56,7 @@ def list_hunters():
 global hunt_started_lock
 hunt_started_lock = threading.Lock()
 hunt_started = False
+
 
 def main():
     global hunt_started
@@ -127,4 +102,4 @@ def main():
 
 
 if __name__ == '__main__':
-        main()
+    main()
