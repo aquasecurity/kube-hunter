@@ -11,8 +11,10 @@ class BaseReporter(object):
             for service in services:
                 node_location = str(service.host)
                 if node_location not in node_locations:
-                    nodes.append({"type": "Node/Master",
-                                  "location": str(service.host)})
+                    nodes.append({
+                        "type": "Node/Master",
+                        "location": str(service.host)
+                    })
                     node_locations.add(node_location)
         return nodes
 
@@ -21,8 +23,8 @@ class BaseReporter(object):
             services_data = [{
                 "service": service.get_name(),
                 "location": f"{service.host}:"
-                             f"{service.port}"
-                             f"{service.get_path()}",
+                            f"{service.port}"
+                            f"{service.get_path()}",
                 "description": service.explain()
             } for service in services]
         return services_data
@@ -49,7 +51,8 @@ class BaseReporter(object):
                 hunters_data.append({
                     "name": name,
                     "description": doc,
-                    "vulnerabilities": hunter.publishedVulnerabilities})
+                    "vulnerabilities": hunter.publishedVulnerabilities
+                })
         return hunters_data
 
     def get_report(self, *, statistics, **kwargs):

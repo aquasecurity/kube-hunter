@@ -64,9 +64,7 @@ class PlainReporter(BaseReporter):
         return nodes_ret
 
     def services_table(self):
-        services_table = PrettyTable(
-            ["Service", "Location", "Description"],
-            hrules=ALL)
+        services_table = PrettyTable(["Service", "Location", "Description"], hrules=ALL)
         services_table.align = "l"
         services_table.max_width = MAX_TABLE_WIDTH
         services_table.padding_width = 1
