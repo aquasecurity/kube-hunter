@@ -20,7 +20,7 @@ dispatchers = {
 
 def get_reporter(name):
     try:
-        return reporters[name.lower()]
+        return reporters[name.lower()]()
     except KeyError:
         logging.warning('Unknown reporter selected, using plain')
         return reporters['plain']()
@@ -28,7 +28,7 @@ def get_reporter(name):
 
 def get_dispatcher(name):
     try:
-        return dispatchers[name.lower()]
+        return dispatchers[name.lower()]()
     except KeyError:
         logging.warning('Unknown dispatcher selected, using stdout')
         return dispatchers['stdout']()
