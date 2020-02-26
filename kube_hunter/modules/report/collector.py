@@ -79,7 +79,7 @@ class SendFullReport(object):
         self.event = event
 
     def execute(self):
-        report = config.reporter.get_report()
+        report = config.reporter.get_report(statistics=config.statistics, mapping=config.mapping)
         config.dispatcher.dispatch(report)
         handler.publish_event(ReportDispatched())
         handler.publish_event(TablesPrinted())

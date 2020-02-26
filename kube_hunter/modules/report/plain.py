@@ -2,9 +2,9 @@ from __future__ import print_function
 
 from prettytable import ALL, PrettyTable
 
-from kube_hunter.conf import config
 from kube_hunter.modules.report.base import BaseReporter
-from kube_hunter.modules.report.collector import services, vulnerabilities, hunters, services_lock, vulnerabilities_lock
+from kube_hunter.modules.report.collector import services, vulnerabilities, \
+    hunters, services_lock, vulnerabilities_lock
 
 EVIDENCE_PREVIEW = 40
 MAX_TABLE_WIDTH = 20
@@ -13,7 +13,7 @@ KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/_kb"
 
 class PlainReporter(BaseReporter):
 
-    def get_report(self):
+    def get_report(self, *, statistics=None, mapping=None, **kwargs):
         """generates report tables"""
         output = ""
 
@@ -27,13 +27,13 @@ class PlainReporter(BaseReporter):
 
         if services_len:
             output += self.nodes_table()
-            if not config.mapping:
+            if not mapping:
                 output += self.services_table()
                 if vulnerabilities_len:
                     output += self.vulns_table()
                 else:
                     output += "\nNo vulnerabilities were found"
-                if config.statistics:
+                if statistics:
                     if hunters_len:
                         output += self.hunters_table()
                     else:
@@ -73,12 +73,20 @@ class PlainReporter(BaseReporter):
         services_table.header_style = "upper"
         with services_lock:
             for service in services:
-                services_table.add_row([service.get_name(), "{}:{}{}".format(service.host, service.port, service.get_path()), service.explain()])
-            detected_services_ret = "\nDetected Services\n{}\n".format(services_table)
+                services_table.add_row(
+                    [service.get_name(),
+                     f"{service.host}:"
+                     f"{service.port}"
+                     f"{service.get_path()}",
+                     service.explain()])
+            detected_services_ret = "\nDetected Services\n" \
+                                    f"{services_table}\n"
         return detected_services_ret
 
     def vulns_table(self):
-        column_names = ["ID", "Location", "Category", "Vulnerability", "Description", "Evidence"]
+        column_names = ["ID", "Location",
+                        "Category", "Vulnerability",
+                        "Description", "Evidence"]
         vuln_table = PrettyTable(column_names, hrules=ALL)
         vuln_table.align = "l"
         vuln_table.max_width = MAX_TABLE_WIDTH
