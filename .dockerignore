@@ -1,0 +1,4 @@
+*.png
+tests/
+docs/
+.github/
