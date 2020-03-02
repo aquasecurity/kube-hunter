@@ -1,6 +1,5 @@
 *.pyc
 .venv
-.dockerignore
 *aqua*
 venv/
 .vscode
