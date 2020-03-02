@@ -56,7 +56,7 @@ class HostDiscoveryHelpers:
         try:
             logging.debug("Checking whether the cluster is deployed on azure's cloud")
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
-            metadata = requests.get("https://api.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host), verify=False).text
+            metadata = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={host}").text
         except requests.ConnectionError as e:
             logging.info("- unable to check cloud: {0}".format(e))
             return
