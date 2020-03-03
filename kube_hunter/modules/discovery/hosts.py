@@ -174,7 +174,8 @@ class HostDiscovery(Discovery):
     def scan_interfaces(self):
         try:
             logging.debug("HostDiscovery hunter attempting to get external IP address")
-            external_ip = requests.get("https://canhazip.com", timeout=network_timeout).text # getting external ip, to determine if cloud cluster
+            # getting external ip, to determine if cloud cluster
+            external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
         except requests.ConnectionError as e:
             logging.debug("unable to determine local IP address: {0}".format(e))
             logging.info("~ default to 127.0.0.1")
