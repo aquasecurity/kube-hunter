@@ -80,9 +80,9 @@ def parse_args():
         help="Show hunting statistics")
 
     parser.add_argument(
-        '--discovery-timeout',
+        '--network-timeout',
         type=float,
         default=5.0,
-        help="discovery network operations timeout")
+        help="network operations timeout")
 
     return parser.parse_args()

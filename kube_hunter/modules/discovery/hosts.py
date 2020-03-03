@@ -1,9 +1,6 @@
 import os
 import json
 import logging
-import socket
-import sys
-import time
 import requests
 
 from enum import Enum
@@ -14,6 +11,7 @@ from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
 from kube_hunter.core.types import Discovery, InformationDisclosure, Azure
+
 
 class RunningAsPodEvent(Event):
     def __init__(self):
@@ -38,6 +36,7 @@ class RunningAsPodEvent(Event):
         except IOError:
             pass
 
+
 class AzureMetadataApi(Vulnerability, Event):
     """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
     def __init__(self, cidr):
@@ -45,10 +44,13 @@ class AzureMetadataApi(Vulnerability, Event):
         self.cidr = cidr
         self.evidence = "cidr: {}".format(cidr)
 
+
 class HostScanEvent(Event):
     def __init__(self, pod=False, active=False, predefined_hosts=list()):
-        self.active = active # flag to specify whether to get actual data from vulnerabilities
+        # flag to specify whether to get actual data from vulnerabilities
+        self.active = active
         self.predefined_hosts = predefined_hosts
+
 
 class HostDiscoveryHelpers:
     @staticmethod
@@ -107,29 +109,38 @@ class FromPodHostDiscovery(Discovery):
     def is_azure_pod(self):
         try:
             logging.debug("From pod attempting to access Azure Metadata API")
-            if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}, timeout=5).status_code == 200:
+            if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01",
+                            headers={"Metadata": "true"},
+                            timeout=config.network_timeout).status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
             return False
 
-   # for pod scanning
+    # for pod scanning
     def traceroute_discovery(self):
-        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        # getting external ip, to determine if cloud cluster
+        external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
         from scapy.all import ICMP, IP, Ether, srp1
 
-        node_internal_ip = srp1(Ether() / IP(dst="google.com" , ttl=1) / ICMP(), verbose=0)[IP].src
-        return [ [node_internal_ip,"24"], ], external_ip
+        node_internal_ip = srp1(
+            Ether()/IP(dst="1.1.1.1", ttl=1)/ICMP(),
+            verbose=0,
+            timeout=config.network_timeout)[IP].src
+        return [[node_internal_ip, "24"]], external_ip
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
         logging.debug("From pod attempting to access azure's metadata")
-        machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).text)
+        machine_metadata = requests.get(
+            "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
+            headers={"Metadata": "true"},
+            timeout=config.network_timeout).json()
         address, subnet = "", ""
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
             logging.debug("From pod discovered subnet {0}/{1}".format(address, subnet if not config.quick else "24"))
-            subnets.append([address,subnet if not config.quick else "24"])
+            subnets.append([address, subnet if not config.quick else "24"])
 
             self.publish_event(AzureMetadataApi(cidr="{}/{}".format(address, subnet)))
 
@@ -163,7 +174,7 @@ class HostDiscovery(Discovery):
     def scan_interfaces(self):
         try:
             logging.debug("HostDiscovery hunter attempting to get external IP address")
-            external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+            external_ip = requests.get("https://canhazip.com", timeout=network_timeout).text # getting external ip, to determine if cloud cluster
         except requests.ConnectionError as e:
             logging.debug("unable to determine local IP address: {0}".format(e))
             logging.info("~ default to 127.0.0.1")

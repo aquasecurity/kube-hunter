@@ -10,6 +10,7 @@ from kube_hunter.conf import config
 
 KNOWN_API_PORTS = [443, 6443, 8080]
 
+
 class K8sApiService(Service, Event):
     """A Kubernetes API service"""
     def __init__(self, protocol="https"):
@@ -22,6 +23,7 @@ class ApiServer(Service, Event):
     def __init__(self):
         Service.__init__(self, name="API Server")
         self.protocol = "https"
+
 
 class MetricsServer(Service, Event):
     """The Metrics server is in charge of providing resource usage metrics for pods and nodes to the API server."""
@@ -51,7 +53,7 @@ class ApiServiceDiscovery(Discovery):
 
     def has_api_behaviour(self, protocol):
         try:
-            r = self.session.get("{}://{}:{}".format(protocol, self.event.host, self.event.port), timeout=config.discovery_timeout)
+            r = self.session.get(f"{protocol}://{self.event.host}:{self.event.port}", timeout=config.network_timeout)
             if ('k8s' in r.text) or ('"code"' in r.text and r.status_code != 200):
                 return True
         except requests.exceptions.SSLError:
@@ -81,19 +83,19 @@ class ApiServiceClassify(EventFilterBase):
         self.session.verify = False
         # Using the auth token if we can, for the case that authentication is needed for our checks
         if self.event.auth_token:
-            self.session.headers.update({"Authorization": "Bearer {}".format(self.event.auth_token)})
+            self.session.headers.update({"Authorization": f"Bearer {self.event.auth_token}"})
 
     def classify_using_version_endpoint(self):
         """Tries to classify by accessing /version. if could not access succeded, returns"""
         try:
-            r = self.session.get("{}://{}:{}/version".format(self.event.protocol, self.event.host, self.event.port))
-            versions = r.json()
+            endpoint = f"{self.event.protocol}://{self.event.host}:{self.event.port}/version"
+            versions = self.session.get(endpoint, timeout=config.network_timeout).json()
             if 'major' in versions:
                 if versions.get('major') == "":
                     self.event = MetricsServer()
                 else:
                     self.event = ApiServer()
-        except Exception as e:
+        except Exception:
             logging.exception("Could not access /version on API service")
 
     def execute(self):
