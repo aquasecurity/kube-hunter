@@ -61,8 +61,7 @@ class ApiServiceDiscovery(Discovery):
         except requests.exceptions.SSLError:
             logger.debug(f"{[protocol]} protocol not accepted on {self.event.host}:{self.event.port}")
         except Exception as e:
-            logger.debug(f"Exception on: {self.event.host}:{self.event.port}\n"
-                         f"{e}", exc_info=True)
+            logger.debug(f"Exception on: {self.event.host}:{self.event.port}", exc_info=True)
 
 
 # Acts as a Filter for services, In the case that we can classify the API,
