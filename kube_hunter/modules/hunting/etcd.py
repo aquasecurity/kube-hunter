@@ -40,8 +40,7 @@ class EtcdRemoteReadAccessEvent(Vulnerability, Event):
 
 
 class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
-    """Remote version disclosure might give an attacker
-    a valuable data to attack a cluster"""
+    """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
 
     def __init__(self, version):
 
