@@ -53,6 +53,7 @@ class ResetFloodHttp2Implementation(Vulnerability, Event):
                                vid="KHV025")
         self.evidence = evidence
 
+
 class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
     """Api Server not patched for CVE-2019-11247.
     API server allows access to custom resources via wrong scope"""
