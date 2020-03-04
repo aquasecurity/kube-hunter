@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import requests
+
 from enum import Enum
 from netaddr import IPNetwork, IPAddress
 from netifaces import AF_INET, ifaddresses, interfaces
@@ -12,6 +13,7 @@ from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
 from kube_hunter.core.types import Discovery, InformationDisclosure, Azure
 
 logger = logging.getLogger(__name__)
+
 
 class RunningAsPodEvent(Event):
     def __init__(self):

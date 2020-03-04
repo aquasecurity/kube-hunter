@@ -1,4 +1,5 @@
 import logging
+
 from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 
 from kube_hunter.conf import config

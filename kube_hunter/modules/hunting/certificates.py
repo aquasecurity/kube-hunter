@@ -40,8 +40,7 @@ class CertificateDiscovery(Hunter):
             # If the server doesn't offer SSL on this port we won't get a certificate
             return
         c = cert.strip(ssl.PEM_HEADER).strip(ssl.PEM_FOOTER)
-        # This is depreacated since python 3.1, need to change functions
-        certdata = base64.decodestring(c)
+        certdata = base64.decodebytes(c)
         emails = re.findall(email_pattern, certdata)
         for email in emails:
             self.publish_event( CertificateEmail(email=email) )
