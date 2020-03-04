@@ -35,9 +35,8 @@ class PortDiscovery(Discovery):
             success = s.connect_ex((str(host), port))
             if success == 0:
                 return True
-        except:
-            logger.debug(f"Didn't find connection at {host}:{port}")
-            pass
+        except Exception:
+            logger.debug(f"Failed to probe {host}:{port}")
         finally:
             s.close()
         return False
