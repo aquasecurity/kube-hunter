@@ -193,8 +193,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
 
     # returns list of tuples of Privileged container and their pod.
     def find_privileged_containers(self):
-        logger.debug("Passive hunter is attempting to "
-                     "find privileged containers and their pods")
+        logger.debug("Passive hunter is attempting to find privileged containers and their pods")
         privileged_containers = list()
         if self.pods_endpoint_data:
             for pod in self.pods_endpoint_data["items"]:
