@@ -1,12 +1,14 @@
-import json
 import requests
 import logging
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFilterBase
+from kube_hunter.core.events.types import OpenPortEvent, Service, \
+    Event, EventFilterBase
 
 KNOWN_API_PORTS = [443, 6443, 8080]
+logger = logging.getLogger(__name__)
+
 
 class K8sApiService(Service, Event):
     """A Kubernetes API service"""
@@ -21,8 +23,10 @@ class ApiServer(Service, Event):
         Service.__init__(self, name="API Server")
         self.protocol = "https"
 
+
 class MetricsServer(Service, Event):
-    """The Metrics server is in charge of providing resource usage metrics for pods and nodes to the API server."""
+    """The Metrics server is in charge of providing
+    resource usage metrics for pods and nodes to the API server."""
     def __init__(self):
         Service.__init__(self, name="Metrics Server")
         self.protocol = "https"
@@ -41,7 +45,8 @@ class ApiServiceDiscovery(Discovery):
         self.session.verify = False
 
     def execute(self):
-        logging.debug("Attempting to discover an API service on {}:{}".format(self.event.host, self.event.port))
+        logger.debug("Attempting to discover an "
+                     "API service on {self.event.host}:{self.event.port}")
         protocols = ["http", "https"]
         for protocol in protocols:
             if self.has_api_behaviour(protocol):
@@ -53,9 +58,11 @@ class ApiServiceDiscovery(Discovery):
             if ('k8s' in r.text) or ('"code"' in r.text and r.status_code != 200):
                 return True
         except requests.exceptions.SSLError:
-            logging.debug("{} protocol not accepted on {}:{}".format(protocol, self.event.host, self.event.port))
+            logger.debug(f"{[protocol]} protocol not accepted on "
+                         f"{self.event.host}:{self.event.port}")
         except Exception as e:
-            logging.debug("{} on {}:{}".format(e, self.event.host, self.event.port))
+            logger.debug(f"Exception on: {self.event.host}:{self.event.port}\n"
+                         f"{e}", exc_info=True)
 
 
 # Acts as a Filter for services, In the case that we can classify the API,
@@ -92,7 +99,8 @@ class ApiServiceClassify(EventFilterBase):
                 else:
                     self.event = ApiServer()
         except Exception as e:
-            logging.exception("Could not access /version on API service")
+            logger.exception("Could not access /version on API service")
+            logger.exception(e)
 
     def execute(self):
         discovered_protocol = self.event.protocol

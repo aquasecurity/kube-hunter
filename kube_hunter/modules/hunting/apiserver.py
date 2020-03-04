@@ -2,13 +2,14 @@ import logging
 import json
 import requests
 import uuid
-import copy
 
 from kube_hunter.modules.discovery.apiserver import ApiServer
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from kube_hunter.core.types import Hunter, ActiveHunter, KubernetesCluster
-from kube_hunter.core.types import RemoteCodeExec, AccessRisk, InformationDisclosure, UnauthenticatedAccess
+from kube_hunter.core.types import AccessRisk, InformationDisclosure, UnauthenticatedAccess
+
+logger = logging.getLogger(__name__)
 
 
 class ServerApiAccess(Vulnerability, Event):
@@ -24,6 +25,7 @@ class ServerApiAccess(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name=name, category=category, vid="KHV005")
         self.evidence = evidence
 
+
 class ServerApiHTTPAccess(Vulnerability, Event):
     """ The API Server port is accessible over HTTP, and therefore unencrypted. Depending on your RBAC settings this could expose access to or control of your cluster. """
 
@@ -33,6 +35,7 @@ class ServerApiHTTPAccess(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name=name, category=category, vid="KHV006")
         self.evidence = evidence
 
+
 class ApiInfoDisclosure(Vulnerability, Event):
     def __init__(self, evidence, using_token, name):
         if using_token:
@@ -41,6 +44,7 @@ class ApiInfoDisclosure(Vulnerability, Event):
             name +=" as anonymous user"
         Vulnerability.__init__(self, KubernetesCluster, name=name, category=InformationDisclosure, vid="KHV007")
         self.evidence = evidence
+
 
 class ListPodsAndNamespaces(ApiInfoDisclosure):
     """ Accessing pods might give an attacker valuable information"""
@@ -202,14 +206,16 @@ class AccessApiServer(Hunter):
 
     def __init__(self, event):
         self.event = event
-        self.path = "{}://{}:{}".format(self.event.protocol, self.event.host, self.event.port)
+        self.path = f"{self.event.protocol}://{self.event.host}:{self.event.port}"
         self.headers = {}
         self.with_token = False
 
     def access_api_server(self):
-        logging.debug('Passive Hunter is attempting to access the API at {}'.format(self.path))
+        logger.debug(f'Passive Hunter is attempting to access the API at {self.path}')
         try:
-            r = requests.get("{path}/api".format(path=self.path), headers=self.headers, verify=False)
+            r = requests.get(f"{self.path}/api",
+                             headers=self.headers,
+                             verify=False)
             if r.status_code == 200 and r.content != '':
                 return r.content
         except requests.exceptions.ConnectionError:
@@ -225,9 +231,9 @@ class AccessApiServer(Hunter):
                 for item in resp["items"]:
                     items.append(item["metadata"]["name"])
                 return items
-            logging.debug("Got HTTP {} respone: {}".format(r.status_code, r.text))
+            logger.debug(f"Got HTTP {r.status_code} respone: {r.text}")
         except (requests.exceptions.ConnectionError, KeyError):
-            logging.debug("Failed retrieving items from API server at {}".format(path))
+            logger.debug(f"Failed retrieving items from API server at {path}")
 
         return None
 
@@ -235,11 +241,14 @@ class AccessApiServer(Hunter):
         pods = []
         try:
             if namespace is None:
-                r = requests.get("{path}/api/v1/pods".format(path=self.path),
-                               headers=self.headers, verify=False)
+                r = requests.get(f"{self.path}/api/v1/pods",
+                                 headers=self.headers,
+                                 verify=False)
             else:
-                r = requests.get("{path}/api/v1/namespaces/{namespace}/pods".format(path=self.path),
-                               headers=self.headers, verify=False)
+                r = requests.get("{path}/api/v1/namespaces/{namespace}/pods"
+                                 .format(path=self.path),
+                                 headers=self.headers,
+                                 verify=False)
             if r.status_code == 200:
                 resp = json.loads(r.content)
                 for item in resp["items"]:
@@ -384,14 +393,15 @@ class AccessApiServerActive(ActiveHunter):
         delete_timestamp = self.delete_item("{path}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                           path=self.path, name=pod_name, namespace=namespace))
         if delete_timestamp is None:
-            logging.error("Created pod {name} in namespace {namespace} but unable to delete it".format(name=pod_name, namespace=namespace))
+            logger.error(f"Created pod {pod_name} in "
+                         f"namespace {namespace} but unable to delete it")
         return delete_timestamp
 
     def patch_a_pod(self, namespace, pod_name):
         data = '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
         return self.patch_item(path="{path}/api/v1/namespaces/{namespace}/pods/{name}".format(
-                                 path=self.path, namespace=namespace, name=pod_name),
-                                 data=data)
+                               path=self.path, namespace=namespace, name=pod_name),
+                               data=data)
 
     def create_namespace(self):
         random_name = (str(uuid.uuid4()))[0:5]
@@ -401,7 +411,8 @@ class AccessApiServerActive(ActiveHunter):
     def delete_namespace(self, namespace):
         delete_timestamp = self.delete_item("{path}/api/v1/namespaces/{name}".format(path=self.path, name=namespace))
         if delete_timestamp is None:
-            logging.error("Created namespace {namespace} but unable to delete it".format(namespace=namespace))
+            logger.error(f"Created namespace {namespace} "
+                         f"but unable to delete it")
         return delete_timestamp
 
     def create_a_role(self, namespace):
@@ -456,21 +467,27 @@ class AccessApiServerActive(ActiveHunter):
                         }}
                       ]
                     }}""".format(random_str=name)
-        return self.create_item(path="{path}/apis/rbac.authorization.k8s.io/v1/clusterroles".format(
-                               path=self.path), name=name, data=cluster_role)
+        return \
+            self.create_item(path=f"{self.path}/apis/"
+                                  f"rbac.authorization.k8s.io/v1/clusterroles",
+                             name=name,
+                             data=cluster_role)
 
     def delete_a_role(self, namespace, name):
-        delete_timestamp = self.delete_item("{path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{role}".format(
-            path=self.path, name=namespace, role=name))
+        delete_timestamp = \
+            self.delete_item(f"{self.path}/apis/rbac.authorization.k8s.io/"
+                             f"v1/namespaces/{namespace}/roles/{name}")
         if delete_timestamp is None:
-            logging.error("Created role {name} in namespace {namespace} but unable to delete it".format(name=name, namespace=namespace))
+            logger.error(f"Created role {name} in "
+                         f"namespace {namespace} but unable to delete it")
         return delete_timestamp
 
     def delete_a_cluster_role(self, name):
-        delete_timestamp = self.delete_item("{path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{role}".format(
-            path=self.path, role=name))
+        delete_timestamp = \
+            self.delete_item(f"{self.path}/apis/rbac.authorization.k8s.io/"
+                             f"v1/clusterroles/{name}")
         if delete_timestamp is None:
-            logging.error("Created cluster role {name} but unable to delete it".format(name=name))
+            logger.error(f"Created cluster role {name} but unable to delete it")
         return delete_timestamp
 
     def patch_a_role(self, namespace, role):
@@ -571,9 +588,15 @@ class ApiVersionHunter(Hunter):
 
     def execute(self):
         if self.event.auth_token:
-            logging.debug('Passive Hunter is attempting to access the API server version end point using the pod\'s service account token on {}:{} \t'.format(self.event.host, self.event.port))
+            logger.debug('Passive Hunter is attempting to access the API '
+                         'server version end point using the pod\'s '
+                         'service account token on '
+                         f'{self.event.host}:{self.event.port} \t')
         else:
-            logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
-        version = json.loads(self.session.get(self.path + "/version").text)["gitVersion"]
-        logging.debug("Discovered version of api server {}".format(version))
-        self.publish_event(K8sVersionDisclosure(version=version, from_endpoint="/version"))
+            logger.debug('Passive Hunter is attempting to access '
+                         'the API server version end point anonymously')
+        version = json.loads(self.session.get(
+            self.path + "/version").text)["gitVersion"]
+        logger.debug(f"Discovered version of api server {version}")
+        self.publish_event(K8sVersionDisclosure(version=version,
+                                                from_endpoint="/version"))

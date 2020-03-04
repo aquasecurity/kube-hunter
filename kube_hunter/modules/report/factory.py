@@ -5,6 +5,7 @@ from kube_hunter.modules.report.dispatchers import \
     STDOUTDispatcher, HTTPDispatcher
 
 import logging
+logger = logging.getLogger(__name__)
 
 reporters = {
     'yaml': YAMLReporter,
@@ -22,7 +23,7 @@ def get_reporter(name):
     try:
         return reporters[name.lower()]()
     except KeyError:
-        logging.warning('Unknown reporter selected, using plain')
+        logger.warning('Unknown reporter selected, using plain')
         return reporters['plain']()
 
 
@@ -30,5 +31,5 @@ def get_dispatcher(name):
     try:
         return dispatchers[name.lower()]()
     except KeyError:
-        logging.warning('Unknown dispatcher selected, using stdout')
+        logger.warning('Unknown dispatcher selected, using stdout')
         return dispatchers['stdout']()

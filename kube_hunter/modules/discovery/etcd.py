@@ -1,11 +1,7 @@
-import json
-import logging
-
-import requests
-
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, OpenPortEvent, Service
 from kube_hunter.core.types import Discovery
+
 
 class EtcdAccessEvent(Service, Event):
     """Etcd is a DB that stores cluster's data, it contains configuration and current
@@ -14,7 +10,7 @@ class EtcdAccessEvent(Service, Event):
         Service.__init__(self, name="Etcd")
 
 
-@handler.subscribe(OpenPortEvent, predicate= lambda p: p.port == 2379)
+@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == 2379)
 class EtcdRemoteAccess(Discovery):
     """Etcd service
     check for the existence of etcd service

@@ -1,7 +1,6 @@
 import logging
 import requests
 import json
-
 from enum import Enum
 
 from kube_hunter.core.events import handler
@@ -10,14 +9,18 @@ from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, Info
 from kube_hunter.modules.discovery.dashboard import KubeDashboardEvent
 from kube_hunter.modules.discovery.proxy import KubeProxyEvent
 
+logger = logging.getLogger(__name__)
+
 
 class KubeProxyExposed(Vulnerability, Event):
     """All operations on the cluster are exposed"""
     def __init__(self):
         Vulnerability.__init__(self, KubernetesCluster, "Proxy Exposed", category=InformationDisclosure, vid="KHV049")
 
+
 class Service(Enum):
     DASHBOARD = "kubernetes-dashboard"
+
 
 @handler.subscribe(KubeProxyEvent)
 class KubeProxy(Hunter):
@@ -33,7 +36,7 @@ class KubeProxy(Hunter):
         for namespace, services in self.services.items():
             for service in services:
                 if service == Service.DASHBOARD.value:
-                    logging.debug(service)
+                    logger.debug(service)
                     curr_path = "api/v1/namespaces/{ns}/services/{sv}/proxy".format(ns=namespace,sv=service) # TODO: check if /proxy is a convention on other services
                     self.publish_event(KubeDashboardEvent(path=curr_path, secure=False))
 
@@ -50,7 +53,7 @@ class KubeProxy(Hunter):
             resource_path = "/namespaces/{ns}/services".format(ns=namespace)
             resource_json = requests.get(self.api_url + resource_path).json()
             services[namespace] = self.extract_names(resource_json)
-        logging.debug(services)
+        logger.debug(services)
         return services
 
     @staticmethod
@@ -59,6 +62,7 @@ class KubeProxy(Hunter):
         for item in resource_json["items"]:
             names.append(item["metadata"]["name"])
         return names
+
 
 @handler.subscribe(KubeProxyExposed)
 class ProveProxyExposed(ActiveHunter):
@@ -75,6 +79,7 @@ class ProveProxyExposed(ActiveHunter):
         ), verify=False).text)
         if "buildDate" in version_metadata:
             self.event.evidence = "build date: {}".format(version_metadata["buildDate"])
+
 
 @handler.subscribe(KubeProxyExposed)
 class K8sVersionDisclosureProve(ActiveHunter):

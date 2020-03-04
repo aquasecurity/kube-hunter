@@ -1,63 +1,91 @@
 import logging
-import json
-import requests
-
 from packaging import version
 
 from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
-from kube_hunter.core.types import Hunter, ActiveHunter, KubernetesCluster, \
-    RemoteCodeExec, AccessRisk, InformationDisclosure, PrivilegeEscalation, \
+from kube_hunter.core.types import Hunter, KubernetesCluster, \
+    RemoteCodeExec, PrivilegeEscalation, \
     DenialOfService, KubectlClient
 from kube_hunter.modules.discovery.kubectl import KubectlClientEvent
 
+logger = logging.getLogger(__name__)
 
 """ Cluster CVES """
 class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
     """Node is vulnerable to critical CVE-2018-1002105"""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Critical Privilege Escalation CVE", category=PrivilegeEscalation, vid="KHV022")
+        Vulnerability.__init__(self, KubernetesCluster,
+                               name="Critical Privilege Escalation CVE",
+                               category=PrivilegeEscalation,
+                               vid="KHV022")
         self.evidence = evidence
+
 
 class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
-    """Node not patched for CVE-2019-1002100. Depending on your RBAC settings, a crafted json-patch could cause a Denial of Service."""
+    """Node not patched for CVE-2019-1002100. Depending on your RBAC settings,
+     a crafted json-patch could cause a Denial of Service."""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Denial of Service to Kubernetes API Server", category=DenialOfService, vid="KHV023")
+        Vulnerability.__init__(self, KubernetesCluster,
+                               name="Denial of Service to Kubernetes API Server",
+                               category=DenialOfService,
+                               vid="KHV023")
         self.evidence = evidence
+
 
 class PingFloodHttp2Implementation(Vulnerability, Event):
-    """Node not patched for CVE-2019-9512. an attacker could cause a Denial of Service by sending specially crafted HTTP requests."""
+    """Node not patched for CVE-2019-9512. an attacker could cause a
+    Denial of Service by sending specially crafted HTTP requests."""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Possible Ping Flood Attack", category=DenialOfService, vid="KHV024")
+        Vulnerability.__init__(self, KubernetesCluster,
+                               name="Possible Ping Flood Attack",
+                               category=DenialOfService,
+                               vid="KHV024")
         self.evidence = evidence
 
+
 class ResetFloodHttp2Implementation(Vulnerability, Event):
-    """Node not patched for CVE-2019-9514. an attacker could cause a Denial of Service by sending specially crafted HTTP requests."""
+    """Node not patched for CVE-2019-9514. an attacker could cause a
+    Denial of Service by sending specially crafted HTTP requests."""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Possible Reset Flood Attack", category=DenialOfService, vid="KHV025")
+        Vulnerability.__init__(self, KubernetesCluster,
+                               name="Possible Reset Flood Attack",
+                               category=DenialOfService,
+                               vid="KHV025")
         self.evidence = evidence
 
 class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
-    """Api Server not patched for CVE-2019-11247. API server allows access to custom resources via wrong scope"""
+    """Api Server not patched for CVE-2019-11247.
+    API server allows access to custom resources via wrong scope"""
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Arbitrary Access To Cluster Scoped Resources", category=PrivilegeEscalation, vid="KHV026")
+        Vulnerability.__init__(self, KubernetesCluster,
+                               name="Arbitrary Access To Cluster Scoped Resources",
+                               category=PrivilegeEscalation,
+                               vid="KHV026")
         self.evidence = evidence
 
 
 """ Kubectl CVES """
 
 class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
-    """The kubectl client is vulnerable to CVE-2019-11246, an attacker could potentially execute arbitrary code on the client's machine"""
+    """The kubectl client is vulnerable to CVE-2019-11246,
+    an attacker could potentially execute arbitrary code on the client's machine"""
     def __init__(self, binary_version):
-        Vulnerability.__init__(self, KubectlClient, "Kubectl Vulnerable To CVE-2019-11246", category=RemoteCodeExec, vid="KHV027")
+        Vulnerability.__init__(self, KubectlClient,
+                               "Kubectl Vulnerable To CVE-2019-11246",
+                               category=RemoteCodeExec,
+                               vid="KHV027")
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
 
 class KubectlCpVulnerability(Vulnerability, Event):
-    """The kubectl client is vulnerable to CVE-2019-1002101, an attacker could potentially execute arbitrary code on the client's machine"""
+    """The kubectl client is vulnerable to CVE-2019-1002101,
+    an attacker could potentially execute arbitrary code on the client's machine"""
     def __init__(self, binary_version):
-        Vulnerability.__init__(self, KubectlClient, "Kubectl Vulnerable To CVE-2019-1002101", category=RemoteCodeExec, vid="KHV028")
+        Vulnerability.__init__(self, KubectlClient,
+                               "Kubectl Vulnerable To CVE-2019-1002101",
+                               category=RemoteCodeExec,
+                               vid="KHV028")
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
 
@@ -83,7 +111,8 @@ class CveUtils:
 
     @staticmethod
     def version_compare(v1, v2):
-        """Function compares two versions, handling differences with conversion to LegacyVersion"""
+        """Function compares two versions,
+        handling differences with conversion to LegacyVersion"""
         # getting raw version, while striping 'v' char at the start. if exists.
         # removing this char lets us safely compare the two version.
         v1_raw, v2_raw = CveUtils.to_raw_version(v1).strip('v'), CveUtils.to_raw_version(v2).strip('v')
@@ -94,7 +123,7 @@ class CveUtils:
 
     @staticmethod
     def basic_compare(v1, v2):
-        return (v1>v2)-(v1<v2)
+        return (v1 > v2)-(v1 < v2)
 
     @staticmethod
     def is_downstream_version(version):
@@ -102,7 +131,8 @@ class CveUtils:
 
     @staticmethod
     def is_vulnerable(fix_versions, check_version, ignore_downstream=False):
-        """Function determines if a version is vulnerable, by comparing to given fix versions by base release"""
+        """Function determines if a version is vulnerable,
+        by comparing to given fix versions by base release"""
         if ignore_downstream and CveUtils.is_downstream_version(check_version):
             return False
 
@@ -139,14 +169,16 @@ class CveUtils:
 @handler.subscribe_once(K8sVersionDisclosure)
 class K8sClusterCveHunter(Hunter):
     """K8s CVE Hunter
-    Checks if Node is running a Kubernetes version vulnerable to specific important CVEs
+    Checks if Node is running a Kubernetes version vulnerable to
+    specific important CVEs
     """
 
     def __init__(self, event):
         self.event = event
 
     def execute(self):
-        logging.debug('Api Cve Hunter determining vulnerable version: {}'.format(self.event.version))
+        logger.debug('Api Cve Hunter determining '
+                     f'vulnerable version: {self.event.version}')
         cve_mapping = {
             ServerApiVersionEndPointAccessPE: ["1.10.11", "1.11.5", "1.12.3"],
             ServerApiVersionEndPointAccessDos: ["1.11.8", "1.12.6", "1.13.4"],
@@ -172,7 +204,8 @@ class KubectlCVEHunter(Hunter):
             KubectlCpVulnerability: ['1.11.9', '1.12.7', '1.13.5' '1.14.0'],
             IncompleteFixToKubectlCpVulnerability: ['1.12.9', '1.13.6', '1.14.2']
         }
-        logging.debug('Kubectl Cve Hunter determining vulnerable version: {}'.format(self.event.version))
+        logger.debug('Kubectl Cve Hunter determining '
+                     f'vulnerable version: {self.event.version}')
         for vulnerability, fix_versions in cve_mapping.items():
             if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(binary_version=self.event.version))

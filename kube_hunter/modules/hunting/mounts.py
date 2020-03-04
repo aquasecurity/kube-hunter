@@ -5,13 +5,18 @@ import uuid
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, PrivilegeEscalation
-from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
+from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, \
+    ExposedRunHandler, KubeletHandlers
 
+logger = logging.getLogger(__name__)
 
 class WriteMountToVarLog(Vulnerability, Event):
     """A pod can create symlinks in the /var/log directory on the host, which can lead to a root directory traveral"""
     def __init__(self, pods):
-        Vulnerability.__init__(self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation, vid="KHV047")
+        Vulnerability.__init__(self, KubernetesCluster,
+                               "Pod With Mount To /var/log",
+                               category=PrivilegeEscalation,
+                               vid="KHV047")
         self.pods = pods
         self.evidence = "pods: {}".format(', '.join((pod["metadata"]["name"] for pod in self.pods)))
 
@@ -69,7 +74,7 @@ class ProveVarLogMount(ActiveHunter):
 
     # TODO: replace with multiple subscription to WriteMountToVarLog as well
     def get_varlog_mounters(self):
-        logging.debug("accessing /pods manually on ProveVarLogMount")
+        logger.debug("accessing /pods manually on ProveVarLogMount")
         pods = json.loads(self.event.session.get(self.base_path + KubeletHandlers.PODS.value, verify=False).text)["items"]
         for pod in pods:
             volume = VarLogMountHunter(ExposedPodsHandler(pods=pods)).has_write_mount_to(pod, "/var/log")
@@ -81,7 +86,7 @@ class ProveVarLogMount(ActiveHunter):
         for container in pod["spec"]["containers"]:
             for volume_mount in container["volumeMounts"]:
                 if volume_mount["name"] == mount_name:
-                    logging.debug("yielding {}".format(container))
+                    logger.debug(f"yielding {container}")
                     yield container, volume_mount["mountPath"]
 
     def traverse_read(self, host_file, container, mount_path, host_path):
@@ -99,14 +104,15 @@ class ProveVarLogMount(ActiveHunter):
     def execute(self):
         for pod, volume in self.get_varlog_mounters():
             for container, mount_path in self.mount_path_from_mountname(pod, volume["name"]):
-                logging.debug("correleated container to mount_name")
+                logger.debug("Correlated container to mount_name")
                 cont = {
                     "name": container["name"],
                     "pod": pod["metadata"]["name"],
                     "namespace": pod["metadata"]["namespace"],
                 }
                 try:
-                    output = self.traverse_read("/etc/shadow", container=cont, mount_path=mount_path, host_path=volume["hostPath"]["path"])
+                    output = self.traverse_read("/etc/shadow", container=cont, mount_path=mount_path,
+                                                host_path=volume["hostPath"]["path"])
                     self.publish_event(DirectoryTraversalWithKubelet(output=output))
-                except Exception as x:
-                    logging.debug("could not exploit /var/log: {}".format(x))
+                except Exception as ex:
+                    logger.debug(f"could not exploit /var/log: {ex}", exc_info=True)

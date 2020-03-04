@@ -5,6 +5,7 @@ from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
 
+logger = logging.getLogger(__name__)
 
 global services_lock
 services_lock = threading.Lock()
@@ -52,21 +53,17 @@ class Collector(object):
         if Service in bases:
             with services_lock:
                 services.append(self.event)
-            import datetime
-            logging.info("|\n| {name}:\n|   type: open service\n|   service: {name}\n|_  location: {location}".format(
-                name=self.event.get_name(),
-                location=self.event.location(),
-                time=datetime.time()
-            ))
+            logger.info(f"|\n| {self.event.get_name()}:\n|   "
+                        f"type: open service\n|   "
+                        f"service: {self.event.get_name()}\n|_  "
+                        f"location: {self.event.location()}")
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
-            logging.info(
-                "|\n| {name}:\n|   type: vulnerability\n|   location: {location}\n|   description: \n{desc}".format(
-                    name=self.event.get_name(),
-                    location=self.event.location(),
-                    desc=wrap_last_line(console_trim(self.event.explain(), '|     '))
-                ))
+            logger.info(f"|\n| {self.event.get_name()}:\n|   "
+                        f"type: vulnerability\n|   "
+                        f"location: {self.event.location()}\n|   "
+                        f"description: \n{wrap_last_line(console_trim(self.event.explain(), '|     '))}")
 
 
 class TablesPrinted(Event):
@@ -91,5 +88,5 @@ class StartedInfo(object):
         self.event = event
 
     def execute(self):
-        logging.info("~ Started")
-        logging.info("~ Discovering Open Kubernetes Services...")
+        logger.info("~ Started")
+        logger.info("~ Discovering Open Kubernetes Services...")
