@@ -60,8 +60,7 @@ class ApiServiceDiscovery(Discovery):
             if ('k8s' in r.text) or ('"code"' in r.text and r.status_code != 200):
                 return True
         except requests.exceptions.SSLError:
-            logger.debug(f"{[protocol]} protocol not accepted on "
-                         f"{self.event.host}:{self.event.port}")
+            logger.debug(f"{[protocol]} protocol not accepted on {self.event.host}:{self.event.port}")
         except Exception as e:
             logger.debug(f"Exception on: {self.event.host}:{self.event.port}\n"
                          f"{e}", exc_info=True)
