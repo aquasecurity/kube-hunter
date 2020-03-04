@@ -8,6 +8,7 @@ from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFi
 from kube_hunter.conf import config
 
 KNOWN_API_PORTS = [443, 6443, 8080]
+
 logger = logging.getLogger(__name__)
 
 
