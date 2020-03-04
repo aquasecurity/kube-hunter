@@ -182,9 +182,7 @@ class HostDiscovery(Discovery):
             # getting external ip, to determine if cloud cluster
             external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
         except requests.ConnectionError as e:
-            logger.debug(f"unable to determine local IP address: {e}",
-                         exc_info=True)
-            logger.info("~ default to 127.0.0.1")
+            logger.warning(f"Unable to determine external IP address, using 127.0.0.1", exc_info=True)
             external_ip = "127.0.0.1"
         cloud = HostDiscoveryHelpers.get_cloud(external_ip)
         for ip in self.generate_interfaces_subnet():
