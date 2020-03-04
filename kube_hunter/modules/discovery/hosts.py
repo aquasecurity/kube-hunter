@@ -173,8 +173,7 @@ class HostDiscovery(Discovery):
             self.scan_interfaces()
         elif len(config.remote) > 0:
             for host in config.remote:
-                self.publish_event(NewHostEvent(host=host,
-                                                cloud=HostDiscoveryHelpers.get_cloud(host)))
+                self.publish_event(NewHostEvent(host=host, cloud=HostDiscoveryHelpers.get_cloud(host)))
 
     # for normal scanning
     def scan_interfaces(self):
