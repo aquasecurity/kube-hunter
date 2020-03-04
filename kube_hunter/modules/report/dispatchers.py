@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class HTTPDispatcher(object):
     def dispatch(self, report):
-        logger.debug('Dispatching report via http')
+        logger.debug("Dispatching report via HTTP")
         dispatch_method = os.environ.get(
             'KUBEHUNTER_HTTP_DISPATCH_METHOD',
             'POST'
