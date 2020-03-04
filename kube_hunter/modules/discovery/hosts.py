@@ -71,7 +71,7 @@ class HostDiscoveryHelpers:
     @staticmethod
     def generate_subnet(ip, sn="24"):
         logger.debug(f"HostDiscoveryHelpers.generate_subnet {ip}/{sn}")
-        subnet = IPNetwork(f'{ip}/{sn}')
+        subnet = f"{ip}/{sn}"
         for ip in IPNetwork(subnet):
             logger.debug(f"HostDiscoveryHelpers.generate_subnet yielding {ip}")
             yield ip
