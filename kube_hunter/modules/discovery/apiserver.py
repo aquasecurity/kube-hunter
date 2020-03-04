@@ -28,8 +28,7 @@ class ApiServer(Service, Event):
 
 
 class MetricsServer(Service, Event):
-    """The Metrics server is in charge of providing
-    resource usage metrics for pods and nodes to the API server."""
+    """The Metrics server is in charge of providing resource usage metrics for pods and nodes to the API server"""
     def __init__(self):
         Service.__init__(self, name="Metrics Server")
         self.protocol = "https"
