@@ -132,8 +132,7 @@ class EtcdRemoteAccess(Hunter):
             return False
 
     def insecure_access(self):
-        logger.debug(f"{self.event.host} Passive hunter is attempting to "
-                     "access etcd insecurely")
+        logger.debug(f"{self.event.host} Passive hunter is attempting to access etcd insecurely")
         try:
             r = requests.get(
                 f"http://{self.event.host}:{ETCD_PORT}/version",
