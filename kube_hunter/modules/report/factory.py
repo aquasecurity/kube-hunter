@@ -23,7 +23,7 @@ def get_reporter(name):
     try:
         return reporters[name.lower()]()
     except KeyError:
-        logger.warning('Unknown reporter selected, using plain')
+        logger.warning(f"Unknown reporter \"{name}\", using plain")
         return reporters['plain']()
 
 
