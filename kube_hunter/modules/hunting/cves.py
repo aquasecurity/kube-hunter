@@ -204,8 +204,7 @@ class KubectlCVEHunter(Hunter):
             KubectlCpVulnerability: ["1.11.9", "1.12.7", "1.13.5", "1.14.0"],
             IncompleteFixToKubectlCpVulnerability: ["1.12.9", "1.13.6", "1.14.2"]
         }
-        logger.debug('Kubectl Cve Hunter determining '
-                     f'vulnerable version: {self.event.version}')
+        logger.debug(f"Checking known CVEs for kubectl version: {self.event.version}")
         for vulnerability, fix_versions in cve_mapping.items():
             if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(binary_version=self.event.version))
