@@ -120,8 +120,7 @@ class EtcdRemoteAccess(Hunter):
             return False
 
     def version_disclosure(self):
-        logger.debug(f"{self.event.host} Passive hunter is attempting "
-                     "to check etcd version remotely")
+        logger.debug(f"{self.event.host} Passive hunter is attempting to check etcd version remotely")
         try:
             r = requests.get(
                 f"{self.protocol}://{self.event.host}:{ETCD_PORT}/version",
