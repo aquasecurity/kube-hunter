@@ -1,22 +1,25 @@
-import json
 import logging
 import requests
 import urllib3
 
 from enum import Enum
 
-from kube_hunter.core.types import Discovery, Kubelet
+from kube_hunter.conf import config
+from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import OpenPortEvent, Vulnerability, Event, Service
+from kube_hunter.core.events.types import OpenPortEvent, Event, Service
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 """ Services """
+
+
 class ReadOnlyKubeletEvent(Service, Event):
     """The read-only port on the kubelet serves health probing endpoints, and is relied upon by many kubernetes components"""
     def __init__(self):
         Service.__init__(self, name="Kubelet API (readonly)")
+
 
 class SecureKubeletEvent(Service, Event):
     """The Kubelet is the main component in every Node, all pod operations goes through the kubelet"""
@@ -31,7 +34,8 @@ class KubeletPorts(Enum):
     SECURED = 10250
     READ_ONLY = 10255
 
-@handler.subscribe(OpenPortEvent, predicate= lambda x: x.port == 10255 or x.port == 10250)
+
+@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 10255 or x.port == 10250)
 class KubeletDiscovery(Discovery):
     """Kubelet Discovery
     Checks for the existence of a Kubelet service, and its open ports
@@ -40,8 +44,9 @@ class KubeletDiscovery(Discovery):
         self.event = event
 
     def get_read_only_access(self):
-        logging.debug("Passive hunter is attempting to get kubelet read access at {}:{}".format(self.event.host, self.event.port))
-        r = requests.get("http://{host}:{port}/pods".format(host=self.event.host, port=self.event.port))
+        endpoint = f"http://{self.event.host}:{self.event.port}/pods"
+        logging.debug(f"Passive hunter is attempting to get kubelet read access at {endpoint}")
+        r = requests.get(endpoint, timeout=config.network_timeout)
         if r.status_code == 200:
             self.publish_event(ReadOnlyKubeletEvent())
 
@@ -56,11 +61,12 @@ class KubeletDiscovery(Discovery):
             self.publish_event(SecureKubeletEvent(secure=True, anonymous_auth=False))
 
     def ping_kubelet(self):
-        logging.debug("Attempting to get pod info from kubelet")
+        endpoint = f"https://{self.event.host}:{self.event.port}/pods"
+        logging.debug("Attempting to get pods info from kubelet")
         try:
-            return requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).status_code
-        except Exception as ex:
-            logging.debug("Failed pinging https port 10250 on {} : {}".format(self.event.host, ex))
+            return requests.get(endpoint, verify=False, timeout=config.network_timeout).status_code
+        except Exception:
+            logging.debug(f"Failed pinging https port on {endpoint}", exc_info=True)
 
     def execute(self):
         if self.event.port == KubeletPorts.SECURED.value:

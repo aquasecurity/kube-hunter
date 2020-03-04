@@ -2,6 +2,7 @@ import logging
 
 from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 
+from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft
@@ -9,9 +10,10 @@ from kube_hunter.modules.hunting.capabilities import CapNetRawEnabled
 
 
 class PossibleArpSpoofing(Vulnerability, Event):
-    """A malicious pod running on the cluster could potentially run an ARP Spoof attack and perform a MITM between pods on the node."""
+    """A malicious pod running on the cluster could potentially run an ARP Spoof attack
+    and perform a MITM between pods on the node."""
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft,vid="KHV020")
+        Vulnerability.__init__(self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft, vid="KHV020")
 
 @handler.subscribe(CapNetRawEnabled)
 class ArpSpoofHunter(ActiveHunter):
@@ -22,7 +24,7 @@ class ArpSpoofHunter(ActiveHunter):
         self.event = event
 
     def try_getting_mac(self, ip):
-        ans = sr1(ARP(op=1, pdst=ip),timeout=2, verbose=0)
+        ans = sr1(ARP(op=1, pdst=ip), timeout=config.network_timeout, verbose=0)
         return ans[ARP].hwsrc if ans else None
 
     def detect_l3_on_host(self, arp_responses):
@@ -41,8 +43,11 @@ class ArpSpoofHunter(ActiveHunter):
         return False
 
     def execute(self):
-        self_ip = sr1(IP(dst="1.1.1.1", ttl=1), ICMP(), verbose=0)[IP].dst
-        arp_responses, _ = srp(Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(op=1, pdst="{}/24".format(self_ip)), timeout=3, verbose=0)
+        self_ip = sr1(IP(dst="1.1.1.1", ttl=1)/ICMP(), verbose=0, timeout=config.network_timeout)[IP].dst
+        arp_responses, _ = srp(
+            Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(op=1, pdst=f"{self_ip}/24"),
+            timeout=config.netork_timeout,
+            verbose=0)
 
         # arp enabled on cluster and more than one pod on node
         if len(arp_responses) > 1:

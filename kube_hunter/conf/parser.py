@@ -79,4 +79,10 @@ def parse_args():
         action="store_true",
         help="Show hunting statistics")
 
+    parser.add_argument(
+        '--network-timeout',
+        type=float,
+        default=5.0,
+        help="network operations timeout")
+
     return parser.parse_args()
