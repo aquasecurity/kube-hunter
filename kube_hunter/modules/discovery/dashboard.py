@@ -11,8 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class KubeDashboardEvent(Service, Event):
-    """A web-based Kubernetes user interface.
-    allows easy usage with operations on the cluster"""
+    """A web-based Kubernetes user interface allows easy usage with operations on the cluster"""
     def __init__(self, **kargs):
         Service.__init__(self, name="Kubernetes Dashboard", **kargs)
 
