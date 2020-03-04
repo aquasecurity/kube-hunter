@@ -55,7 +55,7 @@ class KubeProxy(Hunter):
             resource_path = "/namespaces/{ns}/services".format(ns=namespace)
             resource_json = requests.get(self.api_url + resource_path, timeout=config.network_timeout).json()
             services[namespace] = self.extract_names(resource_json)
-        logger.debug(services)
+        logger.debug(f"Enumerated services [{' '.join(services)}]")
         return services
 
     @staticmethod
