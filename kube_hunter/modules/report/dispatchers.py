@@ -42,6 +42,4 @@ class HTTPDispatcher(object):
 class STDOUTDispatcher(object):
     def dispatch(self, report):
         logger.debug('Dispatching report via stdout')
-        if config.report == "plain":
-            logger.info("\n{div}".format(div="-" * 10))
         print(report)

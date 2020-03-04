@@ -18,27 +18,6 @@ vulnerabilities = list()
 hunters = handler.all_hunters
 
 
-def console_trim(text, prefix=' '):
-    a = text.split(" ")
-    b = a[:]
-    total_length = 0
-    count_of_inserts = 0
-    for index, value in enumerate(a):
-        if (total_length + (len(value) + len(prefix))) >= 80:
-            b.insert(index + count_of_inserts, '\n')
-            count_of_inserts += 1
-            total_length = 0
-        else:
-            total_length += len(value) + len(prefix)
-    return '\n'.join([prefix + line.strip(' ') for line in ' '.join(b).split('\n')])
-
-
-def wrap_last_line(text, prefix='| ', suffix='|_'):
-    lines = text.split('\n')
-    lines[-1] = lines[-1].replace(prefix, suffix, 1)
-    return '\n'.join(lines)
-
-
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
 class Collector(object):
@@ -53,17 +32,14 @@ class Collector(object):
         if Service in bases:
             with services_lock:
                 services.append(self.event)
-            logger.info(f"|\n| {self.event.get_name()}:\n|   "
-                        f"type: open service\n|   "
-                        f"service: {self.event.get_name()}\n|_  "
-                        f"location: {self.event.location()}")
+            logger.info(f"message=\"Found service\" name=\"{self.event.get_name()}\""
+                        f" type=\"open service\" location=\"{self.event.location()}\"")
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
-            logger.info(f"|\n| {self.event.get_name()}:\n|   "
-                        f"type: vulnerability\n|   "
-                        f"location: {self.event.location()}\n|   "
-                        f"description: \n{wrap_last_line(console_trim(self.event.explain(), '|     '))}")
+            logger.info(f"message=\"Found vulnerability\" name=\"{self.event.get_name()}\" "
+                        f"type=\"vulnerability\" location=\"{self.event.location()}\" "
+                        f"description=\"{self.event.explain()}\"")
 
 
 class TablesPrinted(Event):
