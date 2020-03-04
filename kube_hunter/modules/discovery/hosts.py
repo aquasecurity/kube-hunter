@@ -62,8 +62,8 @@ class HostDiscoveryHelpers:
         except requests.ConnectionError as e:
             logger.info(f"Failed to connect cloud type service", exc_info=True)
             return
-        except Exception as e:
-            logger.exception(e)
+        except Exception:
+            logger.warning(f"Unable to check cloud of {host}", exc_info=True)
         if "cloud" in metadata:
             return json.loads(metadata)["cloud"]
 
