@@ -42,8 +42,7 @@ class AnonymousAuthEnabled(Vulnerability, Event):
 
 
 class ExposedContainerLogsHandler(Vulnerability, Event):
-    """Output logs from a running container
-    are using the exposed /containerLogs endpoint"""
+    """Output logs from a running container are using the exposed /containerLogs endpoint"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet,
                                "Exposed Container Logs",
