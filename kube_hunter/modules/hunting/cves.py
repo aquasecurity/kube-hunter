@@ -67,6 +67,7 @@ class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
 
 """ Kubectl CVES """
 
+
 class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
     """The kubectl client is vulnerable to CVE-2019-11246,
     an attacker could potentially execute arbitrary code on the client's machine"""
