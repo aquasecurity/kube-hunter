@@ -39,5 +39,5 @@ class HTTPDispatcher(object):
 
 class STDOUTDispatcher(object):
     def dispatch(self, report):
-        logger.debug('Dispatching report via stdout')
+        logger.debug("Dispatching report via stdout")
         print(report)
