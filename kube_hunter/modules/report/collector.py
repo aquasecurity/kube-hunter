@@ -61,5 +61,5 @@ class StartedInfo(object):
         self.event = event
 
     def execute(self):
-        logger.info("~ Started")
-        logger.info("~ Discovering Open Kubernetes Services...")
+        logger.info("Started hunting")
+        logger.info("Discovering Open Kubernetes Services")
