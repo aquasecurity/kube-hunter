@@ -62,10 +62,10 @@ class HostDiscoveryHelpers:
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
             metadata = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={host}").text
         except requests.ConnectionError as e:
-            logger.info(f"- unable to check cloud: {e}")
+            logger.info(f"Failed to connect cloud type service", exc_info=True)
             return
-        except Exception as e:
-            logger.exception(e)
+        except Exception:
+            logger.warning(f"Unable to check cloud of {host}", exc_info=True)
         if "cloud" in metadata:
             return json.loads(metadata)["cloud"]
 
@@ -73,7 +73,7 @@ class HostDiscoveryHelpers:
     @staticmethod
     def generate_subnet(ip, sn="24"):
         logger.debug(f"HostDiscoveryHelpers.generate_subnet {ip}/{sn}")
-        subnet = IPNetwork(f'{ip}/{sn}')
+        subnet = f"{ip}/{sn}"
         for ip in IPNetwork(subnet):
             logger.debug(f"HostDiscoveryHelpers.generate_subnet yielding {ip}")
             yield ip
@@ -102,8 +102,7 @@ class FromPodHostDiscovery(Discovery):
             if self.event.kubeservicehost:
                 should_scan_apiserver = True
             for subnet in subnets:
-                if self.event.kubeservicehost and self.event.kubeservicehost in \
-                        IPNetwork(f"{subnet[0]}/{subnet[1]}"):
+                if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork(f"{subnet[0]}/{subnet[1]}"):
                     should_scan_apiserver = False
                 logger.debug(f"From pod scanning subnet {subnet[0]}/{subnet[1]}")
                 for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
@@ -119,7 +118,7 @@ class FromPodHostDiscovery(Discovery):
                             timeout=config.network_timeout).status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
-            logger.debug("is_azure_pod() returned false")
+            logger.debug("Failed to connect Azure metadata server")
             return False
 
     # for pod scanning
@@ -145,7 +144,8 @@ class FromPodHostDiscovery(Discovery):
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
-            logger.debug("From pod discovered subnet {0}/{1}".format(address, subnet if not config.quick else "24"))
+            subnet = subnet if not config.quick else "24"
+            logger.debug(f"From pod discovered subnet {address}/{subnet}")
             subnets.append([address, subnet if not config.quick else "24"])
 
             self.publish_event(AzureMetadataApi(cidr=f"{address}/{subnet}"))
@@ -166,8 +166,7 @@ class HostDiscovery(Discovery):
             try:
                 ip, sn = config.cidr.split('/')
             except ValueError as e:
-                logger.exception("unable to parse cidr")
-                logger.exception(e)
+                logger.exception(f"Unable to parse CIDR \"{config.cidr\"")
                 return
             cloud = HostDiscoveryHelpers.get_cloud(ip)
             for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):
@@ -176,8 +175,7 @@ class HostDiscovery(Discovery):
             self.scan_interfaces()
         elif len(config.remote) > 0:
             for host in config.remote:
-                self.publish_event(NewHostEvent(host=host,
-                                                cloud=HostDiscoveryHelpers.get_cloud(host)))
+                self.publish_event(NewHostEvent(host=host, cloud=HostDiscoveryHelpers.get_cloud(host)))
 
     # for normal scanning
     def scan_interfaces(self):
@@ -186,9 +184,7 @@ class HostDiscovery(Discovery):
             # getting external ip, to determine if cloud cluster
             external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
         except requests.ConnectionError as e:
-            logger.debug(f"unable to determine local IP address: {e}",
-                         exc_info=True)
-            logger.info("~ default to 127.0.0.1")
+            logger.warning(f"Unable to determine external IP address, using 127.0.0.1", exc_info=True)
             external_ip = "127.0.0.1"
         cloud = HostDiscoveryHelpers.get_cloud(external_ip)
         for ip in self.generate_interfaces_subnet():

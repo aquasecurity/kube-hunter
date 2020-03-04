@@ -5,8 +5,7 @@ from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, PrivilegeEscalation
-from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, \
-    ExposedRunHandler, KubeletHandlers
+from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
 
 logger = logging.getLogger(__name__)
 
@@ -132,5 +131,5 @@ class ProveVarLogMount(ActiveHunter):
                         mount_path=mount_path,
                         host_path=volume["hostPath"]["path"])
                     self.publish_event(DirectoryTraversalWithKubelet(output=output))
-                except Exception as ex:
-                    logger.debug(f"could not exploit /var/log: {ex}", exc_info=True)
+                except Exception:
+                    logger.debug("Could not exploit /var/log", exc_info=True)

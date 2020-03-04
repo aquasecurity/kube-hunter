@@ -22,8 +22,7 @@ class ReadOnlyKubeletEvent(Service, Event):
 
 
 class SecureKubeletEvent(Service, Event):
-    """The Kubelet is the main component in every Node,
-    all pod operations goes through the kubelet"""
+    """The Kubelet is the main component in every Node, all pod operations goes through the kubelet"""
     def __init__(self, cert=False, token=False, anonymous_auth=True, **kwargs):
         self.cert = cert
         self.token = token

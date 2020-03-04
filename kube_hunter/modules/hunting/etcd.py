@@ -15,8 +15,7 @@ ETCD_PORT = 2379
 
 
 class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
-    """Remote write access might grant an attacker
-    full control over the kubernetes cluster"""
+    """Remote write access might grant an attacker full control over the kubernetes cluster"""
 
     def __init__(self, write_res):
         Vulnerability.__init__(
@@ -28,8 +27,7 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
 
 
 class EtcdRemoteReadAccessEvent(Vulnerability, Event):
-    """Remote read access might expose to an attacker
-    cluster's possible exploits, secrets and more."""
+    """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
 
     def __init__(self, keys):
         Vulnerability.__init__(
@@ -42,8 +40,7 @@ class EtcdRemoteReadAccessEvent(Vulnerability, Event):
 
 
 class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
-    """Remote version disclosure might give an attacker
-    a valuable data to attack a cluster"""
+    """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
 
     def __init__(self, version):
 
@@ -71,16 +68,14 @@ class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == ETCD_PORT)
 class EtcdRemoteAccessActive(ActiveHunter):
     """Etcd Remote Access
-    Checks for remote write access to etcd-
-    will attempt to add a new key to the etcd DB"""
+    Checks for remote write access to etcd, will attempt to add a new key to the etcd DB"""
 
     def __init__(self, event):
         self.event = event
         self.write_evidence = ''
 
     def db_keys_write_access(self):
-        logger.debug("Active hunter is attempting to "
-                     f"write keys remotely on host {self.event.host}")
+        logger.debug(f"Active hunter is attempting to write keys remotely on host {self.event.host}")
         data = {
             'value': 'remotely written data'
         }
@@ -113,8 +108,7 @@ class EtcdRemoteAccess(Hunter):
         self.protocol = 'https'
 
     def db_keys_disclosure(self):
-        logger.debug(f"{self.event.host} Passive hunter is attempting "
-                     "to read etcd keys remotely")
+        logger.debug(f"{self.event.host} Passive hunter is attempting to read etcd keys remotely")
         try:
             r = requests.get(
                 f"{self.protocol}://{self.eventhost}:{ETCD_PORT}/v2/keys",
@@ -126,8 +120,7 @@ class EtcdRemoteAccess(Hunter):
             return False
 
     def version_disclosure(self):
-        logger.debug(f"{self.event.host} Passive hunter is attempting "
-                     "to check etcd version remotely")
+        logger.debug(f"{self.event.host} Passive hunter is attempting to check etcd version remotely")
         try:
             r = requests.get(
                 f"{self.protocol}://{self.event.host}:{ETCD_PORT}/version",
@@ -139,8 +132,7 @@ class EtcdRemoteAccess(Hunter):
             return False
 
     def insecure_access(self):
-        logger.debug(f"{self.event.host} Passive hunter is attempting to "
-                     "access etcd insecurely")
+        logger.debug(f"{self.event.host} Passive hunter is attempting to access etcd insecurely")
         try:
             r = requests.get(
                 f"http://{self.event.host}:{ETCD_PORT}/version",

@@ -37,7 +37,7 @@ class KubeProxy(Hunter):
         for namespace, services in self.services.items():
             for service in services:
                 if service == Service.DASHBOARD.value:
-                    logger.debug(service)
+                    logger.debug(f"Found a dashboard service \"{service}\"")
                     # TODO: check if /proxy is a convention on other services
                     curr_path = f"api/v1/namespaces/{namespace}/services/{service}/proxy"
                     self.publish_event(KubeDashboardEvent(path=curr_path, secure=False))
@@ -55,7 +55,7 @@ class KubeProxy(Hunter):
             resource_path = "/namespaces/{ns}/services".format(ns=namespace)
             resource_json = requests.get(self.api_url + resource_path, timeout=config.network_timeout).json()
             services[namespace] = self.extract_names(resource_json)
-        logger.debug(services)
+        logger.debug(f"Enumerated services [{' '.join(services)}]")
         return services
 
     @staticmethod

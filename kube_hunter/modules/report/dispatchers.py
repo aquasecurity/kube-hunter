@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class HTTPDispatcher(object):
     def dispatch(self, report):
-        logger.debug('Dispatching report via http')
+        logger.debug("Dispatching report via HTTP")
         dispatch_method = os.environ.get(
             'KUBEHUNTER_HTTP_DISPATCH_METHOD',
             'POST'
@@ -26,8 +26,8 @@ class HTTPDispatcher(object):
                 headers={'Content-Type': 'application/json'}
             )
             r.raise_for_status()
-            logger.info(f'\nReport was dispatched to: {dispatch_url}')
-            logger.debug(f"\tResponse Code: {r.status_code}\n\tResponse Data:\n{r.text}")
+            logger.info(f"Report was dispatched to: {dispatch_url}")
+            logger.debug(f"Dispatch responded {r.status_code} with: {r.text}")
 
         except requests.HTTPError as e:
             # specific http exceptions

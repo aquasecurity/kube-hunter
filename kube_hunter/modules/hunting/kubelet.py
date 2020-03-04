@@ -42,8 +42,7 @@ class AnonymousAuthEnabled(Vulnerability, Event):
 
 
 class ExposedContainerLogsHandler(Vulnerability, Event):
-    """Output logs from a running container
-    are using the exposed /containerLogs endpoint"""
+    """Output logs from a running container are using the exposed /containerLogs endpoint"""
     def __init__(self):
         Vulnerability.__init__(self, Kubelet,
                                "Exposed Container Logs",
@@ -114,7 +113,7 @@ class ExposedHealthzHandler(Vulnerability, Event):
 
 
 class PrivilegedContainers(Vulnerability, Event):
-    """A Privileged container exist on a node.
+    """A Privileged container exist on a node
     could expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
         Vulnerability.__init__(self, KubernetesCluster,
@@ -194,8 +193,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
 
     # returns list of tuples of Privileged container and their pod.
     def find_privileged_containers(self):
-        logger.debug("Passive hunter is attempting to "
-                     "find privileged containers and their pods")
+        logger.debug("Passive hunter is attempting to find privileged containers and their pods")
         privileged_containers = list()
         if self.pods_endpoint_data:
             for pod in self.pods_endpoint_data["items"]:

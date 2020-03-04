@@ -32,14 +32,11 @@ class Collector(object):
         if Service in bases:
             with services_lock:
                 services.append(self.event)
-            logger.info(f"message=\"Found service\" name=\"{self.event.get_name()}\""
-                        f" type=\"open service\" location=\"{self.event.location()}\"")
+            logger.info(f"Found open service \"{self.event.get_name()}\" at {self.event.location()}")
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
-            logger.info(f"message=\"Found vulnerability\" name=\"{self.event.get_name()}\" "
-                        f"type=\"vulnerability\" location=\"{self.event.location()}\" "
-                        f"description=\"{self.event.explain()}\"")
+            logger.info(f"Found vulnerability \"{self.event.get_name()}\" in {self.event.location()}")
 
 
 class TablesPrinted(Event):
@@ -64,5 +61,5 @@ class StartedInfo(object):
         self.event = event
 
     def execute(self):
-        logger.info("~ Started")
-        logger.info("~ Discovering Open Kubernetes Services...")
+        logger.info("Started hunting")
+        logger.info("Discovering Open Kubernetes Services")

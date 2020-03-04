@@ -4,8 +4,7 @@ from packaging import version
 from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
-from kube_hunter.core.types import Hunter, KubernetesCluster, \
-    RemoteCodeExec, PrivilegeEscalation, \
+from kube_hunter.core.types import Hunter, KubernetesCluster, RemoteCodeExec, PrivilegeEscalation, \
     DenialOfService, KubectlClient
 from kube_hunter.modules.discovery.kubectl import KubectlClientEvent
 
@@ -54,6 +53,7 @@ class ResetFloodHttp2Implementation(Vulnerability, Event):
                                vid="KHV025")
         self.evidence = evidence
 
+
 class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
     """Api Server not patched for CVE-2019-11247.
     API server allows access to custom resources via wrong scope"""
@@ -66,6 +66,7 @@ class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
 
 
 """ Kubectl CVES """
+
 
 class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
     """The kubectl client is vulnerable to CVE-2019-11246,
@@ -111,8 +112,7 @@ class CveUtils:
 
     @staticmethod
     def version_compare(v1, v2):
-        """Function compares two versions,
-        handling differences with conversion to LegacyVersion"""
+        """Function compares two versions, handling differences with conversion to LegacyVersion"""
         # getting raw version, while striping 'v' char at the start. if exists.
         # removing this char lets us safely compare the two version.
         v1_raw, v2_raw = CveUtils.to_raw_version(v1).strip('v'), CveUtils.to_raw_version(v2).strip('v')
@@ -123,7 +123,7 @@ class CveUtils:
 
     @staticmethod
     def basic_compare(v1, v2):
-        return (v1 > v2)-(v1 < v2)
+        return (v1 > v2) - (v1 < v2)
 
     @staticmethod
     def is_downstream_version(version):
@@ -177,8 +177,7 @@ class K8sClusterCveHunter(Hunter):
         self.event = event
 
     def execute(self):
-        logger.debug('Api Cve Hunter determining '
-                     f'vulnerable version: {self.event.version}')
+        logger.debug(f"Checking known CVEs for k8s API version: {self.event.version}")
         cve_mapping = {
             ServerApiVersionEndPointAccessPE: ["1.10.11", "1.11.5", "1.12.3"],
             ServerApiVersionEndPointAccessDos: ["1.11.8", "1.12.6", "1.13.4"],
@@ -201,11 +200,10 @@ class KubectlCVEHunter(Hunter):
 
     def execute(self):
         cve_mapping = {
-            KubectlCpVulnerability: ['1.11.9', '1.12.7', '1.13.5' '1.14.0'],
-            IncompleteFixToKubectlCpVulnerability: ['1.12.9', '1.13.6', '1.14.2']
+            KubectlCpVulnerability: ["1.11.9", "1.12.7", "1.13.5", "1.14.0"],
+            IncompleteFixToKubectlCpVulnerability: ["1.12.9", "1.13.6", "1.14.2"]
         }
-        logger.debug('Kubectl Cve Hunter determining '
-                     f'vulnerable version: {self.event.version}')
+        logger.debug(f"Checking known CVEs for kubectl version: {self.event.version}")
         for vulnerability, fix_versions in cve_mapping.items():
             if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(binary_version=self.event.version))
