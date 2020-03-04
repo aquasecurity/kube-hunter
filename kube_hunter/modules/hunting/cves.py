@@ -4,8 +4,7 @@ from packaging import version
 from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
-from kube_hunter.core.types import Hunter, KubernetesCluster, \
-    RemoteCodeExec, PrivilegeEscalation, \
+from kube_hunter.core.types import Hunter, KubernetesCluster, RemoteCodeExec, PrivilegeEscalation, \
     DenialOfService, KubectlClient
 from kube_hunter.modules.discovery.kubectl import KubectlClientEvent
 
