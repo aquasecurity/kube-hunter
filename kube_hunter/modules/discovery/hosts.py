@@ -142,7 +142,8 @@ class FromPodHostDiscovery(Discovery):
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
             address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
-            logger.debug("From pod discovered subnet {0}/{1}".format(address, subnet if not config.quick else "24"))
+            subnet = subnet if not config.quick else "24"
+            logger.debug(f"From pod discovered subnet {address}/{subnet}")
             subnets.append([address, subnet if not config.quick else "24"])
 
             self.publish_event(AzureMetadataApi(cidr=f"{address}/{subnet}"))
