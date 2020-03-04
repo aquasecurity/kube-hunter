@@ -72,12 +72,12 @@ class EventQueue(Queue, object):
         if EventFilterBase in hook.__mro__:
             if hook not in self.filters[event]:
                 self.filters[event].append((hook, predicate))
-                logger.debug(f'{hook} filter subscribed to {event}')
+                logger.debug(f"{hook} filter subscribed to {event}")
 
         # registering hunters
         elif hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
-            logger.debug(f'{hook} subscribed to {event}')
+            logger.debug(f"{hook} subscribed to {event}")
 
     def apply_filters(self, event):
         # if filters are subscribed, apply them on the event 
@@ -87,7 +87,7 @@ class EventQueue(Queue, object):
                     if predicate and not predicate(event):
                         continue
 
-                    logger.debug(f'Event {event.__class__} filtered with {filter_hook}')
+                    logger.debug(f"Event {event.__class__} filtered with {filter_hook}")
                     event = filter_hook(event).execute()
                     # if filter decided to remove event, returning None
                     if not event:
@@ -120,7 +120,7 @@ class EventQueue(Queue, object):
                             if Vulnerability in event.__class__.__mro__:
                                 caller.__class__.publishedVulnerabilities += 1
 
-                        logger.debug(f'Event {event.__class__} got published with {event}')
+                        logger.debug(f"Event {event.__class__} got published with {event}")
                         self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon
