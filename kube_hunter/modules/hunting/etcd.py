@@ -68,8 +68,7 @@ class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
 @handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == ETCD_PORT)
 class EtcdRemoteAccessActive(ActiveHunter):
     """Etcd Remote Access
-    Checks for remote write access to etcd-
-    will attempt to add a new key to the etcd DB"""
+    Checks for remote write access to etcd, will attempt to add a new key to the etcd DB"""
 
     def __init__(self, event):
         self.event = event
