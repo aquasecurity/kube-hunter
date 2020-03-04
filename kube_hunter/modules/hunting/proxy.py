@@ -37,7 +37,7 @@ class KubeProxy(Hunter):
         for namespace, services in self.services.items():
             for service in services:
                 if service == Service.DASHBOARD.value:
-                    logger.debug(service)
+                    logger.debug(f"Found a dashboard service \"{service}\"")
                     # TODO: check if /proxy is a convention on other services
                     curr_path = f"api/v1/namespaces/{namespace}/services/{service}/proxy"
                     self.publish_event(KubeDashboardEvent(path=curr_path, secure=False))
