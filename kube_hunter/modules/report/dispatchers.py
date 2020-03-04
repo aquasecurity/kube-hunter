@@ -34,7 +34,7 @@ class HTTPDispatcher(object):
             logger.exception(f"Failed making HTTP {dispatch_method} to {dispatch_url}, status code {r.status_code")
         except Exception as e:
             # default all exceptions
-            logger.exception(f"\nCould not dispatch report using HTTP {dispatch_method} to {dispatch_url}")
+            logger.exception(f"Could not dispatch report using HTTP {dispatch_method} to {dispatch_url}")
 
 
 class STDOUTDispatcher(object):
