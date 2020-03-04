@@ -128,8 +128,7 @@ class EventQueue(Queue, object):
         while self.running:
             try:
                 hook = self.get()
-                logger.debug(f"Executing {hook.__class__} "
-                             f"with {hook.event.__dict__}")
+                logger.debug(f"Executing {hook.__class__} with {hook.event.__dict__}")
                 hook.execute()
             except Exception as ex:
                 logger.debug(ex, exc_info=True)
