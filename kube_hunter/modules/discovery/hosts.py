@@ -1,12 +1,7 @@
 import os
 import json
 import logging
-import socket
-import sys
-import time
-from inspect import getfile, currentframe
 import requests
-
 from enum import Enum
 from netaddr import IPNetwork, IPAddress
 from netifaces import AF_INET, ifaddresses, interfaces
@@ -129,8 +124,7 @@ class FromPodHostDiscovery(Discovery):
                             timeout=5).status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
-            logger.debug(f"{getfile(currentframe())}.is_azure_pod() "
-                         "returned false")
+            logger.debug("is_azure_pod() returned false")
             return False
 
    # for pod scanning
@@ -159,6 +153,7 @@ class FromPodHostDiscovery(Discovery):
             self.publish_event(AzureMetadataApi(cidr=f"{address}/{subnet}"))
 
         return subnets, "Azure"
+
 
 @handler.subscribe(HostScanEvent)
 class HostDiscovery(Discovery):
