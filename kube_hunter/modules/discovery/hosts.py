@@ -100,8 +100,7 @@ class FromPodHostDiscovery(Discovery):
             if self.event.kubeservicehost:
                 should_scan_apiserver = True
             for subnet in subnets:
-                if self.event.kubeservicehost and self.event.kubeservicehost in \
-                        IPNetwork(f"{subnet[0]}/{subnet[1]}"):
+                if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork(f"{subnet[0]}/{subnet[1]}"):
                     should_scan_apiserver = False
                 logger.debug(f"From pod scanning subnet {subnet[0]}/{subnet[1]}")
                 for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
