@@ -123,7 +123,7 @@ class CveUtils:
 
     @staticmethod
     def basic_compare(v1, v2):
-        return (v1 > v2)-(v1 < v2)
+        return (v1 > v2) - (v1 < v2)
 
     @staticmethod
     def is_downstream_version(version):
