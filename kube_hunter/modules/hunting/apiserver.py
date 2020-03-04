@@ -433,8 +433,7 @@ class AccessApiServerActive(ActiveHunter):
     def delete_namespace(self, namespace):
         delete_timestamp = self.delete_item("{path}/api/v1/namespaces/{name}".format(path=self.path, name=namespace))
         if delete_timestamp is None:
-            logger.error(f"Created namespace {namespace} "
-                         f"but unable to delete it")
+            logger.error(f"Created namespace {namespace} but failed to delete it")
         return delete_timestamp
 
     def create_a_role(self, namespace):
