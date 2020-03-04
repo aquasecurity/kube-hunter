@@ -108,8 +108,7 @@ class EtcdRemoteAccess(Hunter):
         self.protocol = 'https'
 
     def db_keys_disclosure(self):
-        logger.debug(f"{self.event.host} Passive hunter is attempting "
-                     "to read etcd keys remotely")
+        logger.debug(f"{self.event.host} Passive hunter is attempting to read etcd keys remotely")
         try:
             r = requests.get(
                 f"{self.protocol}://{self.eventhost}:{ETCD_PORT}/v2/keys",
