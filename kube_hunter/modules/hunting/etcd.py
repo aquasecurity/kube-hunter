@@ -27,8 +27,7 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
 
 
 class EtcdRemoteReadAccessEvent(Vulnerability, Event):
-    """Remote read access might expose to an attacker
-    cluster's possible exploits, secrets and more."""
+    """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
 
     def __init__(self, keys):
         Vulnerability.__init__(
