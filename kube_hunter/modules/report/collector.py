@@ -32,8 +32,7 @@ class Collector(object):
         if Service in bases:
             with services_lock:
                 services.append(self.event)
-            logger.info(f"message=\"Found service\" name=\"{self.event.get_name()}\""
-                        f" type=\"open service\" location=\"{self.event.location()}\"")
+            logger.info(f"Found open service \"{self.event.get_name()}\" at {self.event.location()}")
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
