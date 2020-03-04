@@ -26,7 +26,7 @@ class HTTPDispatcher(object):
                 headers={'Content-Type': 'application/json'}
             )
             r.raise_for_status()
-            logger.info(f'\nReport was dispatched to: {dispatch_url}')
+            logger.info(f"Report was dispatched to: {dispatch_url}")
             logger.debug(f"\tResponse Code: {r.status_code}\n\tResponse Data:\n{r.text}")
 
         except requests.HTTPError as e:
