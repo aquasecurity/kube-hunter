@@ -47,8 +47,7 @@ class ApiServiceDiscovery(Discovery):
         self.session.verify = False
 
     def execute(self):
-        logger.debug("Attempting to discover an "
-                     "API service on {self.event.host}:{self.event.port}")
+        logger.debug(f"Attempting to discover an API service on {self.event.host}:{self.event.port}")
         protocols = ["http", "https"]
         for protocol in protocols:
             if self.has_api_behaviour(protocol):
