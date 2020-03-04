@@ -116,7 +116,7 @@ class FromPodHostDiscovery(Discovery):
                             timeout=config.network_timeout).status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
-            logger.debug("is_azure_pod() returned false")
+            logger.debug("Failed to connect Azure metadata server")
             return False
 
     # for pod scanning
