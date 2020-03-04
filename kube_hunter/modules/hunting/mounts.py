@@ -5,8 +5,7 @@ from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, PrivilegeEscalation
-from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, \
-    ExposedRunHandler, KubeletHandlers
+from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
 
 logger = logging.getLogger(__name__)
 
