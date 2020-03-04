@@ -60,7 +60,7 @@ class HostDiscoveryHelpers:
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
             metadata = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={host}").text
         except requests.ConnectionError as e:
-            logger.info(f"- unable to check cloud: {e}")
+            logger.info(f"Failed to connect cloud type service", exc_info=True)
             return
         except Exception as e:
             logger.exception(e)
