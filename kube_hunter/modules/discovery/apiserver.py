@@ -3,8 +3,7 @@ import logging
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import OpenPortEvent, Service, \
-    Event, EventFilterBase
+from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFilterBase
 
 from kube_hunter.conf import config
 
