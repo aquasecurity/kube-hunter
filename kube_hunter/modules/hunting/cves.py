@@ -177,8 +177,7 @@ class K8sClusterCveHunter(Hunter):
         self.event = event
 
     def execute(self):
-        logger.debug('Api Cve Hunter determining '
-                     f'vulnerable version: {self.event.version}')
+        logger.debug(f"Checking known CVEs for k8s API version: {self.event.version}")
         cve_mapping = {
             ServerApiVersionEndPointAccessPE: ["1.10.11", "1.11.5", "1.12.3"],
             ServerApiVersionEndPointAccessDos: ["1.11.8", "1.12.6", "1.13.4"],
