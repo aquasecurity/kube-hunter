@@ -7,6 +7,8 @@ from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, PrivilegeEscalation
 from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, ExposedRunHandler, KubeletHandlers
 
+logger = logging.getLogger(__name__)
+
 
 class WriteMountToVarLog(Vulnerability, Event):
     """A pod can create symlinks in the /var/log directory on the host, which can lead to a root directory traveral"""
@@ -80,7 +82,7 @@ class ProveVarLogMount(ActiveHunter):
 
     # TODO: replace with multiple subscription to WriteMountToVarLog as well
     def get_varlog_mounters(self):
-        logging.debug("accessing /pods manually on ProveVarLogMount")
+        logger.debug("accessing /pods manually on ProveVarLogMount")
         pods = self.event.session.get(
             self.base_path + KubeletHandlers.PODS.value,
             verify=False,
@@ -95,7 +97,7 @@ class ProveVarLogMount(ActiveHunter):
         for container in pod["spec"]["containers"]:
             for volume_mount in container["volumeMounts"]:
                 if volume_mount["name"] == mount_name:
-                    logging.debug("yielding {}".format(container))
+                    logger.debug(f"yielding {container}")
                     yield container, volume_mount["mountPath"]
 
     def traverse_read(self, host_file, container, mount_path, host_path):
@@ -116,7 +118,7 @@ class ProveVarLogMount(ActiveHunter):
     def execute(self):
         for pod, volume in self.get_varlog_mounters():
             for container, mount_path in self.mount_path_from_mountname(pod, volume["name"]):
-                logging.debug("correleated container to mount_name")
+                logger.debug("Correlated container to mount_name")
                 cont = {
                     "name": container["name"],
                     "pod": pod["metadata"]["name"],
@@ -129,5 +131,5 @@ class ProveVarLogMount(ActiveHunter):
                         mount_path=mount_path,
                         host_path=volume["hostPath"]["path"])
                     self.publish_event(DirectoryTraversalWithKubelet(output=output))
-                except Exception as x:
-                    logging.debug("could not exploit /var/log: {}".format(x))
+                except Exception:
+                    logger.debug("Could not exploit /var/log", exc_info=True)

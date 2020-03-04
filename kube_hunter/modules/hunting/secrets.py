@@ -1,12 +1,12 @@
-import json
 import logging
 import os
-import requests
 
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event
 from kube_hunter.core.types import Hunter, KubernetesCluster, AccessRisk
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceAccountTokenAccess(Vulnerability, Event):
@@ -16,6 +16,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
         Vulnerability.__init__(self, KubernetesCluster, name="Read access to pod's service account token",
                                category=AccessRisk, vid="KHV050")
         self.evidence = evidence
+
 
 class SecretsAccess(Vulnerability, Event):
     """ Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
@@ -36,8 +37,7 @@ class AccessSecrets(Hunter):
         self.secrets_evidence = ''
 
     def get_services(self):
-        logging.debug(self.event.host)
-        logging.debug('Passive Hunter is attempting to access pod\'s secrets directory')
+        logger.debug("Trying to access pod's secrets directory")
         # get all files and subdirectories files:
         self.secrets_evidence = [val for sublist in [[os.path.join(i[0], j) for j in i[2]] for i in os.walk('/var/run/secrets/')] for val in sublist]
         return True if (len(self.secrets_evidence) > 0) else False

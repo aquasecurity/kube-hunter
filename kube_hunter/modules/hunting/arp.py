@@ -8,6 +8,8 @@ from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft
 from kube_hunter.modules.hunting.capabilities import CapNetRawEnabled
 
+logger = logging.getLogger(__name__)
+
 
 class PossibleArpSpoofing(Vulnerability, Event):
     """A malicious pod running on the cluster could potentially run an ARP Spoof attack
@@ -15,10 +17,12 @@ class PossibleArpSpoofing(Vulnerability, Event):
     def __init__(self):
         Vulnerability.__init__(self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft, vid="KHV020")
 
+
 @handler.subscribe(CapNetRawEnabled)
 class ArpSpoofHunter(ActiveHunter):
     """Arp Spoof Hunter
-    Checks for the possibility of running an ARP spoof attack from within a pod (results are based on the running node)
+    Checks for the possibility of running an ARP spoof
+    attack from within a pod (results are based on the running node)
     """
     def __init__(self, event):
         self.event = event
@@ -29,7 +33,7 @@ class ArpSpoofHunter(ActiveHunter):
 
     def detect_l3_on_host(self, arp_responses):
         """ returns True for an existence of an L3 network plugin """
-        logging.debug("Attempting to detect L3 network plugin using ARP")
+        logger.debug("Attempting to detect L3 network plugin using ARP")
         unique_macs = list(set(response[ARP].hwsrc for _, response in arp_responses))
 
         # if LAN addresses not unique

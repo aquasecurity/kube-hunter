@@ -4,10 +4,12 @@ import requests
 
 from kube_hunter.conf import config
 
+logger = logging.getLogger(__name__)
+
 
 class HTTPDispatcher(object):
     def dispatch(self, report):
-        logging.debug('Dispatching report via http')
+        logger.debug("Dispatching report via HTTP")
         dispatch_method = os.environ.get(
             'KUBEHUNTER_HTTP_DISPATCH_METHOD',
             'POST'
@@ -24,32 +26,18 @@ class HTTPDispatcher(object):
                 headers={'Content-Type': 'application/json'}
             )
             r.raise_for_status()
-            logging.info('\nReport was dispatched to: {url}'.format(url=dispatch_url))
-            logging.debug(
-                "\tResponse Code: {status}\n\tResponse Data:\n{data}".format(
-                    status=r.status_code,
-                    data=r.text
-                )
-            )
+            logger.info(f"Report was dispatched to: {dispatch_url}")
+            logger.debug(f"Dispatch responded {r.status_code} with: {r.text}")
+
         except requests.HTTPError as e:
             # specific http exceptions
-            logging.exception(
-                "\nCould not dispatch report using HTTP {method} to {url}\nResponse Code: {status}".format(
-                    status=r.status_code,
-                    url=dispatch_url,
-                    method=dispatch_method
-                )
-            )
+            logger.exception(f"Failed making HTTP {dispatch_method} to {dispatch_url}, status code {r.status_code}")
         except Exception as e:
             # default all exceptions
-            logging.exception("\nCould not dispatch report using HTTP {method} to {url}".format(
-                method=dispatch_method,
-                url=dispatch_url
-            ))
+            logger.exception(f"Could not dispatch report using HTTP {dispatch_method} to {dispatch_url}")
+
 
 class STDOUTDispatcher(object):
     def dispatch(self, report):
-        logging.debug('Dispatching report via stdout')
-        if config.report == "plain":
-            logging.info("\n{div}".format(div="-" * 10))
+        logger.debug("Dispatching report via stdout")
         print(report)

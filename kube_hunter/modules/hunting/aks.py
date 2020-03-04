@@ -1,6 +1,5 @@
 import json
 import logging
-
 import requests
 
 from kube_hunter.conf import config
@@ -8,6 +7,8 @@ from kube_hunter.modules.hunting.kubelet import ExposedRunHandler
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import Hunter, ActiveHunter, IdentityTheft, Azure
+
+logger = logging.getLogger(__name__)
 
 
 class AzureSpnExposure(Vulnerability, Event):
@@ -29,11 +30,11 @@ class AzureSpnHunter(Hunter):
     # getting a container that has access to the azure.json file
     def get_key_container(self):
         endpoint = f"{self.base_url}/pods"
-        logging.debug("Passive Hunter is attempting to find container with access to azure.json file")
+        logger.debug("Passive Hunter is attempting to find container with access to azure.json file")
         try:
             r = requests.get(endpoint, verify=False, timeout=config.network_timeout)
         except requests.Timeout:
-            logging.debug("failed getting pod info")
+            logger.debug("failed getting pod info")
         else:
             pods_data = r.json().get("items", [])
             for pod_data in pods_data:
@@ -80,7 +81,7 @@ class ProveAzureSpnExposure(ActiveHunter):
         try:
             r = self.run("cat /etc/kubernetes/azure.json", container=self.event.container)
         except requests.Timeout:
-            logging.debug("failed to run command in container", exc_info=True)
+            logger.debug("failed to run command in container", exc_info=True)
         else:
             subscription = r.json()
             if "subscriptionId" in subscription:

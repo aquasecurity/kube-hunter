@@ -10,6 +10,8 @@ from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclo
 from kube_hunter.core.types import Hunter, ActiveHunter, KubernetesCluster
 from kube_hunter.core.types import AccessRisk, InformationDisclosure, UnauthenticatedAccess
 
+logger = logging.getLogger(__name__)
+
 
 class ServerApiAccess(Vulnerability, Event):
     """The API Server port is accessible.
@@ -210,7 +212,7 @@ class AccessApiServer(Hunter):
         self.with_token = False
 
     def access_api_server(self):
-        logging.debug(f"Passive Hunter is attempting to access the API at {self.path}")
+        logger.debug(f"Passive Hunter is attempting to access the API at {self.path}")
         try:
             r = requests.get(
                 f"{self.path}/api",
@@ -232,9 +234,9 @@ class AccessApiServer(Hunter):
                 for item in resp["items"]:
                     items.append(item["metadata"]["name"])
                 return items
-            logging.debug("Got HTTP {} respone: {}".format(r.status_code, r.text))
+            logger.debug(f"Got HTTP {r.status_code} respone: {r.text}")
         except (requests.exceptions.ConnectionError, KeyError):
-            logging.debug("Failed retrieving items from API server at {}".format(path))
+            logger.debug(f"Failed retrieving items from API server at {path}")
 
         return None
 
@@ -399,7 +401,7 @@ class AccessApiServerActive(ActiveHunter):
         delete_timestamp = self.delete_item("{path}/api/v1/namespaces/{namespace}/pods/{name}".format(
                                           path=self.path, name=pod_name, namespace=namespace))
         if delete_timestamp is None:
-            logging.error(f"Created pod {pod_name} in namespace {namespace} but unable to delete it")
+            logger.error(f"Created pod {pod_name} in namespace {namespace} but unable to delete it")
         return delete_timestamp
 
     def patch_a_pod(self, namespace, pod_name):
@@ -431,7 +433,7 @@ class AccessApiServerActive(ActiveHunter):
     def delete_namespace(self, namespace):
         delete_timestamp = self.delete_item("{path}/api/v1/namespaces/{name}".format(path=self.path, name=namespace))
         if delete_timestamp is None:
-            logging.error("Created namespace {namespace} but unable to delete it".format(namespace=namespace))
+            logger.error(f"Created namespace {namespace} but failed to delete it")
         return delete_timestamp
 
     def create_a_role(self, namespace):
@@ -479,13 +481,13 @@ class AccessApiServerActive(ActiveHunter):
         delete_timestamp = self.delete_item(
             f"{self.path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}")
         if delete_timestamp is None:
-            logging.error(f"Created role {name} in namespace {namespace} but unable to delete it")
+            logger.error(f"Created role {name} in namespace {namespace} but unable to delete it")
         return delete_timestamp
 
     def delete_a_cluster_role(self, name):
         delete_timestamp = self.delete_item(f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}")
         if delete_timestamp is None:
-            logging.error(f"Created cluster role {name} but unable to delete it")
+            logger.error(f"Created cluster role {name} but unable to delete it")
         return delete_timestamp
 
     def patch_a_role(self, namespace, role):
@@ -597,10 +599,10 @@ class ApiVersionHunter(Hunter):
 
     def execute(self):
         if self.event.auth_token:
-            logging.debug("Passive Hunter is attempting to access the API server version end point using the pod's"
+            logger.debug("Passive Hunter is attempting to access the API server version end point using the pod's"
                           f" service account token on {self.event.host}:{self.event.port} \t")
         else:
-            logging.debug("Passive Hunter is attempting to access the API server version end point anonymously")
+            logger.debug("Passive Hunter is attempting to access the API server version end point anonymously")
         version = self.session.get(self.path + "/version", timeout=config.network_timeout).json()["gitVersion"]
-        logging.debug(f"Discovered version of api server {version}")
+        logger.debug(f"Discovered version of api server {version}")
         self.publish_event(K8sVersionDisclosure(version=version, from_endpoint="/version"))

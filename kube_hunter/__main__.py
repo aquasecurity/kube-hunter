@@ -11,6 +11,7 @@ from kube_hunter.modules.report import get_reporter, get_dispatcher
 
 config.reporter = get_reporter(config.report)
 config.dispatcher = get_dispatcher(config.dispatch)
+logger = logging.getLogger(__name__)
 
 import kube_hunter
 
@@ -85,10 +86,10 @@ def main():
         # Blocking to see discovery output
         handler.join()
     except KeyboardInterrupt:
-        logging.debug("Kube-Hunter stopped by user")
+        logger.debug("Kube-Hunter stopped by user")
     # happens when running a container without interactive option
     except EOFError:
-        logging.error("\033[0;31mPlease run again with -it\033[0m")
+        logger.error("\033[0;31mPlease run again with -it\033[0m")
     finally:
         hunt_started_lock.acquire()
         if hunt_started:
@@ -96,7 +97,7 @@ def main():
             handler.publish_event(HuntFinished())
             handler.join()
             handler.free()
-            logging.debug("Cleaned Queue")
+            logger.debug("Cleaned Queue")
         else:
             hunt_started_lock.release()
 

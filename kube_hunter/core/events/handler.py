@@ -5,10 +5,11 @@ from queue import Queue
 from threading import Thread
 
 from kube_hunter.conf import config
+from kube_hunter.core.types import ActiveHunter, HunterBase
+from kube_hunter.core.events.types import Vulnerability, EventFilterBase
 
-from ..types import ActiveHunter, HunterBase
+logger = logging.getLogger(__name__)
 
-from ...core.events.types import Vulnerability, EventFilterBase
 
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue, object):
@@ -71,13 +72,12 @@ class EventQueue(Queue, object):
         if EventFilterBase in hook.__mro__:
             if hook not in self.filters[event]:
                 self.filters[event].append((hook, predicate))
-                logging.debug('{} filter subscribed to {}'.format(hook, event))
+                logger.debug(f"{hook} filter subscribed to {event}")
 
         # registering hunters
         elif hook not in self.hooks[event]:
             self.hooks[event].append((hook, predicate))
-            logging.debug('{} subscribed to {}'.format(hook, event))
-
+            logger.debug(f"{hook} subscribed to {event}")
 
     def apply_filters(self, event):
         # if filters are subscribed, apply them on the event 
@@ -87,7 +87,7 @@ class EventQueue(Queue, object):
                     if predicate and not predicate(event):
                         continue
 
-                    logging.debug('Event {} got filtered with {}'.format(event.__class__, filter_hook))
+                    logger.debug(f"Event {event.__class__} filtered with {filter_hook}")
                     event = filter_hook(event).execute()
                     # if filter decided to remove event, returning None
                     if not event:
@@ -120,7 +120,7 @@ class EventQueue(Queue, object):
                             if Vulnerability in event.__class__.__mro__:
                                 caller.__class__.publishedVulnerabilities += 1
 
-                        logging.debug('Event {} got published with {}'.format(event.__class__, event))
+                        logger.debug(f"Event {event.__class__} got published with {event}")
                         self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon
@@ -128,27 +128,28 @@ class EventQueue(Queue, object):
         while self.running:
             try:
                 hook = self.get()
-                logging.debug("Executing {} with {}".format(hook.__class__, hook.event.__dict__))
+                logger.debug(f"Executing {hook.__class__} with {hook.event.__dict__}")
                 hook.execute()
             except Exception as ex:
-                logging.debug("Exception: {} - {}".format(hook.__class__, ex))
+                logger.debug(ex, exc_info=True)
             finally:
                 self.task_done()
-        logging.debug("closing thread...")
+        logger.debug("closing thread...")
 
     def notifier(self):
         time.sleep(2)
         # should consider locking on unfinished_tasks
         while self.unfinished_tasks > 0:
-            logging.debug("{} tasks left".format(self.unfinished_tasks))
+            logger.debug(f"{self.unfinished_tasks} tasks left")
             time.sleep(3)
             if self.unfinished_tasks == 1:
-                logging.debug("final hook is hanging")
+                logger.debug("final hook is hanging")
 
     # stops execution of all daemons
     def free(self):
         self.running = False
         with self.mutex:
             self.queue.clear()
+
 
 handler = EventQueue(800)
