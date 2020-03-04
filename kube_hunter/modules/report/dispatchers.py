@@ -27,7 +27,7 @@ class HTTPDispatcher(object):
             )
             r.raise_for_status()
             logger.info(f"Report was dispatched to: {dispatch_url}")
-            logger.debug(f"\tResponse Code: {r.status_code}\n\tResponse Data:\n{r.text}")
+            logger.debug(f"Dispatch responded {r.status_code} with: {r.text}")
 
         except requests.HTTPError as e:
             # specific http exceptions
