@@ -31,5 +31,5 @@ def get_dispatcher(name):
     try:
         return dispatchers[name.lower()]()
     except KeyError:
-        logger.warning('Unknown dispatcher selected, using stdout')
+        logger.warning(f"Unknown dispatcher \"{name}\", using stdout")
         return dispatchers['stdout']()
