@@ -15,8 +15,7 @@ ETCD_PORT = 2379
 
 
 class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
-    """Remote write access might grant an attacker
-    full control over the kubernetes cluster"""
+    """Remote write access might grant an attacker full control over the kubernetes cluster"""
 
     def __init__(self, write_res):
         Vulnerability.__init__(
