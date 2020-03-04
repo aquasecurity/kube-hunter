@@ -36,9 +36,7 @@ class Collector(object):
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
-            logger.info(f"message=\"Found vulnerability\" name=\"{self.event.get_name()}\" "
-                        f"type=\"vulnerability\" location=\"{self.event.location()}\" "
-                        f"description=\"{self.event.explain()}\"")
+            logger.info(f"Found vulnerability \"{self.event.get_name()}\" in {self.event.location()}")
 
 
 class TablesPrinted(Event):
