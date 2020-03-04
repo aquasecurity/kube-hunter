@@ -75,8 +75,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
         self.write_evidence = ''
 
     def db_keys_write_access(self):
-        logger.debug("Active hunter is attempting to "
-                     f"write keys remotely on host {self.event.host}")
+        logger.debug(f"Active hunter is attempting to write keys remotely on host {self.event.host}")
         data = {
             'value': 'remotely written data'
         }
