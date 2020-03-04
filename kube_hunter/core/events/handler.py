@@ -87,8 +87,7 @@ class EventQueue(Queue, object):
                     if predicate and not predicate(event):
                         continue
 
-                    logger.debug(f'Event {event.__class__} '
-                                 f'got filtered with {filter_hook}')
+                    logger.debug(f'Event {event.__class__} filtered with {filter_hook}')
                     event = filter_hook(event).execute()
                     # if filter decided to remove event, returning None
                     if not event:
