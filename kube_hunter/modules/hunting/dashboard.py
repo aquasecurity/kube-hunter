@@ -2,6 +2,7 @@ import logging
 import json
 import requests
 
+from kube_hunter.conf import config
 from kube_hunter.core.types import Hunter, RemoteCodeExec, KubernetesCluster
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event
@@ -29,9 +30,8 @@ class KubeDashboard(Hunter):
         self.event = event
 
     def get_nodes(self):
-        logger.debug("Passive hunter is attempting to "
-                     "get nodes types of the cluster")
-        r = requests.get(f"http://{self.event.host}:{self.event.port}/api/v1/node")
+        logger.debug("Passive hunter is attempting to get nodes types of the cluster")
+        r = requests.get(f"http://{self.event.host}:{self.event.port}/api/v1/node", timeout=config.network_timwout)
         if r.status_code == 200 and "nodes" in r.text:
             return list(map(lambda node: node["objectMeta"]["name"], json.loads(r.text)["nodes"]))
 

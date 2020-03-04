@@ -13,7 +13,6 @@ from kube_hunter.core.types import Discovery, InformationDisclosure, Azure
 
 logger = logging.getLogger(__name__)
 
-
 class RunningAsPodEvent(Event):
     def __init__(self):
         self.name = 'Running from within a pod'
@@ -48,7 +47,8 @@ class AzureMetadataApi(Vulnerability, Event):
 
 class HostScanEvent(Event):
     def __init__(self, pod=False, active=False, predefined_hosts=list()):
-        self.active = active # flag to specify whether to get actual data from vulnerabilities
+        # flag to specify whether to get actual data from vulnerabilities
+        self.active = active
         self.predefined_hosts = predefined_hosts
 
 
@@ -56,16 +56,9 @@ class HostDiscoveryHelpers:
     @staticmethod
     def get_cloud(host):
         try:
-            logger.debug("Checking whether the cluster "
-                         "is deployed on azure's cloud")
-            # azurespeed.com provide their API via HTTP only; the service can be queried with
-            # HTTPS, but doesn't show a proper certificate. Since no encryption is worse then
-            # any encryption, we go with the verify=false option for the time being. At least
-            # this prevents leaking internal IP addresses to passive eavesdropping.
-            # TODO: find a more secure service to detect cloud IPs
-            metadata = requests.get("https://www.azurespeed.com/"
-                                    f"api/region?ipOrUrl={host}",
-                                    verify=False).text
+            logger.debug("Checking whether the cluster is deployed on azure's cloud")
+            # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
+            metadata = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={host}").text
         except requests.ConnectionError as e:
             logger.info(f"- unable to check cloud: {e}")
             return
@@ -120,34 +113,37 @@ class FromPodHostDiscovery(Discovery):
         try:
             logger.debug("From pod attempting to access Azure Metadata API")
             if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-                            headers={"Metadata":"true"},
-                            timeout=5).status_code == 200:
+                            headers={"Metadata": "true"},
+                            timeout=config.network_timeout).status_code == 200:
                 return True
         except requests.exceptions.ConnectionError:
             logger.debug("is_azure_pod() returned false")
             return False
 
-   # for pod scanning
+    # for pod scanning
     def traceroute_discovery(self):
-        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        # getting external ip, to determine if cloud cluster
+        external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
         from scapy.all import ICMP, IP, Ether, srp1
 
-        node_internal_ip = srp1(Ether() / IP(dst="google.com" , ttl=1) / ICMP(), verbose=0)[IP].src
-        return [ [node_internal_ip,"24"], ], external_ip
+        node_internal_ip = srp1(
+            Ether()/IP(dst="1.1.1.1", ttl=1)/ICMP(),
+            verbose=0,
+            timeout=config.network_timeout)[IP].src
+        return [[node_internal_ip, "24"]], external_ip
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
         logger.debug("From pod attempting to access azure's metadata")
-        machine_metadata = \
-            json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-                                    headers={"Metadata":"true"}).text)
+        machine_metadata = requests.get(
+            "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
+            headers={"Metadata": "true"},
+            timeout=config.network_timeout).json()
         address, subnet = "", ""
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
-            address, subnet = interface["ipv4"]["subnet"][0]["address"], \
-                              interface["ipv4"]["subnet"][0]["prefix"]
-            logger.debug("From pod discovered subnet {0}/{1}"
-                         .format(address, subnet if not config.quick else "24"))
+            address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
+            logger.debug("From pod discovered subnet {0}/{1}".format(address, subnet if not config.quick else "24"))
             subnets.append([address, subnet if not config.quick else "24"])
 
             self.publish_event(AzureMetadataApi(cidr=f"{address}/{subnet}"))
@@ -185,7 +181,8 @@ class HostDiscovery(Discovery):
     def scan_interfaces(self):
         try:
             logger.debug("HostDiscovery hunter attempting to get external IP address")
-            external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+            # getting external ip, to determine if cloud cluster
+            external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
         except requests.ConnectionError as e:
             logger.debug(f"unable to determine local IP address: {e}",
                          exc_info=True)

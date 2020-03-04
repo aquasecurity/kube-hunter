@@ -4,6 +4,25 @@ from configparser import ConfigParser
 from setuptools import setup, Command
 
 
+class ListDependenciesCommand(Command):
+    """A custom command to list dependencies"""
+
+    description = "list package dependencies"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        cfg = ConfigParser()
+        cfg.read("setup.cfg")
+        requirements = cfg["options"]["install_requires"]
+        print(requirements)
+
+
 class PyInstallerCommand(Command):
     """A custom command to run PyInstaller to build standalone executable."""
 
@@ -36,6 +55,11 @@ class PyInstallerCommand(Command):
 
 
 setup(
-    use_scm_version=True,
-    cmdclass={"pyinstaller": PyInstallerCommand},
+    use_scm_version={
+        "fallback_version": "noversion"
+    },
+    cmdclass={
+        "dependencies": ListDependenciesCommand,
+        "pyinstaller": PyInstallerCommand,
+    },
 )

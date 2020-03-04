@@ -1,6 +1,7 @@
 import logging
 import requests
 
+from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, OpenPortEvent
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, \
@@ -11,15 +12,18 @@ ETCD_PORT = 2379
 
 
 """ Vulnerabilities """
+
+
 class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
     """Remote write access might grant an attacker
     full control over the kubernetes cluster"""
 
     def __init__(self, write_res):
-        Vulnerability.__init__(self, KubernetesCluster,
-                               name="Etcd Remote Write Access Event",
-                               category=RemoteCodeExec,
-                               vid="KHV031")
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            name="Etcd Remote Write Access Event",
+            category=RemoteCodeExec, vid="KHV031")
         self.evidence = write_res
 
 
@@ -28,10 +32,12 @@ class EtcdRemoteReadAccessEvent(Vulnerability, Event):
     cluster's possible exploits, secrets and more."""
 
     def __init__(self, keys):
-        Vulnerability.__init__(self, KubernetesCluster,
-                               name="Etcd Remote Read Access Event",
-                               category=AccessRisk,
-                               vid="KHV032")
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            name="Etcd Remote Read Access Event",
+            category=AccessRisk,
+            vid="KHV032")
         self.evidence = keys
 
 
@@ -79,10 +85,11 @@ class EtcdRemoteAccessActive(ActiveHunter):
             'value': 'remotely written data'
         }
         try:
-            r = requests.post(f"{self.protocol}://"
-                              f"{self.event.host}:{ETCD_PORT}/v2/keys/message",
-                              data=data)
-            self.write_evidence = r.content if r.status_code == 200 and r.content != '' else False
+            r = requests.post(
+                f"{self.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys/message",
+                data=data,
+                timeout=config.network_timeout)
+            self.write_evidence = r.content if r.status_code == 200 and r.content else False
             return self.write_evidence
         except requests.exceptions.ConnectionError:
             return False
@@ -110,8 +117,9 @@ class EtcdRemoteAccess(Hunter):
                      "to read etcd keys remotely")
         try:
             r = requests.get(
-                f"{self.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys",
-                verify=False)
+                f"{self.protocol}://{self.eventhost}:{ETCD_PORT}/v2/keys",
+                verify=False,
+                timeout=config.network_timeout)
             self.keys_evidence = r.content if r.status_code == 200 and r.content != '' else False
             return self.keys_evidence
         except requests.exceptions.ConnectionError:
@@ -123,8 +131,9 @@ class EtcdRemoteAccess(Hunter):
         try:
             r = requests.get(
                 f"{self.protocol}://{self.event.host}:{ETCD_PORT}/version",
-                verify=False)
-            self.version_evidence = r.content if r.status_code == 200 and r.content != '' else False
+                verify=False,
+                timeout=config.network_timeout)
+            self.version_evidence = r.content if r.status_code == 200 and r.content else False
             return self.version_evidence
         except requests.exceptions.ConnectionError:
             return False
@@ -133,9 +142,11 @@ class EtcdRemoteAccess(Hunter):
         logger.debug(f"{self.event.host} Passive hunter is attempting to "
                      "access etcd insecurely")
         try:
-            r = requests.get(f"http://{self.event.host}:{ETCD_PORT}/version",
-                             verify=False)
-            return r.content if r.status_code == 200 and r.content != '' else False
+            r = requests.get(
+                f"http://{self.event.host}:{ETCD_PORT}/version",
+                verify=False,
+                timeout=config.network_timeout)
+            return r.content if r.status_code == 200 and r.content else False
         except requests.exceptions.ConnectionError:
             return False
 

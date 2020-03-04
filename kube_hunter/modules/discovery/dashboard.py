@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 
+from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, OpenPortEvent, Service
 from kube_hunter.core.types import Discovery
@@ -26,11 +27,14 @@ class KubeDashboard(Discovery):
 
     @property
     def secure(self):
+        endpoint = f"http://{self.event.host}:{self.event.port}/api/v1/service/default"
         logger.debug("Attempting to discover an Api server to access dashboard")
-        r = requests.get(f"http://{self.event.host}:{self.event.port}/"
-                         "api/v1/service/default")
-        if "listMeta" in r.text and len(json.loads(r.text)["errors"]) == 0:
-            return False
+        try:
+            r = requests.get(endpoint, timeout=config.network_timeout)
+            if "listMeta" in r.text and len(json.loads(r.text)["errors"]) == 0:
+                return False
+        except requests.Timeout:
+            logger.debug(f"failed getting {endpoint}", exc_info=True)
         return True
 
     def execute(self):

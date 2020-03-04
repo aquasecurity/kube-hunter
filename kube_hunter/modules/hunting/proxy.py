@@ -1,8 +1,9 @@
 import logging
 import requests
-import json
+
 from enum import Enum
 
+from kube_hunter.conf import config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability, K8sVersionDisclosure
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, InformationDisclosure
@@ -37,12 +38,13 @@ class KubeProxy(Hunter):
             for service in services:
                 if service == Service.DASHBOARD.value:
                     logger.debug(service)
-                    curr_path = "api/v1/namespaces/{ns}/services/{sv}/proxy".format(ns=namespace,sv=service) # TODO: check if /proxy is a convention on other services
+                    # TODO: check if /proxy is a convention on other services
+                    curr_path = f"api/v1/namespaces/{namespace}/services/{service}/proxy"
                     self.publish_event(KubeDashboardEvent(path=curr_path, secure=False))
 
     @property
     def namespaces(self):
-        resource_json = requests.get(self.api_url + "/namespaces").json()
+        resource_json = requests.get(self.api_url + "/namespaces", timeout=config.network_timeout).json()
         return self.extract_names(resource_json)
 
     @property
@@ -51,7 +53,7 @@ class KubeProxy(Hunter):
         services = dict()
         for namespace in self.namespaces:
             resource_path = "/namespaces/{ns}/services".format(ns=namespace)
-            resource_json = requests.get(self.api_url + resource_path).json()
+            resource_json = requests.get(self.api_url + resource_path, timeout=config.network_timeout).json()
             services[namespace] = self.extract_names(resource_json)
         logger.debug(services)
         return services
@@ -73,10 +75,10 @@ class ProveProxyExposed(ActiveHunter):
         self.event = event
 
     def execute(self):
-        version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
-            host=self.event.host,
-            port=self.event.port,
-        ), verify=False).text)
+        version_metadata = requests.get(
+            f"http://{self.event.host}:{self.event.port}/version",
+            verify=False,
+            timeout=config.network_timeout).json()
         if "buildDate" in version_metadata:
             self.event.evidence = "build date: {}".format(version_metadata["buildDate"])
 
@@ -90,9 +92,12 @@ class K8sVersionDisclosureProve(ActiveHunter):
         self.event = event
 
     def execute(self):
-        version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
-            host=self.event.host,
-            port=self.event.port,
-        ), verify=False).text)
+        version_metadata = requests.get(
+            f"http://{self.event.host}:{self.event.port}/version",
+            verify=False,
+            timeout=config.network_timeout).json()
         if "gitVersion" in version_metadata:
-            self.publish_event(K8sVersionDisclosure(version=version_metadata["gitVersion"], from_endpoint="/version", extra_info="on the kube-proxy"))
+            self.publish_event(K8sVersionDisclosure(
+                version=version_metadata["gitVersion"],
+                from_endpoint="/version",
+                extra_info="on the kube-proxy"))
