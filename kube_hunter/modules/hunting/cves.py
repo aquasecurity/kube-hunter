@@ -112,8 +112,7 @@ class CveUtils:
 
     @staticmethod
     def version_compare(v1, v2):
-        """Function compares two versions,
-        handling differences with conversion to LegacyVersion"""
+        """Function compares two versions, handling differences with conversion to LegacyVersion"""
         # getting raw version, while striping 'v' char at the start. if exists.
         # removing this char lets us safely compare the two version.
         v1_raw, v2_raw = CveUtils.to_raw_version(v1).strip('v'), CveUtils.to_raw_version(v2).strip('v')
