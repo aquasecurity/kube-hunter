@@ -113,7 +113,7 @@ class ExposedHealthzHandler(Vulnerability, Event):
 
 
 class PrivilegedContainers(Vulnerability, Event):
-    """A Privileged container exist on a node.
+    """A Privileged container exist on a node
     could expose the node/cluster to unwanted root operations"""
     def __init__(self, containers):
         Vulnerability.__init__(self, KubernetesCluster,
