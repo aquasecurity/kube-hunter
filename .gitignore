@@ -28,3 +28,4 @@ var/
 # Directory Cache Files
 .DS_Store
 thumbs.db
+__pycache__
