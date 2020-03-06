@@ -14,10 +14,14 @@ class CapNetRawEnabled(Event, Vulnerability):
     If an attacker manages to compromise a pod,
     they could potentially take advantage of this capability to perform network
     attacks on other pods running on the same node"""
+
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster,
-                               name="CAP_NET_RAW Enabled",
-                               category=AccessRisk)
+        Vulnerability.__init__(
+            self,
+            KubernetesCluster,
+            name="CAP_NET_RAW Enabled",
+            category=AccessRisk,
+        )
 
 
 @handler.subscribe(RunningAsPodEvent)
@@ -25,6 +29,7 @@ class PodCapabilitiesHunter(Hunter):
     """Pod Capabilities Hunter
     Checks for default enabled capabilities in a pod
     """
+
     def __init__(self, event):
         self.event = event
 

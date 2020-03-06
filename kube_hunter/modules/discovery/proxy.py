@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class KubeProxyEvent(Event, Service):
     """proxies from a localhost address to the Kubernetes apiserver"""
+
     def __init__(self):
         Service.__init__(self, name="Kubernetes Proxy")
 
@@ -20,6 +21,7 @@ class KubeProxy(Discovery):
     """Proxy Discovery
     Checks for the existence of a an open Proxy service
     """
+
     def __init__(self, event):
         self.event = event
         self.host = event.host

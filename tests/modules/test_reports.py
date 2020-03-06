@@ -1,6 +1,11 @@
 from kube_hunter.modules.report import get_reporter, get_dispatcher
-from kube_hunter.modules.report.factory import YAMLReporter, JSONReporter, \
-    PlainReporter, HTTPDispatcher, STDOUTDispatcher
+from kube_hunter.modules.report.factory import (
+    YAMLReporter,
+    JSONReporter,
+    PlainReporter,
+    HTTPDispatcher,
+    STDOUTDispatcher,
+)
 
 
 def test_reporters():
@@ -8,7 +13,7 @@ def test_reporters():
         ("plain", PlainReporter),
         ("json", JSONReporter),
         ("yaml", YAMLReporter),
-        ("notexists", PlainReporter)
+        ("notexists", PlainReporter),
     ]
 
     for report_type, expected in test_cases:
@@ -20,7 +25,7 @@ def test_dispatchers():
     test_cases = [
         ("stdout", STDOUTDispatcher),
         ("http", HTTPDispatcher),
-        ("notexists", STDOUTDispatcher)
+        ("notexists", STDOUTDispatcher),
     ]
 
     for dispatcher_type, expected in test_cases:

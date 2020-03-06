@@ -2,9 +2,17 @@ import threading
 import requests
 import logging
 
-from kube_hunter.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, \
-    PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
 from kube_hunter.conf import config
+from kube_hunter.core.types import (
+    InformationDisclosure,
+    DenialOfService,
+    RemoteCodeExec,
+    IdentityTheft,
+    PrivilegeEscalation,
+    AccessRisk,
+    UnauthenticatedAccess,
+    KubernetesCluster,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,15 +84,17 @@ class Service(object):
 
 
 class Vulnerability(object):
-    severity = dict({
-        InformationDisclosure: "medium",
-        DenialOfService: "medium",
-        RemoteCodeExec: "high",
-        IdentityTheft: "high",
-        PrivilegeEscalation: "high",
-        AccessRisk: "low",
-        UnauthenticatedAccess: "low"
-    })
+    severity = dict(
+        {
+            InformationDisclosure: "medium",
+            DenialOfService: "medium",
+            RemoteCodeExec: "high",
+            IdentityTheft: "high",
+            PrivilegeEscalation: "high",
+            AccessRisk: "low",
+            UnauthenticatedAccess: "low",
+        }
+    )
 
     # TODO: make vid mandatory once migration is done
     def __init__(self, component, name, category=None, vid="None"):
@@ -134,24 +144,25 @@ class NewHostEvent(Event):
         if not self.cloud_type:
             self.cloud_type = self.get_cloud()
         return self.cloud_type
-    
+
     def get_cloud(self):
         try:
             logger.debug("Checking whether the cluster is deployed on azure's cloud")
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
-            result = \
-                requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}",
-                             timeout=config.network_timeout).json()
+            result = requests.get(
+                f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}",
+                timeout=config.network_timeout,
+            ).json()
             return result["cloud"] or "NoCloud"
         except requests.ConnectionError:
             logger.info(f"Failed to connect cloud type service", exc_info=True)
         except Exception:
             logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
         return "NoCloud"
-     
+
     def __str__(self):
         return str(self.host)
-    
+
     # Event's logical location to be used mainly for reports.
     def location(self):
         return str(self.host)
@@ -160,10 +171,10 @@ class NewHostEvent(Event):
 class OpenPortEvent(Event):
     def __init__(self, port):
         self.port = port
-        
+
     def __str__(self):
         return str(self.port)
-       
+
     # Event's logical location to be used mainly for reports.
     def location(self):
         if self.host:
@@ -190,13 +201,15 @@ class ReportDispatched(Event):
 
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint """
+
     def __init__(self, version, from_endpoint, extra_info=""):
         Vulnerability.__init__(
             self,
             KubernetesCluster,
             "K8s Version Disclosure",
             category=InformationDisclosure,
-            vid="KHV002")
+            vid="KHV002",
+        )
         self.version = version
         self.from_endpoint = from_endpoint
         self.extra_info = extra_info

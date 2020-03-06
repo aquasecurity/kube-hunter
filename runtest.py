@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import argparse
 import pytest
-import tests
+import tests  # noqa
+
 
 def main():
-    exit(pytest.main(['.']))
+    exit(pytest.main(["."]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
