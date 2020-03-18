@@ -1,11 +1,12 @@
 import requests_mock
-import time
-from queue import Empty
+from netaddr import IPNetwork, IPAddress
 
-from kube_hunter.modules.discovery.hosts import FromPodHostDiscovery, RunningAsPodEvent, HostScanEvent, AzureMetadataApi
-from kube_hunter.core.events.types import Event, NewHostEvent
+from kube_hunter.modules.discovery.hosts import FromPodHostDiscovery, RunningAsPodEvent, \
+    HostScanEvent, AzureMetadataApi, HostDiscoveryHelpers
+from kube_hunter.core.events.types import NewHostEvent
 from kube_hunter.core.events import handler
 from kube_hunter.conf import config
+
 
 def test_FromPodHostDiscovery():
 
@@ -60,3 +61,34 @@ class testHostDiscoveryEvent(object):
 class testAzureMetadataApi(object):
     def __init__(self, event):
         assert config.azure
+
+
+def test_cidr_discovery():
+    expected = list()
+    test_cidr = "192.168.0.0/24"
+    config.cidr = test_cidr
+
+    for ip in IPNetwork(test_cidr):
+        expected.append(ip)
+
+    actual = list()
+    for ip in HostDiscoveryHelpers.gen_ips():
+        actual.append(ip)
+
+    assert actual.sort() == expected.sort()
+
+
+def test_ignore_cidr():
+    expected = list()
+    remove = "192.168.1.8"
+    scan = "192.168.1.0/24"
+    for ip in IPNetwork(scan):
+        expected.append(ip)
+    expected.remove(IPAddress(remove))
+    
+    config.cidr = f"{scan},!{remove}/32".split(',')
+    actual = list()
+    for ip in HostDiscoveryHelpers.gen_ips():
+        actual.append(ip)
+
+    return actual.sort() == expected.sort()

@@ -56,12 +56,33 @@ class HostScanEvent(Event):
 class HostDiscoveryHelpers:
     # generator, generating a subnet by given a cidr
     @staticmethod
-    def generate_subnet(ip, sn="24"):
+    def generate_subnet(ip, sn="24", ignore=None):
         logger.debug(f"HostDiscoveryHelpers.generate_subnet {ip}/{sn}")
         subnet = f"{ip}/{sn}"
         for ip in IPNetwork(subnet):
-            logger.debug(f"HostDiscoveryHelpers.generate_subnet yielding {ip}")
-            yield ip
+            if ignore and any(ip in s for s in ignore):
+                logger.debug(f"HostDiscoveryHelpers.generate_subnet DENIED {ip}")
+            else:
+                logger.debug(f"HostDiscoveryHelpers.generate_subnet yielding {ip}")
+                yield ip
+
+    @staticmethod
+    def gen_ips():
+        ignore = list()
+        scan = list()
+        for cidr in config.cidr:
+            try:
+                ip, sn = cidr.split('/')
+            except ValueError:
+                logger.exception(f"Unable to parse CIDR \"{config.cidr}\"")
+                break
+            if ip.startswith('!'):
+                ignore.append(IPNetwork(f"{ip[1:]}/{sn}"))
+            else:
+                scan.append([ip, sn])
+
+        for ip, sn in scan:
+            yield from HostDiscoveryHelpers.generate_subnet(ip=ip, sn=sn, ignore=ignore)
 
 
 @handler.subscribe(RunningAsPodEvent)
@@ -149,12 +170,7 @@ class HostDiscovery(Discovery):
 
     def execute(self):
         if config.cidr:
-            try:
-                ip, sn = config.cidr.split('/')
-            except ValueError:
-                logger.exception(f"Unable to parse CIDR \"{config.cidr}\"")
-                return
-            for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):
+            for ip in HostDiscoveryHelpers.gen_ips():
                 self.publish_event(NewHostEvent(host=ip))
         elif config.interface:
             self.scan_interfaces()
