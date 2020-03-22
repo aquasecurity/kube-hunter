@@ -1,7 +1,12 @@
 import threading
+import json
+import requests
+import logging
+from cached_property import cached_property
 
 from kube_hunter.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
 
+logger = logging.getLogger(__name__)
 
 class EventFilterBase(object):
     def __init__(self, event):
@@ -115,12 +120,31 @@ class NewHostEvent(Event):
     def __init__(self, host, cloud=None):
         global event_id_count
         self.host = host
-        self.cloud = cloud
+        self.cloud_type = cloud
 
         with event_id_count_lock:
             self.event_id = event_id_count
             event_id_count += 1
 
+    @cached_property
+    def cloud(self):
+        if not self.cloud_type:
+            self.cloud_type = self.get_cloud()
+        return self.cloud_type
+    
+    def get_cloud(self):
+        try:
+            logger.debug("Checking whether the cluster is deployed on azure's cloud")
+            # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
+            metadata = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}").text
+        except requests.ConnectionError:
+            logger.info(f"Failed to connect cloud type service", exc_info=True)
+            return
+        except Exception:
+            logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
+        if "cloud" in metadata:
+            return json.loads(metadata)["cloud"]
+        
     def __str__(self):
         return str(self.host)
     
