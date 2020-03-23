@@ -1,4 +1,5 @@
 from kube_hunter.modules.report.json import JSONReporter
+from kube_hunter.modules.report.ndjson import NDJSONReporter
 from kube_hunter.modules.report.yaml import YAMLReporter
 from kube_hunter.modules.report.plain import PlainReporter
 from kube_hunter.modules.report.dispatchers import \
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 reporters = {
     'yaml': YAMLReporter,
     'json': JSONReporter,
+    'ndjson': NDJSONReporter,
     'plain': PlainReporter
 }
 

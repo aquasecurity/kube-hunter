@@ -1,5 +1,5 @@
 from kube_hunter.modules.report import get_reporter, get_dispatcher
-from kube_hunter.modules.report.factory import YAMLReporter, JSONReporter, \
+from kube_hunter.modules.report.factory import YAMLReporter, JSONReporter, NDJSONReporter \
     PlainReporter, HTTPDispatcher, STDOUTDispatcher
 
 
@@ -7,6 +7,7 @@ def test_reporters():
     test_cases = [
         ("plain", PlainReporter),
         ("json", JSONReporter),
+        ("ndjson", NDJSONReporter),
         ("yaml", YAMLReporter),
         ("notexists", PlainReporter)
     ]

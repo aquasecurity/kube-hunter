@@ -64,7 +64,7 @@ def parse_args():
         '--report',
         type=str,
         default='plain',
-        help="Set report type, options are: plain, yaml, json")
+        help="Set report type, options are: plain, yaml, json, ndjson")
 
     parser.add_argument(
         '--dispatch',
