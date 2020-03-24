@@ -1,3 +1,6 @@
+import requests_mock
+import json
+
 from kube_hunter.core.events.types.common import NewHostEvent
 
 
@@ -10,9 +13,19 @@ def test_presetcloud():
 
 
 def test_getcloud():
-    AZURE_SERVER = "52.224.188.147" # this is portal.azure.com DNS record
-    expected = "Azure"
-    hostEvent = NewHostEvent(host=AZURE_SERVER)
+    fake_host = "1.2.3.4"
+    expected_cloud = "Azure"
+    result = {
+        "cloud": expected_cloud,
+        "regionId": "europenorth",
+        "region":"North Europe",
+        "location":"Ireland",
+        "ipAddress": fake_host
+    }
     
-    assert hostEvent.cloud == expected
+    with requests_mock.mock() as m:
+        m.get(f'https://api.azurespeed.com/api/region?ipOrUrl={fake_host}',
+              text=json.dumps(result))
+        hostEvent = NewHostEvent(host=fake_host)
+        assert hostEvent.cloud == expected_cloud
     
