@@ -12,10 +12,11 @@ class NDJSONReporter(BaseReporter):
 
         flattenedEntries=[]
         for node in nodes:
+            nodeAdded=False
             node_location=node["location"]
             node_type=node["type"]
-            added=False
             for service in services:
+                serviceAdded=False
                 service_service=service["service"]
                 service_location=service["location"]
                 service_description=service["description"]
@@ -33,18 +34,15 @@ class NDJSONReporter(BaseReporter):
                         if vulnerability_location==service_location:
                             entry=create_entry(node_location, node_type, service_service, service_location,service_description, vulnerability_location, vulnerability_vid, vulnerability_category, vulnerability_severity, vulnerability_vulnerability, vulnerability_description, vulnerability_evidence, vulnerability_hunter)
                             flattenedEntries.append(entry)
-                            added=True
-                            break
-                    if added:
-                        break
-                    else: 
-                        entry=create_entry(node_location, node_type, service_service, service_location,service_description)
-                        flattenedEntries.append(entry)
-                        added=True
-                        break
-            if not added:
-                entry=create_entry(node_location, node_type)
-                flattenedEntries.append(entry)
+                            nodeAdded=True
+                            serviceAdded=True
+                    if not serviceAdded:
+                            entry=create_entry(node_location, node_type, service_service, service_location,service_description)
+                            flattenedEntries.append(entry)
+                            nodeAdded=True
+            if not nodeAdded:
+                entry=create_entry(node_location, node_type, service_service, service_location, service_description)
+                flattenedEntries.append(entry)                
         for logEntry in flattenedEntries:
             print (json.dumps(logEntry))
         return
