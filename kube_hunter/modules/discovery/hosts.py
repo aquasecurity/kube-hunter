@@ -80,9 +80,9 @@ class FromPodHostDiscovery(Discovery):
         else:
             # Discover cluster subnets, we'll scan all these hosts
             if self.is_azure_pod():
-                subnets, cloud = self.azure_metadata_discovery()
+                subnets = self.azure_metadata_discovery()
             else:
-                subnets, cloud = self.traceroute_discovery()
+                subnets, ext_ip = self.traceroute_discovery()
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -92,9 +92,9 @@ class FromPodHostDiscovery(Discovery):
                     should_scan_apiserver = False
                 logger.debug(f"From pod scanning subnet {subnet[0]}/{subnet[1]}")
                 for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
-                    self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+                    self.publish_event(NewHostEvent(host=ip))
             if should_scan_apiserver:
-                self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
+                self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost)))
 
     def is_azure_pod(self):
         try:
@@ -136,7 +136,7 @@ class FromPodHostDiscovery(Discovery):
 
             self.publish_event(AzureMetadataApi(cidr=f"{address}/{subnet}"))
 
-        return subnets, "Azure"
+        return subnets
 
 
 @handler.subscribe(HostScanEvent)

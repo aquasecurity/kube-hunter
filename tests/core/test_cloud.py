@@ -12,6 +12,14 @@ def test_presetcloud():
     assert expcted == hostEvent.cloud
 
 
+# Test if we can dynamic assign a cloud, without calling get_cloud
+def test_dynamiccloud():
+    expected = "Google Cloud"
+    hostEvent = NewHostEvent(host="1.2.3.4")
+    hostEvent.cloud = expected
+    assert hostEvent.cloud == expected
+
+
 def test_getcloud():
     fake_host = "1.2.3.4"
     expected_cloud = "Azure"
