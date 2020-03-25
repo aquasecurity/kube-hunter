@@ -10,4 +10,4 @@ def test_setup_logger():
     ]
     for test_log_level_name, expected in test_cases:
         setup_logger(test_log_level_name)
-        assert type(logging.getLogger().getEffectiveLevel()) is expected
+        assert logging.getLogger().getEffectiveLevel() == expected
