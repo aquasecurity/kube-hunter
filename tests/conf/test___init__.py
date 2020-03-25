@@ -5,7 +5,7 @@ def test_setup_logger():
         ("NONE", 50),
         ("INFO", 20),
         ("DEBUG", 10),
-        ("CRITICAL", 50)
+        ("CRITICAL", 50),
         ("GIBRISH", 20)
     ]
     for test_log_level_name, expected in test_cases:
