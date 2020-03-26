@@ -2,7 +2,6 @@ import threading
 import json
 import requests
 import logging
-from cached_property import cached_property
 
 from kube_hunter.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
 
@@ -126,7 +125,7 @@ class NewHostEvent(Event):
             self.event_id = event_id_count
             event_id_count += 1
 
-    @cached_property
+    @property
     def cloud(self):
         if not self.cloud_type:
             self.cloud_type = self.get_cloud()
@@ -144,6 +143,8 @@ class NewHostEvent(Event):
             logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
         if "cloud" in metadata:
             return json.loads(metadata)["cloud"]
+        else:
+            return "NoCloud"
         
     def __str__(self):
         return str(self.host)
