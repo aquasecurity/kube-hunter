@@ -16,11 +16,7 @@ def test_getcloud():
     fake_host = "1.2.3.4"
     expected_cloud = "Azure"
     result = {
-        "cloud": expected_cloud,
-        "regionId": "europenorth",
-        "region":"North Europe",
-        "location":"Ireland",
-        "ipAddress": fake_host
+        "cloud": expected_cloud
     }
     
     with requests_mock.mock() as m:

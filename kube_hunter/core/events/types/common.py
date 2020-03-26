@@ -4,6 +4,7 @@ import requests
 import logging
 
 from kube_hunter.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
+from kube_hunter.conf import config
 
 logger = logging.getLogger(__name__)
 
@@ -135,16 +136,11 @@ class NewHostEvent(Event):
         try:
             logger.debug("Checking whether the cluster is deployed on azure's cloud")
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
-            metadata = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}").text
+            return requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}", timeout=config.network_timeout).json()["cloud"]
         except requests.ConnectionError:
             logger.info(f"Failed to connect cloud type service", exc_info=True)
-            return
         except Exception:
             logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
-        if "cloud" in metadata:
-            return json.loads(metadata)["cloud"]
-        else:
-            return "NoCloud"
         
     def __str__(self):
         return str(self.host)
