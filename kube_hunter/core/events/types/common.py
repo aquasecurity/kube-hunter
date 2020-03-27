@@ -142,6 +142,7 @@ class NewHostEvent(Event):
             logger.info(f"Failed to connect cloud type service", exc_info=True)
         except Exception:
             logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
+        return "NoCloud"
         
     def __str__(self):
         return str(self.host)
