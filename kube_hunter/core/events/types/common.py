@@ -136,7 +136,8 @@ class NewHostEvent(Event):
         try:
             logger.debug("Checking whether the cluster is deployed on azure's cloud")
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
-            return requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}", timeout=config.network_timeout).json()["cloud"]
+            result = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}", timeout=config.network_timeout).json()
+            return result["cloud"] or "NoCloud"
         except requests.ConnectionError:
             logger.info(f"Failed to connect cloud type service", exc_info=True)
         except Exception:
