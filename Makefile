@@ -21,7 +21,8 @@ dev-deps:
 
 .PHONY: lint
 lint:
-	flake8 $(SRC)
+	black .
+	flake8
 
 .PHONY: test
 test:
