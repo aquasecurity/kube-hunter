@@ -24,6 +24,11 @@ lint:
 	black .
 	flake8
 
+.PHONY: lint-check
+lint-check:
+	flake8
+	black --check --diff .
+
 .PHONY: test
 test:
 	pytest
