@@ -16,11 +16,7 @@ class DashboardExposed(Vulnerability, Event):
 
     def __init__(self, nodes):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            "Dashboard Exposed",
-            category=RemoteCodeExec,
-            vid="KHV029",
+            self, KubernetesCluster, "Dashboard Exposed", category=RemoteCodeExec, vid="KHV029",
         )
         self.evidence = "nodes: {}".format(" ".join(nodes)) if nodes else None
 
@@ -36,10 +32,7 @@ class KubeDashboard(Hunter):
 
     def get_nodes(self):
         logger.debug("Passive hunter is attempting to get nodes types of the cluster")
-        r = requests.get(
-            f"http://{self.event.host}:{self.event.port}/api/v1/node",
-            timeout=config.network_timwout,
-        )
+        r = requests.get(f"http://{self.event.host}:{self.event.port}/api/v1/node", timeout=config.network_timwout)
         if r.status_code == 200 and "nodes" in r.text:
             return [node["objectMeta"]["name"] for node in json.loads(r.text)["nodes"]]
 

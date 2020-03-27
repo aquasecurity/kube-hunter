@@ -13,7 +13,7 @@ config.reporter = get_reporter(config.report)
 config.dispatcher = get_dispatcher(config.dispatch)
 logger = logging.getLogger(__name__)
 
-import kube_hunter
+import kube_hunter  # noqa
 
 
 def interactive_set_config():
@@ -29,9 +29,7 @@ def interactive_set_config():
         print("{}. {} ({})".format(i + 1, option.ljust(20), explanation))
     choice = input("Your choice: ")
     if choice == "1":
-        config.remote = (
-            input("Remotes (separated by a ','): ").replace(" ", "").split(",")
-        )
+        config.remote = input("Remotes (separated by a ','): ").replace(" ", "").split(",")
     elif choice == "2":
         config.interface = True
     elif choice == "3":

@@ -39,15 +39,11 @@ class Collector(object):
         if Service in bases:
             with services_lock:
                 services.append(self.event)
-            logger.info(
-                f'Found open service "{self.event.get_name()}" at {self.event.location()}'
-            )
+            logger.info(f'Found open service "{self.event.get_name()}" at {self.event.location()}')
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
-            logger.info(
-                f'Found vulnerability "{self.event.get_name()}" in {self.event.location()}'
-            )
+            logger.info(f'Found vulnerability "{self.event.get_name()}" in {self.event.location()}')
 
 
 class TablesPrinted(Event):
@@ -60,10 +56,7 @@ class SendFullReport(object):
         self.event = event
 
     def execute(self):
-        report = config.reporter.get_report(
-            statistics=config.statistics,
-            mapping=config.mapping,
-        )
+        report = config.reporter.get_report(statistics=config.statistics, mapping=config.mapping)
         config.dispatcher.dispatch(report)
         handler.publish_event(ReportDispatched())
         handler.publish_event(TablesPrinted())

@@ -67,11 +67,7 @@ class KubeletDiscovery(Discovery):
         endpoint = f"https://{self.event.host}:{self.event.port}/pods"
         logger.debug("Attempting to get pods info from kubelet")
         try:
-            return requests.get(
-                endpoint,
-                verify=False,
-                timeout=config.network_timeout,
-            ).status_code
+            return requests.get(endpoint, verify=False, timeout=config.network_timeout).status_code
         except Exception:
             logger.debug(f"Failed pinging https port on {endpoint}", exc_info=True)
 

@@ -13,4 +13,4 @@ if not loglevel:
 elif config.log.lower() != "none":
     logging.basicConfig(level=loglevel, format=formatter)
 
-import plugins
+import plugins  # noqa

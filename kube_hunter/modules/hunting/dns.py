@@ -18,11 +18,7 @@ class PossibleDnsSpoofing(Vulnerability, Event):
 
     def __init__(self, kubedns_pod_ip):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            "Possible DNS Spoof",
-            category=IdentityTheft,
-            vid="KHV030",
+            self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft, vid="KHV030",
         )
         self.kubedns_pod_ip = kubedns_pod_ip
         self.evidence = "kube-dns at: {}".format(self.kubedns_pod_ip)
@@ -40,11 +36,7 @@ class DnsSpoofHunter(ActiveHunter):
         self.event = event
 
     def get_cbr0_ip_mac(self):
-        res = srp1(
-            Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(),
-            verbose=0,
-            timeout=config.network_timeout,
-        )
+        res = srp1(Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout)
         return res[IP].src, res.src
 
     def extract_nameserver_ip(self):
@@ -67,9 +59,7 @@ class DnsSpoofHunter(ActiveHunter):
         self_ip = dns_info_res[IP].dst
 
         arp_responses, _ = srp(
-            Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"),
-            timeout=config.network_timeout,
-            verbose=0,
+            Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"), timeout=config.network_timeout, verbose=0,
         )
         for _, response in arp_responses:
             if response[Ether].src == kubedns_pod_mac:
@@ -77,11 +67,7 @@ class DnsSpoofHunter(ActiveHunter):
 
     def execute(self):
         logger.debug("Attempting to get kube-dns pod ip")
-        self_ip = sr1(
-            IP(dst="1.1.1.1", ttl=1) / ICMP(),
-            verbose=0,
-            timeout=config.netork_timeout,
-        )[IP].dst
+        self_ip = sr1(IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.netork_timeout)[IP].dst
         cbr0_ip, cbr0_mac = self.get_cbr0_ip_mac()
 
         kubedns = self.get_kube_dns_ip_mac()

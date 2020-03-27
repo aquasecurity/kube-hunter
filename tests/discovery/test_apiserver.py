@@ -15,9 +15,7 @@ def test_ApiServer():
         m.get("https://mockOther:443", text="elephant")
         m.get("https://mockKubernetes:443", text='{"code":403}', status_code=403)
         m.get(
-            "https://mockKubernetes:443/version",
-            text='{"major": "1.14.10"}',
-            status_code=200,
+            "https://mockKubernetes:443/version", text='{"major": "1.14.10"}', status_code=200,
         )
 
         e = Event()
@@ -41,15 +39,11 @@ def test_ApiServerWithServiceAccountToken():
     counter = 0
     with requests_mock.Mocker() as m:
         m.get(
-            "https://mockKubernetes:443",
-            request_headers={"Authorization": "Bearer very_secret"},
-            text='{"code":200}',
+            "https://mockKubernetes:443", request_headers={"Authorization": "Bearer very_secret"}, text='{"code":200}',
         )
         m.get("https://mockKubernetes:443", text='{"code":403}', status_code=403)
         m.get(
-            "https://mockKubernetes:443/version",
-            text='{"major": "1.14.10"}',
-            status_code=200,
+            "https://mockKubernetes:443/version", text='{"major": "1.14.10"}', status_code=200,
         )
         m.get("https://mockOther:443", text="elephant")
 

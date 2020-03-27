@@ -16,11 +16,7 @@ class AzureSpnExposure(Vulnerability, Event):
 
     def __init__(self, container):
         Vulnerability.__init__(
-            self,
-            Azure,
-            "Azure SPN Exposure",
-            category=IdentityTheft,
-            vid="KHV004",
+            self, Azure, "Azure SPN Exposure", category=IdentityTheft, vid="KHV004",
         )
         self.container = container
 
@@ -73,26 +69,12 @@ class ProveAzureSpnExposure(ActiveHunter):
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
-        run_url = "/".join(
-            self.base_url,
-            "run",
-            container["namespace"],
-            container["pod"],
-            container["name"],
-        )
-        return requests.post(
-            run_url,
-            verify=False,
-            params={"cmd": command},
-            timeout=config.network_timeout,
-        )
+        run_url = "/".join(self.base_url, "run", container["namespace"], container["pod"], container["name"])
+        return requests.post(run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout)
 
     def execute(self):
         try:
-            subscription = self.run(
-                "cat /etc/kubernetes/azure.json",
-                container=self.event.container,
-            ).json()
+            subscription = self.run("cat /etc/kubernetes/azure.json", container=self.event.container).json()
         except requests.Timeout:
             logger.debug("failed to run command in container", exc_info=True)
         except json.decoder.JSONDecodeError:

@@ -50,9 +50,7 @@ class ApiServiceDiscovery(Discovery):
         self.session.verify = False
 
     def execute(self):
-        logger.debug(
-            f"Attempting to discover an API service on {self.event.host}:{self.event.port}"
-        )
+        logger.debug(f"Attempting to discover an API service on {self.event.host}:{self.event.port}")
         protocols = ["http", "https"]
         for protocol in protocols:
             if self.has_api_behaviour(protocol):
@@ -60,20 +58,13 @@ class ApiServiceDiscovery(Discovery):
 
     def has_api_behaviour(self, protocol):
         try:
-            r = self.session.get(
-                f"{protocol}://{self.event.host}:{self.event.port}",
-                timeout=config.network_timeout,
-            )
+            r = self.session.get(f"{protocol}://{self.event.host}:{self.event.port}", timeout=config.network_timeout)
             if ("k8s" in r.text) or ('"code"' in r.text and r.status_code != 200):
                 return True
         except requests.exceptions.SSLError:
-            logger.debug(
-                f"{[protocol]} protocol not accepted on {self.event.host}:{self.event.port}"
-            )
+            logger.debug(f"{[protocol]} protocol not accepted on {self.event.host}:{self.event.port}")
         except Exception:
-            logger.debug(
-                f"Failed probing {self.event.host}:{self.event.port}", exc_info=True
-            )
+            logger.debug(f"Failed probing {self.event.host}:{self.event.port}", exc_info=True)
 
 
 # Acts as a Filter for services, In the case that we can classify the API,
@@ -98,16 +89,12 @@ class ApiServiceClassify(EventFilterBase):
         self.session.verify = False
         # Using the auth token if we can, for the case that authentication is needed for our checks
         if self.event.auth_token:
-            self.session.headers.update(
-                {"Authorization": f"Bearer {self.event.auth_token}"}
-            )
+            self.session.headers.update({"Authorization": f"Bearer {self.event.auth_token}"})
 
     def classify_using_version_endpoint(self):
         """Tries to classify by accessing /version. if could not access succeded, returns"""
         try:
-            endpoint = (
-                f"{self.event.protocol}://{self.event.host}:{self.event.port}/version"
-            )
+            endpoint = f"{self.event.protocol}://{self.event.host}:{self.event.port}/version"
             versions = self.session.get(endpoint, timeout=config.network_timeout).json()
             if "major" in versions:
                 if versions.get("major") == "":

@@ -1,6 +1,4 @@
 import requests_mock
-import time
-from queue import Empty
 
 from kube_hunter.modules.discovery.hosts import (
     FromPodHostDiscovery,
@@ -8,7 +6,7 @@ from kube_hunter.modules.discovery.hosts import (
     HostScanEvent,
     AzureMetadataApi,
 )
-from kube_hunter.core.events.types import Event, NewHostEvent
+from kube_hunter.core.events.types import NewHostEvent
 from kube_hunter.core.events import handler
 from kube_hunter.conf import config
 
@@ -22,8 +20,7 @@ def test_FromPodHostDiscovery():
         config.remote = None
         config.cidr = None
         m.get(
-            "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-            status_code=404,
+            "http://169.254.169.254/metadata/instance?api-version=2017-08-01", status_code=404,
         )
         f = FromPodHostDiscovery(e)
         assert not f.is_azure_pod()

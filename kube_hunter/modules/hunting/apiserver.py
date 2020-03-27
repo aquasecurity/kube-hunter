@@ -29,11 +29,7 @@ class ServerApiAccess(Vulnerability, Event):
             name = "Unauthenticated access to API"
             category = UnauthenticatedAccess
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name=name,
-            category=category,
-            vid="KHV005",
+            self, KubernetesCluster, name=name, category=category, vid="KHV005",
         )
         self.evidence = evidence
 
@@ -46,11 +42,7 @@ class ServerApiHTTPAccess(Vulnerability, Event):
         name = "Insecure (HTTP) access to API"
         category = UnauthenticatedAccess
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name=name,
-            category=category,
-            vid="KHV006",
+            self, KubernetesCluster, name=name, category=category, vid="KHV006",
         )
         self.evidence = evidence
 
@@ -62,11 +54,7 @@ class ApiInfoDisclosure(Vulnerability, Event):
         else:
             name += " as anonymous user"
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name=name,
-            category=InformationDisclosure,
-            vid="KHV007",
+            self, KubernetesCluster, name=name, category=InformationDisclosure, vid="KHV007",
         )
         self.evidence = evidence
 
@@ -106,10 +94,7 @@ class CreateANamespace(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Created a namespace",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Created a namespace", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -120,10 +105,7 @@ class DeleteANamespace(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Delete a namespace",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Delete a namespace", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -134,12 +116,7 @@ class CreateARole(Vulnerability, Event):
     """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Created a role",
-            category=AccessRisk
-        )
+        Vulnerability.__init__(self, KubernetesCluster, name="Created a role", category=AccessRisk)
         self.evidence = evidence
 
 
@@ -150,10 +127,7 @@ class CreateAClusterRole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Created a cluster role",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Created a cluster role", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -165,10 +139,7 @@ class PatchARole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Patched a role",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Patched a role", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -180,10 +151,7 @@ class PatchAClusterRole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Patched a cluster role",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Patched a cluster role", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -193,10 +161,7 @@ class DeleteARole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Deleted a role",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Deleted a role", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -206,10 +171,7 @@ class DeleteAClusterRole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Deleted a cluster role",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Deleted a cluster role", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -219,10 +181,7 @@ class CreateAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Created A Pod",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Created A Pod", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -232,10 +191,7 @@ class CreateAPrivilegedPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Created A PRIVILEGED Pod",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Created A PRIVILEGED Pod", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -245,10 +201,7 @@ class PatchAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Patched A Pod",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Patched A Pod", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -258,10 +211,7 @@ class DeleteAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Deleted A Pod",
-            category=AccessRisk,
+            self, KubernetesCluster, name="Deleted A Pod", category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -288,12 +238,7 @@ class AccessApiServer(Hunter):
     def access_api_server(self):
         logger.debug(f"Passive Hunter is attempting to access the API at {self.path}")
         try:
-            r = requests.get(
-                f"{self.path}/api",
-                headers=self.headers,
-                verify=False,
-                timeout=config.network_timeout,
-            )
+            r = requests.get(f"{self.path}/api", headers=self.headers, verify=False, timeout=config.network_timeout)
             if r.status_code == 200 and r.content:
                 return r.content
         except requests.exceptions.ConnectionError:
@@ -303,12 +248,7 @@ class AccessApiServer(Hunter):
     def get_items(self, path):
         try:
             items = []
-            r = requests.get(
-                path,
-                headers=self.headers,
-                verify=False,
-                timeout=config.network_timeout,
-            )
+            r = requests.get(path, headers=self.headers, verify=False, timeout=config.network_timeout)
             if r.status_code == 200:
                 resp = json.loads(r.content)
                 for item in resp["items"]:
@@ -325,10 +265,7 @@ class AccessApiServer(Hunter):
         try:
             if not namespace:
                 r = requests.get(
-                    f"{self.path}/api/v1/pods",
-                    headers=self.headers,
-                    verify=False,
-                    timeout=config.network_timeout,
+                    f"{self.path}/api/v1/pods", headers=self.headers, verify=False, timeout=config.network_timeout,
                 )
             else:
                 r = requests.get(
@@ -364,9 +301,7 @@ class AccessApiServer(Hunter):
         if roles:
             self.publish_event(ListRoles(roles, self.with_token))
 
-        cluster_roles = self.get_items(
-            f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles"
-        )
+        cluster_roles = self.get_items(f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles")
         if cluster_roles:
             self.publish_event(ListClusterRoles(cluster_roles, self.with_token))
 
@@ -410,13 +345,7 @@ class AccessApiServerActive(ActiveHunter):
             headers["Authorization"] = f"Bearer {self.event.auth_token}"
 
         try:
-            res = requests.post(
-                path,
-                verify=False,
-                data=data,
-                headers=headers,
-                timeout=config.network_timeout,
-            )
+            res = requests.post(path, verify=False, data=data, headers=headers, timeout=config.network_timeout)
             if res.status_code in [200, 201, 202]:
                 parsed_content = json.loads(res.content)
                 return parsed_content["metadata"]["name"]
@@ -429,13 +358,7 @@ class AccessApiServerActive(ActiveHunter):
         if self.event.auth_token:
             headers["Authorization"] = f"Bearer {self.event.auth_token}"
         try:
-            res = requests.patch(
-                path,
-                headers=headers,
-                verify=False,
-                data=data,
-                timeout=config.network_timeout,
-            )
+            res = requests.patch(path, headers=headers, verify=False, data=data, timeout=config.network_timeout)
             if res.status_code not in [200, 201, 202]:
                 return None
             parsed_content = json.loads(res.content)
@@ -450,12 +373,7 @@ class AccessApiServerActive(ActiveHunter):
         if self.event.auth_token:
             headers["Authorization"] = f"Bearer {self.event.auth_token}"
         try:
-            res = requests.delete(
-                path,
-                headers=headers,
-                verify=False,
-                timeout=config.network_timeout,
-            )
+            res = requests.delete(path, headers=headers, verify=False, timeout=config.network_timeout)
             if res.status_code in [200, 201, 202]:
                 parsed_content = json.loads(res.content)
                 return parsed_content["metadata"]["deletionTimestamp"]
@@ -464,9 +382,7 @@ class AccessApiServerActive(ActiveHunter):
         return None
 
     def create_a_pod(self, namespace, is_privileged):
-        privileged_value = (
-            {"securityContext": {"privileged": True}} if is_privileged else {}
-        )
+        privileged_value = {"securityContext": {"privileged": True}} if is_privileged else {}
         random_name = str(uuid.uuid4())[0:5]
         pod = {
             "apiVersion": "v1",
@@ -474,35 +390,22 @@ class AccessApiServerActive(ActiveHunter):
             "metadata": {"name": random_name},
             "spec": {
                 "containers": [
-                    {
-                        "name": random_name,
-                        "image": "nginx:1.7.9",
-                        "ports": [{"containerPort": 80}],
-                        **privileged_value,
-                    }
+                    {"name": random_name, "image": "nginx:1.7.9", "ports": [{"containerPort": 80}], **privileged_value}
                 ]
             },
         }
-        return self.create_item(
-            path=f"{self.path}/api/v1/namespaces/{namespace}/pods",
-            data=json.dumps(pod),
-        )
+        return self.create_item(path=f"{self.path}/api/v1/namespaces/{namespace}/pods", data=json.dumps(pod))
 
     def delete_a_pod(self, namespace, pod_name):
-        delete_timestamp = self.delete_item(
-            f"{self.path}/api/v1/namespaces/{namespace}/pods/{pod_name}"
-        )
+        delete_timestamp = self.delete_item(f"{self.path}/api/v1/namespaces/{namespace}/pods/{pod_name}")
         if not delete_timestamp:
-            logger.error(
-                f"Created pod {pod_name} in namespace {namespace} but unable to delete it"
-            )
+            logger.error(f"Created pod {pod_name} in namespace {namespace} but unable to delete it")
         return delete_timestamp
 
     def patch_a_pod(self, namespace, pod_name):
         data = [{"op": "add", "path": "/hello", "value": ["world"]}]
         return self.patch_item(
-            path=f"{self.path}/api/v1/namespaces/{namespace}/pods/{pod_name}",
-            data=json.dumps(data),
+            path=f"{self.path}/api/v1/namespaces/{namespace}/pods/{pod_name}", data=json.dumps(data),
         )
 
     def create_namespace(self):
@@ -512,15 +415,10 @@ class AccessApiServerActive(ActiveHunter):
             "apiVersion": "v1",
             "metadata": {"name": random_name, "labels": {"name": random_name}},
         }
-        return self.create_item(
-            path=f"{self.path}/api/v1/namespaces",
-            data=json.dumps(data),
-        )
+        return self.create_item(path=f"{self.path}/api/v1/namespaces", data=json.dumps(data))
 
     def delete_namespace(self, namespace):
-        delete_timestamp = self.delete_item(
-            f"{self.path}/api/v1/namespaces/{namespace}"
-        )
+        delete_timestamp = self.delete_item(f"{self.path}/api/v1/namespaces/{namespace}")
         if delete_timestamp is None:
             logger.error(f"Created namespace {namespace} but failed to delete it")
         return delete_timestamp
@@ -531,17 +429,10 @@ class AccessApiServerActive(ActiveHunter):
             "kind": "Role",
             "apiVersion": "rbac.authorization.k8s.io/v1",
             "metadata": {"namespace": namespace, "name": name},
-            "rules": [
-                {
-                    "apiGroups": [""],
-                    "resources": ["pods"],
-                    "verbs": ["get", "watch", "list"],
-                }
-            ],
+            "rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["get", "watch", "list"]}],
         }
         return self.create_item(
-            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles",
-            data=json.dumps(role),
+            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles", data=json.dumps(role),
         )
 
     def create_a_cluster_role(self):
@@ -550,17 +441,10 @@ class AccessApiServerActive(ActiveHunter):
             "kind": "ClusterRole",
             "apiVersion": "rbac.authorization.k8s.io/v1",
             "metadata": {"name": name},
-            "rules": [
-                {
-                    "apiGroups": [""],
-                    "resources": ["pods"],
-                    "verbs": ["get", "watch", "list"],
-                }
-            ],
+            "rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["get", "watch", "list"]}],
         }
         return self.create_item(
-            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles",
-            data=json.dumps(cluster_role),
+            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles", data=json.dumps(cluster_role),
         )
 
     def delete_a_role(self, namespace, name):
@@ -568,15 +452,11 @@ class AccessApiServerActive(ActiveHunter):
             f"{self.path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles/{name}"
         )
         if delete_timestamp is None:
-            logger.error(
-                f"Created role {name} in namespace {namespace} but unable to delete it"
-            )
+            logger.error(f"Created role {name} in namespace {namespace} but unable to delete it")
         return delete_timestamp
 
     def delete_a_cluster_role(self, name):
-        delete_timestamp = self.delete_item(
-            f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}"
-        )
+        delete_timestamp = self.delete_item(f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{name}")
         if delete_timestamp is None:
             logger.error(f"Created cluster role {name} but unable to delete it")
         return delete_timestamp
@@ -591,8 +471,7 @@ class AccessApiServerActive(ActiveHunter):
     def patch_a_cluster_role(self, cluster_role):
         data = [{"op": "add", "path": "/hello", "value": ["world"]}]
         return self.patch_item(
-            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{cluster_role}",
-            data=json.dumps(data),
+            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{cluster_role}", data=json.dumps(data),
         )
 
     def execute(self):
@@ -611,18 +490,12 @@ class AccessApiServerActive(ActiveHunter):
             patch_evidence = self.patch_a_cluster_role(cluster_role)
             if patch_evidence:
                 self.publish_event(
-                    PatchAClusterRole(
-                        f"Patched Cluster Role Name: {cluster_role}  Patch evidence: {patch_evidence}"
-                    )
+                    PatchAClusterRole(f"Patched Cluster Role Name: {cluster_role}  Patch evidence: {patch_evidence}")
                 )
 
             delete_timestamp = self.delete_a_cluster_role(cluster_role)
             if delete_timestamp:
-                self.publish_event(
-                    DeleteAClusterRole(
-                        f"Cluster role {cluster_role} deletion time {delete_timestamp}"
-                    )
-                )
+                self.publish_event(DeleteAClusterRole(f"Cluster role {cluster_role} deletion time {delete_timestamp}"))
 
         #  Try attacking all the namespaces we know about
         if self.event.namespaces:
@@ -630,33 +503,21 @@ class AccessApiServerActive(ActiveHunter):
                 # Try creating and deleting a privileged pod
                 pod_name = self.create_a_pod(namespace, True)
                 if pod_name:
-                    self.publish_event(
-                        CreateAPrivilegedPod(
-                            f"Pod Name: {pod_name} Namespace: {namespace}"
-                        )
-                    )
+                    self.publish_event(CreateAPrivilegedPod(f"Pod Name: {pod_name} Namespace: {namespace}"))
                     delete_time = self.delete_a_pod(namespace, pod_name)
                     if delete_time:
-                        self.publish_event(
-                            DeleteAPod(
-                                f"Pod Name: {pod_name} Deletion time: {delete_time}"
-                            )
-                        )
+                        self.publish_event(DeleteAPod(f"Pod Name: {pod_name} Deletion time: {delete_time}"))
 
                 # Try creating, patching and deleting an unprivileged pod
                 pod_name = self.create_a_pod(namespace, False)
                 if pod_name:
-                    self.publish_event(
-                        CreateAPod(f"Pod Name: {pod_name} Namespace: {namespace}")
-                    )
+                    self.publish_event(CreateAPod(f"Pod Name: {pod_name} Namespace: {namespace}"))
 
                     patch_evidence = self.patch_a_pod(namespace, pod_name)
                     if patch_evidence:
                         self.publish_event(
                             PatchAPod(
-                                f"Pod Name: {pod_name} "
-                                f"Namespace: {namespace} "
-                                f"Patch evidence: {patch_evidence}"
+                                f"Pod Name: {pod_name} " f"Namespace: {namespace} " f"Patch evidence: {patch_evidence}"
                             )
                         )
 
@@ -664,9 +525,7 @@ class AccessApiServerActive(ActiveHunter):
                     if delete_time:
                         self.publish_event(
                             DeleteAPod(
-                                f"Pod Name: {pod_name} "
-                                f"Namespace: {namespace} "
-                                f"Delete time: {delete_time}"
+                                f"Pod Name: {pod_name} " f"Namespace: {namespace} " f"Delete time: {delete_time}"
                             )
                         )
 
@@ -688,9 +547,7 @@ class AccessApiServerActive(ActiveHunter):
                     if delete_time:
                         self.publish_event(
                             DeleteARole(
-                                f"Deleted role: {role} "
-                                f"Namespace: {namespace} "
-                                f"Delete time: {delete_time}"
+                                f"Deleted role: {role} " f"Namespace: {namespace} " f"Delete time: {delete_time}"
                             )
                         )
 
@@ -710,9 +567,7 @@ class ApiVersionHunter(Hunter):
         self.session = requests.Session()
         self.session.verify = False
         if self.event.auth_token:
-            self.session.headers.update(
-                {"Authorization": f"Bearer {self.event.auth_token}"}
-            )
+            self.session.headers.update({"Authorization": f"Bearer {self.event.auth_token}"})
 
     def execute(self):
         if self.event.auth_token:
@@ -722,11 +577,6 @@ class ApiVersionHunter(Hunter):
             )
         else:
             logger.debug("Trying to access the API server version endpoint anonymously")
-        version = self.session.get(
-            f"{self.path}/version",
-            timeout=config.network_timeout,
-        ).json()["gitVersion"]
+        version = self.session.get(f"{self.path}/version", timeout=config.network_timeout).json()["gitVersion"]
         logger.debug(f"Discovered version of api server {version}")
-        self.publish_event(
-            K8sVersionDisclosure(version=version, from_endpoint="/version")
-        )
+        self.publish_event(K8sVersionDisclosure(version=version, from_endpoint="/version"))

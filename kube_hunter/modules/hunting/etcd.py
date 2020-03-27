@@ -26,11 +26,7 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
 
     def __init__(self, write_res):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Etcd Remote Write Access Event",
-            category=RemoteCodeExec,
-            vid="KHV031",
+            self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec, vid="KHV031",
         )
         self.evidence = write_res
 
@@ -40,11 +36,7 @@ class EtcdRemoteReadAccessEvent(Vulnerability, Event):
 
     def __init__(self, keys):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Etcd Remote Read Access Event",
-            category=AccessRisk,
-            vid="KHV032",
+            self, KubernetesCluster, name="Etcd Remote Read Access Event", category=AccessRisk, vid="KHV032",
         )
         self.evidence = keys
 
@@ -99,9 +91,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
                 data=data,
                 timeout=config.network_timeout,
             )
-            self.write_evidence = (
-                r.content if r.status_code == 200 and r.content else False
-            )
+            self.write_evidence = r.content if r.status_code == 200 and r.content else False
             return self.write_evidence
         except requests.exceptions.ConnectionError:
             return False
@@ -125,18 +115,12 @@ class EtcdRemoteAccess(Hunter):
         self.protocol = "https"
 
     def db_keys_disclosure(self):
-        logger.debug(
-            f"{self.event.host} Passive hunter is attempting to read etcd keys remotely"
-        )
+        logger.debug(f"{self.event.host} Passive hunter is attempting to read etcd keys remotely")
         try:
             r = requests.get(
-                f"{self.protocol}://{self.eventhost}:{ETCD_PORT}/v2/keys",
-                verify=False,
-                timeout=config.network_timeout,
+                f"{self.protocol}://{self.eventhost}:{ETCD_PORT}/v2/keys", verify=False, timeout=config.network_timeout,
             )
-            self.keys_evidence = (
-                r.content if r.status_code == 200 and r.content != "" else False
-            )
+            self.keys_evidence = r.content if r.status_code == 200 and r.content != "" else False
             return self.keys_evidence
         except requests.exceptions.ConnectionError:
             return False
@@ -149,9 +133,7 @@ class EtcdRemoteAccess(Hunter):
                 verify=False,
                 timeout=config.network_timeout,
             )
-            self.version_evidence = (
-                r.content if r.status_code == 200 and r.content else False
-            )
+            self.version_evidence = r.content if r.status_code == 200 and r.content else False
             return self.version_evidence
         except requests.exceptions.ConnectionError:
             return False
@@ -160,9 +142,7 @@ class EtcdRemoteAccess(Hunter):
         logger.debug(f"Trying to access etcd insecurely at {self.event.host}")
         try:
             r = requests.get(
-                f"http://{self.event.host}:{ETCD_PORT}/version",
-                verify=False,
-                timeout=config.network_timeout,
+                f"http://{self.event.host}:{ETCD_PORT}/version", verify=False, timeout=config.network_timeout,
             )
             return r.content if r.status_code == 200 and r.content else False
         except requests.exceptions.ConnectionError:
@@ -174,8 +154,6 @@ class EtcdRemoteAccess(Hunter):
         if self.version_disclosure():
             self.publish_event(EtcdRemoteVersionDisclosureEvent(self.version_evidence))
             if self.protocol == "http":
-                self.publish_event(
-                    EtcdAccessEnabledWithoutAuthEvent(self.version_evidence)
-                )
+                self.publish_event(EtcdAccessEnabledWithoutAuthEvent(self.version_evidence))
             if self.db_keys_disclosure():
                 self.publish_event(EtcdRemoteReadAccessEvent(self.keys_evidence))

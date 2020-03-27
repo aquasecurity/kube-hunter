@@ -52,11 +52,7 @@ class PingFloodHttp2Implementation(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Possible Ping Flood Attack",
-            category=DenialOfService,
-            vid="KHV024",
+            self, KubernetesCluster, name="Possible Ping Flood Attack", category=DenialOfService, vid="KHV024",
         )
         self.evidence = evidence
 
@@ -67,11 +63,7 @@ class ResetFloodHttp2Implementation(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self,
-            KubernetesCluster,
-            name="Possible Reset Flood Attack",
-            category=DenialOfService,
-            vid="KHV025",
+            self, KubernetesCluster, name="Possible Reset Flood Attack", category=DenialOfService, vid="KHV025",
         )
         self.evidence = evidence
 
@@ -97,11 +89,7 @@ class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
 
     def __init__(self, binary_version):
         Vulnerability.__init__(
-            self,
-            KubectlClient,
-            "Kubectl Vulnerable To CVE-2019-11246",
-            category=RemoteCodeExec,
-            vid="KHV027",
+            self, KubectlClient, "Kubectl Vulnerable To CVE-2019-11246", category=RemoteCodeExec, vid="KHV027",
         )
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
@@ -113,11 +101,7 @@ class KubectlCpVulnerability(Vulnerability, Event):
 
     def __init__(self, binary_version):
         Vulnerability.__init__(
-            self,
-            KubectlClient,
-            "Kubectl Vulnerable To CVE-2019-1002101",
-            category=RemoteCodeExec,
-            vid="KHV028",
+            self, KubectlClient, "Kubectl Vulnerable To CVE-2019-1002101", category=RemoteCodeExec, vid="KHV028",
         )
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
@@ -193,10 +177,7 @@ class CveUtils:
                         break
 
         # if we did't find a fix in the fix releases, checking if the version is smaller that the first fix
-        if (
-            not vulnerable
-            and version_compare_func(check_v, version.parse(fix_versions[0])) == -1
-        ):
+        if not vulnerable and version_compare_func(check_v, version.parse(fix_versions[0])) == -1:
             vulnerable = True
 
         return vulnerable
@@ -222,9 +203,7 @@ class K8sClusterCveHunter(Hunter):
             ServerApiClusterScopedResourcesAccess: ["1.13.9", "1.14.5", "1.15.2"],
         }
         for vulnerability, fix_versions in cve_mapping.items():
-            if CveUtils.is_vulnerable(
-                fix_versions, self.event.version, not config.include_patched_versions
-            ):
+            if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(self.event.version))
 
 
@@ -244,7 +223,5 @@ class KubectlCVEHunter(Hunter):
         }
         logger.debug(f"Checking known CVEs for kubectl version: {self.event.version}")
         for vulnerability, fix_versions in cve_mapping.items():
-            if CveUtils.is_vulnerable(
-                fix_versions, self.event.version, not config.include_patched_versions
-            ):
+            if CveUtils.is_vulnerable(fix_versions, self.event.version, not config.include_patched_versions):
                 self.publish_event(vulnerability(binary_version=self.event.version))

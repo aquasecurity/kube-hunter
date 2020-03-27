@@ -122,9 +122,7 @@ class EventQueue(Queue, object):
                             if Vulnerability in event.__class__.__mro__:
                                 caller.__class__.publishedVulnerabilities += 1
 
-                        logger.debug(
-                            f"Event {event.__class__} got published with {event}"
-                        )
+                        logger.debug(f"Event {event.__class__} got published with {event}")
                         self.put(hook(event))
 
     # executes callbacks on dedicated thread as a daemon

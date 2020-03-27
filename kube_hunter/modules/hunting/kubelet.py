@@ -36,10 +36,7 @@ class ExposedPodsHandler(Vulnerability, Event):
 
     def __init__(self, pods):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Pods",
-            category=InformationDisclosure,
+            self, component=Kubelet, name="Exposed Pods", category=InformationDisclosure,
         )
         self.pods = pods
         self.evidence = f"count: {len(self.pods)}"
@@ -51,11 +48,7 @@ class AnonymousAuthEnabled(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Anonymous Authentication",
-            category=RemoteCodeExec,
-            vid="KHV036",
+            self, component=Kubelet, name="Anonymous Authentication", category=RemoteCodeExec, vid="KHV036",
         )
 
 
@@ -64,11 +57,7 @@ class ExposedContainerLogsHandler(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Container Logs",
-            category=InformationDisclosure,
-            vid="KHV037",
+            self, component=Kubelet, name="Exposed Container Logs", category=InformationDisclosure, vid="KHV037",
         )
 
 
@@ -78,11 +67,7 @@ class ExposedRunningPodsHandler(Vulnerability, Event):
 
     def __init__(self, count):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Running Pods",
-            category=InformationDisclosure,
-            vid="KHV038",
+            self, component=Kubelet, name="Exposed Running Pods", category=InformationDisclosure, vid="KHV038",
         )
         self.count = count
         self.evidence = "{} running pods".format(self.count)
@@ -93,11 +78,7 @@ class ExposedExecHandler(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Exec On Container",
-            category=RemoteCodeExec,
-            vid="KHV039",
+            self, component=Kubelet, name="Exposed Exec On Container", category=RemoteCodeExec, vid="KHV039",
         )
 
 
@@ -106,11 +87,7 @@ class ExposedRunHandler(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Run Inside Container",
-            category=RemoteCodeExec,
-            vid="KHV040",
+            self, component=Kubelet, name="Exposed Run Inside Container", category=RemoteCodeExec, vid="KHV040",
         )
 
 
@@ -119,11 +96,7 @@ class ExposedPortForwardHandler(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Port Forward",
-            category=RemoteCodeExec,
-            vid="KHV041"
+            self, component=Kubelet, name="Exposed Port Forward", category=RemoteCodeExec, vid="KHV041",
         )
 
 
@@ -133,11 +106,7 @@ class ExposedAttachHandler(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Attaching To Container",
-            category=RemoteCodeExec,
-            vid="KHV042",
+            self, component=Kubelet, name="Exposed Attaching To Container", category=RemoteCodeExec, vid="KHV042",
         )
 
 
@@ -147,11 +116,7 @@ class ExposedHealthzHandler(Vulnerability, Event):
 
     def __init__(self, status):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Cluster Health Disclosure",
-            category=InformationDisclosure,
-            vid="KHV043",
+            self, component=Kubelet, name="Cluster Health Disclosure", category=InformationDisclosure, vid="KHV043",
         )
         self.status = status
         self.evidence = f"status: {self.status}"
@@ -163,18 +128,10 @@ class PrivilegedContainers(Vulnerability, Event):
 
     def __init__(self, containers):
         Vulnerability.__init__(
-            self,
-            component=KubernetesCluster,
-            name="Privileged Container",
-            category=AccessRisk,
-            vid="KHV044",
+            self, component=KubernetesCluster, name="Privileged Container", category=AccessRisk, vid="KHV044",
         )
         self.containers = containers
-        self.evidence = (
-            f"pod: {containers[0][0]}, "
-            f"container: {containers[0][1]}, "
-            f"count: {len(containers)}"
-        )
+        self.evidence = f"pod: {containers[0][0]}, " f"container: {containers[0][1]}, " f"count: {len(containers)}"
 
 
 class ExposedSystemLogs(Vulnerability, Event):
@@ -182,11 +139,7 @@ class ExposedSystemLogs(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed System Logs",
-            category=InformationDisclosure,
-            vid="KHV045",
+            self, component=Kubelet, name="Exposed System Logs", category=InformationDisclosure, vid="KHV045",
         )
 
 
@@ -195,11 +148,7 @@ class ExposedKubeletCmdline(Vulnerability, Event):
 
     def __init__(self, cmdline):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Kubelet Cmdline",
-            category=InformationDisclosure,
-            vid="KHV046",
+            self, component=Kubelet, name="Exposed Kubelet Cmdline", category=InformationDisclosure, vid="KHV046",
         )
         self.cmdline = cmdline
         self.evidence = f"cmdline: {self.cmdline}"
@@ -239,10 +188,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
 
     def get_k8s_version(self):
         logger.debug("Passive hunter is attempting to find kubernetes version")
-        metrics = requests.get(
-            f"{self.path}/metrics",
-            timeout=config.network_timeout,
-        ).text
+        metrics = requests.get(f"{self.path}/metrics", timeout=config.network_timeout).text
         for line in metrics.split("\n"):
             if line.startswith("kubernetes_build_info"):
                 for info in line[line.find("{") + 1 : line.find("}")].split(","):
@@ -258,9 +204,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
             for pod in self.pods_endpoint_data["items"]:
                 for container in pod["spec"]["containers"]:
                     if container.get("securityContext", {}).get("privileged"):
-                        privileged_containers.append(
-                            (pod["metadata"]["name"], container["name"])
-                        )
+                        privileged_containers.append((pod["metadata"]["name"], container["name"]))
         return privileged_containers if len(privileged_containers) > 0 else None
 
     def get_pods_endpoint(self):
@@ -270,11 +214,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
             return response.json()
 
     def check_healthz_endpoint(self):
-        r = requests.get(
-            f"{self.path}/healthz",
-            verify=False,
-            timeout=config.network_timeout,
-        )
+        r = requests.get(f"{self.path}/healthz", verify=False, timeout=config.network_timeout)
         return r.text if r.status_code == 200 else False
 
     def execute(self):
@@ -284,20 +224,14 @@ class ReadOnlyKubeletPortHunter(Hunter):
         healthz = self.check_healthz_endpoint()
         if k8s_version:
             self.publish_event(
-                K8sVersionDisclosure(
-                    version=k8s_version,
-                    from_endpoint="/metrics",
-                    extra_info="on Kubelet",
-                )
+                K8sVersionDisclosure(version=k8s_version, from_endpoint="/metrics", extra_info="on Kubelet")
             )
         if privileged_containers:
             self.publish_event(PrivilegedContainers(containers=privileged_containers))
         if healthz:
             self.publish_event(ExposedHealthzHandler(status=healthz))
         if self.pods_endpoint_data:
-            self.publish_event(
-                ExposedPodsHandler(pods=self.pods_endpoint_data["items"])
-            )
+            self.publish_event(ExposedPodsHandler(pods=self.pods_endpoint_data["items"]))
 
 
 @handler.subscribe(SecureKubeletEvent)
@@ -317,17 +251,9 @@ class SecureKubeletPortHunter(Hunter):
         # outputs logs from a specific container
         def test_container_logs(self):
             logs_url = self.path + KubeletHandlers.CONTAINERLOGS.value.format(
-                pod_namespace=self.pod["namespace"],
-                pod_id=self.pod["name"],
-                container_name=self.pod["container"],
+                pod_namespace=self.pod["namespace"], pod_id=self.pod["name"], container_name=self.pod["container"],
             )
-            return (
-                self.session.get(
-                    logs_url,
-                    verify=False,
-                    timeout=config.network_timeout,
-                ).status_code == 200
-            )
+            return self.session.get(logs_url, verify=False, timeout=config.network_timeout).status_code == 200
 
         # need further investigation on websockets protocol for further implementation
         def test_exec_container(self):
@@ -340,12 +266,9 @@ class SecureKubeletPortHunter(Hunter):
                 cmd="",
             )
             return (
-                "/cri/exec/" in self.session.get(
-                    exec_url,
-                    headers=headers,
-                    allow_redirects=False,
-                    verify=False,
-                    timeout=config.network_timeout,
+                "/cri/exec/"
+                in self.session.get(
+                    exec_url, headers=headers, allow_redirects=False, verify=False, timeout=config.network_timeout,
                 ).text
             )
 
@@ -359,35 +282,20 @@ class SecureKubeletPortHunter(Hunter):
                 "Sec-Websocket-Protocol": "SPDY",
             }
             pf_url = self.path + KubeletHandlers.PORTFORWARD.value.format(
-                pod_namespace=self.pod["namespace"],
-                pod_id=self.pod["name"],
-                port=80,
+                pod_namespace=self.pod["namespace"], pod_id=self.pod["name"], port=80,
             )
             self.session.get(
-                pf_url,
-                headers=headers,
-                verify=False,
-                stream=True,
-                timeout=config.network_timeout,
+                pf_url, headers=headers, verify=False, stream=True, timeout=config.network_timeout,
             ).status_code == 200
             # TODO: what to return?
 
         # executes one command and returns output
         def test_run_container(self):
             run_url = self.path + KubeletHandlers.RUN.value.format(
-                pod_namespace="test",
-                pod_id="test",
-                container_name="test",
-                cmd="",
+                pod_namespace="test", pod_id="test", container_name="test", cmd="",
             )
             # if we get a Method Not Allowed, we know we passed Authentication and Authorization.
-            return (
-                self.session.get(
-                    run_url,
-                    verify=False,
-                    timeout=config.network_timeout,
-                ).status_code == 405
-            )
+            return self.session.get(run_url, verify=False, timeout=config.network_timeout).status_code == 405
 
         # returns list of currently running pods
         def test_running_pods(self):
@@ -405,28 +313,23 @@ class SecureKubeletPortHunter(Hunter):
                 cmd="",
             )
             return (
-                "/cri/attach/" in self.session.get(
-                    attach_url,
-                    allow_redirects=False,
-                    verify=False,
-                    timeout=config.network_timeout,
+                "/cri/attach/"
+                in self.session.get(
+                    attach_url, allow_redirects=False, verify=False, timeout=config.network_timeout,
                 ).text
             )
 
         # checks access to logs endpoint
         def test_logs_endpoint(self):
             logs_url = self.session.get(
-                self.path + KubeletHandlers.LOGS.value.format(path=""),
-                timeout=config.network_timeout,
+                self.path + KubeletHandlers.LOGS.value.format(path=""), timeout=config.network_timeout,
             ).text
             return "<pre>" in logs_url
 
         # returns the cmd line used to run the kubelet
         def test_pprof_cmdline(self):
             cmd = self.session.get(
-                self.path + KubeletHandlers.PPROF_CMDLINE.value,
-                verify=False,
-                timeout=config.network_timeout,
+                self.path + KubeletHandlers.PPROF_CMDLINE.value, verify=False, timeout=config.network_timeout,
             )
             return cmd.text if cmd.status_code == 200 else None
 
@@ -434,9 +337,7 @@ class SecureKubeletPortHunter(Hunter):
         self.event = event
         self.session = requests.Session()
         if self.event.secure:
-            self.session.headers.update(
-                {"Authorization": f"Bearer {self.event.auth_token}"}
-            )
+            self.session.headers.update({"Authorization": f"Bearer {self.event.auth_token}"})
             # self.session.cert = self.event.client_cert
         # copy session to event
         self.event.session = self.session
@@ -449,20 +350,12 @@ class SecureKubeletPortHunter(Hunter):
         self.pods_endpoint_data = ""
 
     def get_pods_endpoint(self):
-        response = self.session.get(
-            f"{self.path}/pods",
-            verify=False,
-            timeout=config.network_timeout,
-        )
+        response = self.session.get(f"{self.path}/pods", verify=False, timeout=config.network_timeout)
         if "items" in response.text:
             return response.json()
 
     def check_healthz_endpoint(self):
-        r = requests.get(
-            f"{self.path}/healthz",
-            verify=False,
-            timeout=config.network_timeout,
-        )
+        r = requests.get(f"{self.path}/healthz", verify=False, timeout=config.network_timeout)
         return r.text if r.status_code == 200 else False
 
     def execute(self):
@@ -472,9 +365,7 @@ class SecureKubeletPortHunter(Hunter):
         self.pods_endpoint_data = self.get_pods_endpoint()
         healthz = self.check_healthz_endpoint()
         if self.pods_endpoint_data:
-            self.publish_event(
-                ExposedPodsHandler(pods=self.pods_endpoint_data["items"])
-            )
+            self.publish_event(ExposedPodsHandler(pods=self.pods_endpoint_data["items"]))
         if healthz:
             self.publish_event(ExposedHealthzHandler(status=healthz))
         self.test_handlers()
@@ -488,9 +379,7 @@ class SecureKubeletPortHunter(Hunter):
                 # TODO: use named expressions, introduced in python3.8
                 running_pods = debug_handlers.test_running_pods()
                 if running_pods:
-                    self.publish_event(
-                        ExposedRunningPodsHandler(count=len(running_pods["items"]))
-                    )
+                    self.publish_event(ExposedRunningPodsHandler(count=len(running_pods["items"])))
                 cmdline = debug_handlers.test_pprof_cmdline()
                 if cmdline:
                     self.publish_event(ExposedKubeletCmdline(cmdline=cmdline))
@@ -515,16 +404,10 @@ class SecureKubeletPortHunter(Hunter):
             pods_data = self.pods_endpoint_data["items"]
 
             def is_default_pod(pod):
-                return (
-                    pod["metadata"]["namespace"] == "default"
-                    and pod["status"]["phase"] == "Running"
-                )
+                return pod["metadata"]["namespace"] == "default" and pod["status"]["phase"] == "Running"
 
             def is_kubesystem_pod(pod):
-                return (
-                    pod["metadata"]["namespace"] == "kube-system"
-                    and pod["status"]["phase"] == "Running"
-                )
+                return pod["metadata"]["namespace"] == "kube-system" and pod["status"]["phase"] == "Running"
 
             pod_data = next(filter(is_default_pod, pods_data), None)
             if not pod_data:
@@ -558,16 +441,12 @@ class ProveRunHandler(ActiveHunter):
             cmd=command,
         )
         return self.event.session.post(
-            f"{self.base_path}/{run_url}",
-            verify=False,
-            timeout=config.network_timeout,
+            f"{self.base_path}/{run_url}", verify=False, timeout=config.network_timeout,
         ).text
 
     def execute(self):
         r = self.event.session.get(
-            self.base_path + KubeletHandlers.PODS.value,
-            verify=False,
-            timeout=config.network_timeout,
+            self.base_path + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
         )
         if "items" in r.text:
             pods_data = r.json()["items"]
@@ -600,9 +479,7 @@ class ProveContainerLogsHandler(ActiveHunter):
 
     def execute(self):
         pods_raw = self.event.session.get(
-            self.base_url + KubeletHandlers.PODS.value,
-            verify=False,
-            timeout=config.network_timeout,
+            self.base_url + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
         ).text
         if "items" in pods_raw:
             pods_data = json.loads(pods_raw)["items"]
@@ -637,8 +514,7 @@ class ProveSystemLogs(ActiveHunter):
 
     def execute(self):
         audit_logs = self.event.session.get(
-            f"{self.base_url}/"
-            + KubeletHandlers.LOGS.value.format(path="audit/audit.log"),
+            f"{self.base_url}/" + KubeletHandlers.LOGS.value.format(path="audit/audit.log"),
             verify=False,
             timeout=config.network_timeout,
         ).text
@@ -646,8 +522,6 @@ class ProveSystemLogs(ActiveHunter):
         # iterating over proctitles and converting them into readable strings
         proctitles = []
         for proctitle in re.findall(r"proctitle=(\w+)", audit_logs):
-            proctitles.append(
-                bytes.fromhex(proctitle).decode("utf-8").replace("\x00", " ")
-            )
+            proctitles.append(bytes.fromhex(proctitle).decode("utf-8").replace("\x00", " "))
         self.event.proctitles = proctitles
         self.event.evidence = f"audit log: {proctitles}"

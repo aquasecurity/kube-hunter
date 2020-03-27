@@ -23,10 +23,7 @@ class BaseReporter(object):
     def get_services(self):
         with services_lock:
             return [
-                {
-                    "service": service.get_name(),
-                    "location": f"{service.host}:{service.port}{service.get_path()}",
-                }
+                {"service": service.get_name(), "location": f"{service.host}:{service.port}{service.get_path()}"}
                 for service in services
             ]
 
@@ -52,11 +49,7 @@ class BaseReporter(object):
             if Discovery not in hunter.__mro__:
                 name, doc = hunter.parse_docs(docs)
                 hunters_data.append(
-                    {
-                        "name": name,
-                        "description": doc,
-                        "vulnerabilities": hunter.publishedVulnerabilities,
-                    }
+                    {"name": name, "description": doc, "vulnerabilities": hunter.publishedVulnerabilities}
                 )
         return hunters_data
 
