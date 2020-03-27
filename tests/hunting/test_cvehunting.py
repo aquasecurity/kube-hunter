@@ -83,5 +83,5 @@ class TestCveUtils:
         )
 
         for check_version, fix_versions, expected in test_cases:
-            actual = CveUtils.is_vulnerable(check_version, fix_versions, True)
+            actual = CveUtils.is_vulnerable(fix_versions, check_version, True)
             assert actual == expected
