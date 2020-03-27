@@ -84,4 +84,5 @@ class DenialOfService:
     name = "Denial of Service"
 
 
-from .events import handler  # import is in the bottom to break import loops
+# import is in the bottom to break import loops
+from .events import handler  # noqa

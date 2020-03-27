@@ -78,7 +78,7 @@ class PlainReporter(BaseReporter):
         with services_lock:
             for service in services:
                 services_table.add_row(
-                    [service.get_name(), f"{service.host}:{service.port}{service.get_path()}", service.explain(),]
+                    [service.get_name(), f"{service.host}:{service.port}{service.get_path()}", service.explain()]
                 )
             detected_services_ret = f"\nDetected Services\n{services_table}\n"
         return detected_services_ret

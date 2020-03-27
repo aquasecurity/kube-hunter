@@ -52,10 +52,10 @@ class AzureMetadataApi(Vulnerability, Event):
 
 
 class HostScanEvent(Event):
-    def __init__(self, pod=False, active=False, predefined_hosts=list()):
+    def __init__(self, pod=False, active=False, predefined_hosts=None):
         # flag to specify whether to get actual data from vulnerabilities
         self.active = active
-        self.predefined_hosts = predefined_hosts
+        self.predefined_hosts = predefined_hosts or []
 
 
 class HostDiscoveryHelpers:

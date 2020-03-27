@@ -1,4 +1,5 @@
 import logging
+import re
 import uuid
 
 from kube_hunter.conf import config
@@ -110,7 +111,9 @@ class ProveVarLogMount(ActiveHunter):
         # creating symlink to file
         self.run(f"ln -s {host_file} {mount_path}/{symlink_name}", container)
         # following symlink with kubelet
-        path_in_logs_endpoint = KubeletHandlers.LOGS.value.format(path=host_path.strip("/var/log") + symlink_name)
+        path_in_logs_endpoint = KubeletHandlers.LOGS.value.format(
+            path=re.sub(r"^/var/log", "", host_path) + symlink_name
+        )
         content = self.event.session.get(
             f"{self.base_path}/{path_in_logs_endpoint}", verify=False, timeout=config.network_timeout,
         ).text
