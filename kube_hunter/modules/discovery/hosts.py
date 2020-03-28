@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 import requests
 
@@ -152,7 +151,7 @@ class HostDiscovery(Discovery):
         if config.cidr:
             try:
                 ip, sn = config.cidr.split('/')
-            except ValueError as e:
+            except ValueError:
                 logger.exception(f"Unable to parse CIDR \"{config.cidr}\"")
                 return
             for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):
@@ -169,7 +168,7 @@ class HostDiscovery(Discovery):
             logger.debug("HostDiscovery hunter attempting to get external IP address")
             # getting external ip, to determine if cloud cluster
             external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
-        except requests.ConnectionError as e:
+        except requests.ConnectionError:
             logger.warning(f"Unable to determine external IP address, using 127.0.0.1", exc_info=True)
             external_ip = "127.0.0.1"
         for ip in self.generate_interfaces_subnet():
