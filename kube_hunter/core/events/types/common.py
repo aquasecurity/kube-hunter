@@ -1,6 +1,12 @@
 import threading
+import requests
+import logging
 
-from kube_hunter.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
+from kube_hunter.core.types import InformationDisclosure, DenialOfService, RemoteCodeExec, IdentityTheft, \
+    PrivilegeEscalation, AccessRisk, UnauthenticatedAccess, KubernetesCluster
+from kube_hunter.conf import config
+
+logger = logging.getLogger(__name__)
 
 
 class EventFilterBase(object):
@@ -12,6 +18,7 @@ class EventFilterBase(object):
     # Return None to indicate the event should be discarded
     def execute(self):
         return self.event
+
 
 class Event(object):
     def __init__(self):
@@ -104,6 +111,7 @@ class Vulnerability(object):
     def get_severity(self):
         return self.severity.get(self.category, "low")
 
+
 global event_id_count_lock
 event_id_count_lock = threading.Lock()
 event_id_count = 0
@@ -115,12 +123,32 @@ class NewHostEvent(Event):
     def __init__(self, host, cloud=None):
         global event_id_count
         self.host = host
-        self.cloud = cloud
+        self.cloud_type = cloud
 
         with event_id_count_lock:
             self.event_id = event_id_count
             event_id_count += 1
 
+    @property
+    def cloud(self):
+        if not self.cloud_type:
+            self.cloud_type = self.get_cloud()
+        return self.cloud_type
+    
+    def get_cloud(self):
+        try:
+            logger.debug("Checking whether the cluster is deployed on azure's cloud")
+            # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
+            result = \
+                requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}",
+                             timeout=config.network_timeout).json()
+            return result["cloud"] or "NoCloud"
+        except requests.ConnectionError:
+            logger.info(f"Failed to connect cloud type service", exc_info=True)
+        except Exception:
+            logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
+        return "NoCloud"
+     
     def __str__(self):
         return str(self.host)
     
@@ -128,13 +156,14 @@ class NewHostEvent(Event):
     def location(self):
         return str(self.host)
 
+
 class OpenPortEvent(Event):
     def __init__(self, port):
         self.port = port
-    
+        
     def __str__(self):
         return str(self.port)
-    
+       
     # Event's logical location to be used mainly for reports.
     def location(self):
         if self.host:

@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 import requests
 
@@ -55,20 +54,6 @@ class HostScanEvent(Event):
 
 
 class HostDiscoveryHelpers:
-    @staticmethod
-    def get_cloud(host):
-        try:
-            logger.debug("Checking whether the cluster is deployed on azure's cloud")
-            # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
-            metadata = requests.get(f"https://api.azurespeed.com/api/region?ipOrUrl={host}").text
-        except requests.ConnectionError as e:
-            logger.info(f"Failed to connect cloud type service", exc_info=True)
-            return
-        except Exception:
-            logger.warning(f"Unable to check cloud of {host}", exc_info=True)
-        if "cloud" in metadata:
-            return json.loads(metadata)["cloud"]
-
     # generator, generating a subnet by given a cidr
     @staticmethod
     def generate_subnet(ip, sn="24"):
@@ -93,10 +78,11 @@ class FromPodHostDiscovery(Discovery):
             self.publish_event(HostScanEvent())
         else:
             # Discover cluster subnets, we'll scan all these hosts
+            cloud = None
             if self.is_azure_pod():
                 subnets, cloud = self.azure_metadata_discovery()
             else:
-                subnets, cloud = self.traceroute_discovery()
+                subnets, ext_ip = self.traceroute_discovery()
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -165,17 +151,16 @@ class HostDiscovery(Discovery):
         if config.cidr:
             try:
                 ip, sn = config.cidr.split('/')
-            except ValueError as e:
+            except ValueError:
                 logger.exception(f"Unable to parse CIDR \"{config.cidr}\"")
                 return
-            cloud = HostDiscoveryHelpers.get_cloud(ip)
             for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):
-                self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+                self.publish_event(NewHostEvent(host=ip))
         elif config.interface:
             self.scan_interfaces()
         elif len(config.remote) > 0:
             for host in config.remote:
-                self.publish_event(NewHostEvent(host=host, cloud=HostDiscoveryHelpers.get_cloud(host)))
+                self.publish_event(NewHostEvent(host=host))
 
     # for normal scanning
     def scan_interfaces(self):
@@ -183,12 +168,11 @@ class HostDiscovery(Discovery):
             logger.debug("HostDiscovery hunter attempting to get external IP address")
             # getting external ip, to determine if cloud cluster
             external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
-        except requests.ConnectionError as e:
+        except requests.ConnectionError:
             logger.warning(f"Unable to determine external IP address, using 127.0.0.1", exc_info=True)
             external_ip = "127.0.0.1"
-        cloud = HostDiscoveryHelpers.get_cloud(external_ip)
         for ip in self.generate_interfaces_subnet():
-            handler.publish_event(NewHostEvent(host=ip, cloud=cloud))
+            handler.publish_event(NewHostEvent(host=ip))
 
     # generate all subnets from all internal network interfaces
     def generate_interfaces_subnet(self, sn='24'):
