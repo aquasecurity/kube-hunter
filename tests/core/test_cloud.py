@@ -15,13 +15,9 @@ def test_presetcloud():
 def test_getcloud():
     fake_host = "1.2.3.4"
     expected_cloud = "Azure"
-    result = {
-        "cloud": expected_cloud
-    }
-    
+    result = {"cloud": expected_cloud}
+
     with requests_mock.mock() as m:
-        m.get(f'https://api.azurespeed.com/api/region?ipOrUrl={fake_host}',
-              text=json.dumps(result))
+        m.get(f"https://api.azurespeed.com/api/region?ipOrUrl={fake_host}", text=json.dumps(result))
         hostEvent = NewHostEvent(host=fake_host)
         assert hostEvent.cloud == expected_cloud
-    
