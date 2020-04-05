@@ -2,62 +2,62 @@ from argparse import ArgumentParser
 
 
 def parse_args():
-    parser = ArgumentParser(description='Kube-Hunter - hunts for security weaknesses in Kubernetes clusters')
+    parser = ArgumentParser(description="kube-hunter - hunt for security weaknesses in Kubernetes clusters")
 
     parser.add_argument(
-        '--list',
-        action="store_true",
-        help="Displays all tests in kubehunter (add --active flag to see active tests)")
+        "--list", action="store_true", help="Displays all tests in kubehunter (add --active flag to see active tests)",
+    )
 
-    parser.add_argument('--interface', action="store_true", help="Set hunting on all network interfaces")
+    parser.add_argument("--interface", action="store_true", help="Set hunting on all network interfaces")
 
-    parser.add_argument(
-        '--pod',
-        action="store_true",
-        help="Set hunter as an insider pod")
+    parser.add_argument("--pod", action="store_true", help="Set hunter as an insider pod")
 
-    parser.add_argument('--quick', action="store_true", help="Prefer quick scan (subnet 24)")
+    parser.add_argument("--quick", action="store_true", help="Prefer quick scan (subnet 24)")
 
     parser.add_argument(
-        '--include-patched-versions',
-        action="store_true",
-        help="Don't skip patched versions when scanning")
-
-    parser.add_argument('--mapping', action="store_true", help="Outputs only a mapping of the cluster's nodes")
-
+        "--include-patched-versions", action="store_true", help="Don't skip patched versions when scanning",
+    )
+    
     parser.add_argument(
-        '--cidr',
+        "--cidr",
         type=str,
-        help="Set an IP range to scan/ignore, example: '192.168.0.0/24,!192.168.0.8/32,!192.168.0.16/32'")
-
-    parser.add_argument('--remote', nargs='+', metavar="HOST", default=list(), help="One or more remote IP/DNS to hunt")
-
-    parser.add_argument('--active', action="store_true", help="Enables active hunting")
+        help="Set an IP range to scan/ignore, example: '192.168.0.0/24,!192.168.0.8/32,!192.168.0.16/32'"
+    )
+  
+    parser.add_argument(
+        "--mapping", action="store_true", help="Outputs only a mapping of the cluster's nodes",
+    )
 
     parser.add_argument(
-        '--log',
+        "--remote", nargs="+", metavar="HOST", default=list(), help="One or more remote ip/dns to hunt",
+    )
+
+    parser.add_argument("--active", action="store_true", help="Enables active hunting")
+
+    parser.add_argument(
+        "--log",
         type=str,
         metavar="LOGLEVEL",
-        default='INFO',
-        help="Set log level, options are: debug, info, warn, none")
+        default="INFO",
+        help="Set log level, options are: debug, info, warn, none",
+    )
 
     parser.add_argument(
-        '--report',
-        type=str,
-        default='plain',
-        help="Set report type, options are: plain, yaml, json")
+        "--report", type=str, default="plain", help="Set report type, options are: plain, yaml, json",
+    )
 
     parser.add_argument(
-        '--dispatch',
+        "--dispatch",
         type=str,
-        default='stdout',
+        default="stdout",
         help="Where to send the report to, options are: "
         "stdout, http (set KUBEHUNTER_HTTP_DISPATCH_URL and "
-        "KUBEHUNTER_HTTP_DISPATCH_METHOD environment variables to configure)")
+        "KUBEHUNTER_HTTP_DISPATCH_METHOD environment variables to configure)",
+    )
 
-    parser.add_argument('--statistics', action="store_true", help="Show hunting statistics")
+    parser.add_argument("--statistics", action="store_true", help="Show hunting statistics")
 
-    parser.add_argument('--network-timeout', type=float, default=5.0, help="network operations timeout")
+    parser.add_argument("--network-timeout", type=float, default=5.0, help="network operations timeout")
 
     args = parser.parse_args()
     if args.cidr:

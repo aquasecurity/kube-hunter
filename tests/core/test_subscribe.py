@@ -6,19 +6,23 @@ from kube_hunter.core.events import handler
 
 counter = 0
 
+
 class OnceOnlyEvent(Service, Event):
     def __init__(self):
         Service.__init__(self, "Test Once Service")
 
+
 class RegularEvent(Service, Event):
     def __init__(self):
         Service.__init__(self, "Test Service")
+
 
 @handler.subscribe_once(OnceOnlyEvent)
 class OnceHunter(Hunter):
     def __init__(self, event):
         global counter
         counter += 1
+
 
 @handler.subscribe(RegularEvent)
 class RegularHunter(Hunter):

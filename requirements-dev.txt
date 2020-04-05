@@ -10,3 +10,6 @@ setuptools_scm
 twine
 pyinstaller
 staticx
+black
+pre-commit
+flake8-bugbear

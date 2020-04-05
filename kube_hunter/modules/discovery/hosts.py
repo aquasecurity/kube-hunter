@@ -5,6 +5,7 @@ import requests
 from enum import Enum
 from netaddr import IPNetwork, IPAddress
 from netifaces import AF_INET, ifaddresses, interfaces
+from scapy.all import ICMP, IP, Ether, srp1
 
 from kube_hunter.conf import config
 from kube_hunter.core.events import handler
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class RunningAsPodEvent(Event):
     def __init__(self):
-        self.name = 'Running from within a pod'
+        self.name = "Running from within a pod"
         self.auth_token = self.get_service_account_file("token")
         self.client_cert = self.get_service_account_file("ca.crt")
         self.namespace = self.get_service_account_file("namespace")
@@ -25,8 +26,9 @@ class RunningAsPodEvent(Event):
     # Event's logical location to be used mainly for reports.
     def location(self):
         location = "Local to Pod"
-        if 'HOSTNAME' in os.environ:
-            location += "(" + os.environ['HOSTNAME'] + ")"
+        hostname = os.getenv("HOSTNAME")
+        if hostname:
+            location += f" ({hostname})"
 
         return location
 
@@ -40,17 +42,20 @@ class RunningAsPodEvent(Event):
 
 class AzureMetadataApi(Vulnerability, Event):
     """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
+
     def __init__(self, cidr):
-        Vulnerability.__init__(self, Azure, "Azure Metadata Exposure", category=InformationDisclosure, vid="KHV003")
+        Vulnerability.__init__(
+            self, Azure, "Azure Metadata Exposure", category=InformationDisclosure, vid="KHV003",
+        )
         self.cidr = cidr
         self.evidence = "cidr: {}".format(cidr)
 
 
 class HostScanEvent(Event):
-    def __init__(self, pod=False, active=False, predefined_hosts=list()):
+    def __init__(self, pod=False, active=False, predefined_hosts=None):
         # flag to specify whether to get actual data from vulnerabilities
         self.active = active
-        self.predefined_hosts = predefined_hosts
+        self.predefined_hosts = predefined_hosts or []
 
 
 class HostDiscoveryHelpers:
@@ -90,6 +95,7 @@ class FromPodHostDiscovery(Discovery):
     """Host Discovery when running as pod
     Generates ip adresses to scan, based on cluster/scan type
     """
+
     def __init__(self, event):
         self.event = event
 
@@ -108,11 +114,11 @@ class FromPodHostDiscovery(Discovery):
             should_scan_apiserver = False
             if self.event.kubeservicehost:
                 should_scan_apiserver = True
-            for subnet in subnets:
-                if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork(f"{subnet[0]}/{subnet[1]}"):
+            for ip, mask in subnets:
+                if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork(f"{ip}/{mask}"):
                     should_scan_apiserver = False
-                logger.debug(f"From pod scanning subnet {subnet[0]}/{subnet[1]}")
-                for ip in HostDiscoveryHelpers.generate_subnet(ip=subnet[0], sn=subnet[1]):
+                logger.debug(f"From pod scanning subnet {ip}/{mask}")
+                for ip in HostDiscoveryHelpers.generate_subnet(ip, mask):
                     self.publish_event(NewHostEvent(host=ip, cloud=cloud))
             if should_scan_apiserver:
                 self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
@@ -120,9 +126,14 @@ class FromPodHostDiscovery(Discovery):
     def is_azure_pod(self):
         try:
             logger.debug("From pod attempting to access Azure Metadata API")
-            if requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-                            headers={"Metadata": "true"},
-                            timeout=config.network_timeout).status_code == 200:
+            if (
+                requests.get(
+                    "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
+                    headers={"Metadata": "true"},
+                    timeout=config.network_timeout,
+                ).status_code
+                == 200
+            ):
                 return True
         except requests.exceptions.ConnectionError:
             logger.debug("Failed to connect Azure metadata server")
@@ -132,12 +143,10 @@ class FromPodHostDiscovery(Discovery):
     def traceroute_discovery(self):
         # getting external ip, to determine if cloud cluster
         external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
-        from scapy.all import ICMP, IP, Ether, srp1
 
         node_internal_ip = srp1(
-            Ether()/IP(dst="1.1.1.1", ttl=1)/ICMP(),
-            verbose=0,
-            timeout=config.network_timeout)[IP].src
+            Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout,
+        )[IP].src
         return [[node_internal_ip, "24"]], external_ip
 
     # querying azure's interface metadata api | works only from a pod
@@ -146,11 +155,15 @@ class FromPodHostDiscovery(Discovery):
         machine_metadata = requests.get(
             "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
             headers={"Metadata": "true"},
-            timeout=config.network_timeout).json()
+            timeout=config.network_timeout,
+        ).json()
         address, subnet = "", ""
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
-            address, subnet = interface["ipv4"]["subnet"][0]["address"], interface["ipv4"]["subnet"][0]["prefix"]
+            address, subnet = (
+                interface["ipv4"]["subnet"][0]["address"],
+                interface["ipv4"]["subnet"][0]["prefix"],
+            )
             subnet = subnet if not config.quick else "24"
             logger.debug(f"From pod discovered subnet {address}/{subnet}")
             subnets.append([address, subnet if not config.quick else "24"])
@@ -165,6 +178,7 @@ class HostDiscovery(Discovery):
     """Host Discovery
     Generates ip adresses to scan, based on cluster/scan type
     """
+
     def __init__(self, event):
         self.event = event
 
@@ -180,20 +194,13 @@ class HostDiscovery(Discovery):
 
     # for normal scanning
     def scan_interfaces(self):
-        try:
-            logger.debug("HostDiscovery hunter attempting to get external IP address")
-            # getting external ip, to determine if cloud cluster
-            external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
-        except requests.ConnectionError:
-            logger.warning(f"Unable to determine external IP address, using 127.0.0.1", exc_info=True)
-            external_ip = "127.0.0.1"
         for ip in self.generate_interfaces_subnet():
             handler.publish_event(NewHostEvent(host=ip))
 
     # generate all subnets from all internal network interfaces
-    def generate_interfaces_subnet(self, sn='24'):
+    def generate_interfaces_subnet(self, sn="24"):
         for ifaceName in interfaces():
-            for ip in [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [])]:
+            for ip in [i["addr"] for i in ifaddresses(ifaceName).setdefault(AF_INET, [])]:
                 if not self.event.localhost and InterfaceTypes.LOCALHOST.value in ip.__str__():
                     continue
                 for ip in HostDiscoveryHelpers.generate_subnet(ip, sn):

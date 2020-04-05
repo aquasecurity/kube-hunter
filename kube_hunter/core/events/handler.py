@@ -50,10 +50,12 @@ class EventQueue(Queue, object):
             def __new__unsubscribe_self(self, cls):
                 handler.hooks[event].remove((hook, predicate))
                 return object.__new__(self)
+
             hook.__new__ = __new__unsubscribe_self
 
             self.subscribe_event(event, hook=hook, predicate=predicate)
             return hook
+
         return wrapper
 
     # getting uninstantiated event object
@@ -80,7 +82,7 @@ class EventQueue(Queue, object):
             logger.debug(f"{hook} subscribed to {event}")
 
     def apply_filters(self, event):
-        # if filters are subscribed, apply them on the event 
+        # if filters are subscribed, apply them on the event
         for hooked_event in self.filters.keys():
             if hooked_event in event.__class__.__mro__:
                 for filter_hook, predicate in self.filters[hooked_event]:
@@ -101,7 +103,7 @@ class EventQueue(Queue, object):
             event.previous = caller.event
             event.hunter = caller.__class__
 
-        # applying filters on the event, before publishing it to subscribers. 
+        # applying filters on the event, before publishing it to subscribers.
         # if filter returned None, not proceeding to publish
         event = self.apply_filters(event)
         if event:

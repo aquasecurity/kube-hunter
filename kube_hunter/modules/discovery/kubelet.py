@@ -17,12 +17,14 @@ logger = logging.getLogger(__name__)
 class ReadOnlyKubeletEvent(Service, Event):
     """The read-only port on the kubelet serves health probing endpoints,
     and is relied upon by many kubernetes components"""
+
     def __init__(self):
         Service.__init__(self, name="Kubelet API (readonly)")
 
 
 class SecureKubeletEvent(Service, Event):
     """The Kubelet is the main component in every Node, all pod operations goes through the kubelet"""
+
     def __init__(self, cert=False, token=False, anonymous_auth=True, **kwargs):
         self.cert = cert
         self.token = token
@@ -35,17 +37,18 @@ class KubeletPorts(Enum):
     READ_ONLY = 10255
 
 
-@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 10255 or x.port == 10250)
+@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port in [10250, 10255])
 class KubeletDiscovery(Discovery):
     """Kubelet Discovery
     Checks for the existence of a Kubelet service, and its open ports
     """
+
     def __init__(self, event):
         self.event = event
 
     def get_read_only_access(self):
         endpoint = f"http://{self.event.host}:{self.event.port}/pods"
-        logger.debug(f"Passive hunter is attempting to get kubelet read access at {endpoint}")
+        logger.debug(f"Trying to get kubelet read access at {endpoint}")
         r = requests.get(endpoint, timeout=config.network_timeout)
         if r.status_code == 200:
             self.publish_event(ReadOnlyKubeletEvent())

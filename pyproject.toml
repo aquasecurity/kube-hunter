@@ -1,0 +1,32 @@
+[tool.black]
+line-length = 120
+target-version = ['py36']
+include = '\.pyi?$'
+exclude = '''
+(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \venv
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | \.vscode
+  | \.idea
+  | \.Python
+  | develop-eggs
+  | downloads
+  | eggs
+  | lib
+  | lib64
+  | parts
+  | sdist
+  | var
+  | .*\.egg-info
+  | \.DS_Store
+)
+'''

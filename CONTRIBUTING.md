@@ -1,4 +1,17 @@
-Thank you for taking interest in contributing to kube-hunter!
+## Contribution Guide
+
+## Welcome Aboard
+
+Thank you for taking interest in contributing to kube-hunter!  
+This guide will walk you through the development process of kube-hunter.  
+
+## Setting Up
+
+kube-hunter is written in Python 3 and supports versions 3.6 and above.  
+You'll probably want to create a virtual environment for your local project.  
+Once you got your project and IDE set up, you can `make dev-deps` and start contributing!  
+You may also install a pre-commit hook to take care of linting - `pre-commit install`.  
+
 ## Issues
 
 - Feel free to open issues for any reason as long as you make it clear if this issue is about a bug/feature/hunter/question/comment.

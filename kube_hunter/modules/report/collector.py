@@ -3,7 +3,14 @@ import threading
 
 from kube_hunter.conf import config
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Event, Service, Vulnerability, HuntFinished, HuntStarted, ReportDispatched
+from kube_hunter.core.events.types import (
+    Event,
+    Service,
+    Vulnerability,
+    HuntFinished,
+    HuntStarted,
+    ReportDispatched,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +39,11 @@ class Collector(object):
         if Service in bases:
             with services_lock:
                 services.append(self.event)
-            logger.info(f"Found open service \"{self.event.get_name()}\" at {self.event.location()}")
+            logger.info(f'Found open service "{self.event.get_name()}" at {self.event.location()}')
         elif Vulnerability in bases:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
-            logger.info(f"Found vulnerability \"{self.event.get_name()}\" in {self.event.location()}")
+            logger.info(f'Found vulnerability "{self.event.get_name()}" in {self.event.location()}')
 
 
 class TablesPrinted(Event):
