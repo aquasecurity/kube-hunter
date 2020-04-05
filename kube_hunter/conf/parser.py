@@ -17,13 +17,13 @@ def parse_args():
     parser.add_argument(
         "--include-patched-versions", action="store_true", help="Don't skip patched versions when scanning",
     )
-    
+
     parser.add_argument(
         "--cidr",
         type=str,
-        help="Set an IP range to scan/ignore, example: '192.168.0.0/24,!192.168.0.8/32,!192.168.0.16/32'"
+        help="Set an IP range to scan/ignore, example: '192.168.0.0/24,!192.168.0.8/32,!192.168.0.16/32'",
     )
-  
+
     parser.add_argument(
         "--mapping", action="store_true", help="Outputs only a mapping of the cluster's nodes",
     )
@@ -61,5 +61,5 @@ def parse_args():
 
     args = parser.parse_args()
     if args.cidr:
-        args.cidr = [str(c) for c in args.cidr.replace(' ', '').split(',')]
+        args.cidr = [str(c) for c in args.cidr.replace(" ", "").split(",")]
     return args

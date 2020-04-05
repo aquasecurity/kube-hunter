@@ -6,7 +6,7 @@ from kube_hunter.modules.discovery.hosts import (
     RunningAsPodEvent,
     HostScanEvent,
     AzureMetadataApi,
-    HostDiscoveryHelpers
+    HostDiscoveryHelpers,
 )
 from kube_hunter.core.events.types import NewHostEvent
 from kube_hunter.core.events import handler
@@ -96,8 +96,8 @@ def test_ignore_cidr():
     for ip in IPNetwork(scan):
         expected.append(ip)
     expected.remove(IPAddress(remove))
-    
-    config.cidr = f"{scan},!{remove}/32".split(',')
+
+    config.cidr = f"{scan},!{remove}/32".split(",")
     actual = list()
     for ip in HostDiscoveryHelpers.gen_ips():
         actual.append(ip)

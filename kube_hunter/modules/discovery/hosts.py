@@ -77,11 +77,11 @@ class HostDiscoveryHelpers:
         scan = list()
         for cidr in config.cidr:
             try:
-                ip, sn = cidr.split('/')
+                ip, sn = cidr.split("/")
             except ValueError:
-                logger.exception(f"Unable to parse CIDR \"{config.cidr}\"")
+                logger.exception(f'Unable to parse CIDR "{config.cidr}"')
                 break
-            if ip.startswith('!'):
+            if ip.startswith("!"):
                 ignore.append(IPNetwork(f"{ip[1:]}/{sn}"))
             else:
                 scan.append([ip, sn])
