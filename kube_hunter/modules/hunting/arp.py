@@ -14,8 +14,11 @@ logger = logging.getLogger(__name__)
 class PossibleArpSpoofing(Vulnerability, Event):
     """A malicious pod running on the cluster could potentially run an ARP Spoof attack
     and perform a MITM between pods on the node."""
+
     def __init__(self):
-        Vulnerability.__init__(self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft, vid="KHV020")
+        Vulnerability.__init__(
+            self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft, vid="KHV020",
+        )
 
 
 @handler.subscribe(CapNetRawEnabled)
@@ -24,6 +27,7 @@ class ArpSpoofHunter(ActiveHunter):
     Checks for the possibility of running an ARP spoof
     attack from within a pod (results are based on the running node)
     """
+
     def __init__(self, event):
         self.event = event
 
@@ -47,11 +51,10 @@ class ArpSpoofHunter(ActiveHunter):
         return False
 
     def execute(self):
-        self_ip = sr1(IP(dst="1.1.1.1", ttl=1)/ICMP(), verbose=0, timeout=config.network_timeout)[IP].dst
+        self_ip = sr1(IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout)[IP].dst
         arp_responses, _ = srp(
-            Ether(dst="ff:ff:ff:ff:ff:ff")/ARP(op=1, pdst=f"{self_ip}/24"),
-            timeout=config.netork_timeout,
-            verbose=0)
+            Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"), timeout=config.netork_timeout, verbose=0,
+        )
 
         # arp enabled on cluster and more than one pod on node
         if len(arp_responses) > 1:

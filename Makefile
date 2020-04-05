@@ -21,7 +21,13 @@ dev-deps:
 
 .PHONY: lint
 lint:
-	flake8 $(SRC)
+	black .
+	flake8
+
+.PHONY: lint-check
+lint-check:
+	flake8
+	black --check --diff .
 
 .PHONY: test
 test:

@@ -1,16 +1,26 @@
 import requests_mock
 import time
 
-from kube_hunter.modules.hunting.apiserver import AccessApiServer, AccessApiServerWithToken, ServerApiAccess, AccessApiServerActive
-from kube_hunter.modules.hunting.apiserver import ListNamespaces, ListPodsAndNamespaces, ListRoles, ListClusterRoles
+from kube_hunter.modules.hunting.apiserver import (
+    AccessApiServer,
+    AccessApiServerWithToken,
+    ServerApiAccess,
+    AccessApiServerActive,
+)
+from kube_hunter.modules.hunting.apiserver import (
+    ListNamespaces,
+    ListPodsAndNamespaces,
+    ListRoles,
+    ListClusterRoles,
+)
 from kube_hunter.modules.hunting.apiserver import ApiServerPassiveHunterFinished
 from kube_hunter.modules.hunting.apiserver import CreateANamespace, DeleteANamespace
 from kube_hunter.modules.discovery.apiserver import ApiServer
-from kube_hunter.core.events.types import Event, K8sVersionDisclosure
 from kube_hunter.core.types import UnauthenticatedAccess, InformationDisclosure
 from kube_hunter.core.events import handler
 
 counter = 0
+
 
 def test_ApiServerToken():
     global counter
@@ -28,6 +38,7 @@ def test_ApiServerToken():
     time.sleep(0.01)
     assert counter == 0
 
+
 def test_AccessApiServer():
     global counter
     counter = 0
@@ -38,16 +49,29 @@ def test_AccessApiServer():
     e.protocol = "https"
 
     with requests_mock.Mocker() as m:
-        m.get('https://mockKubernetes:443/api', text='{}')
-        m.get('https://mockKubernetes:443/api/v1/namespaces', text='{"items":[{"metadata":{"name":"hello"}}]}')
-        m.get('https://mockKubernetes:443/api/v1/pods',
+        m.get("https://mockKubernetes:443/api", text="{}")
+        m.get(
+            "https://mockKubernetes:443/api/v1/namespaces", text='{"items":[{"metadata":{"name":"hello"}}]}',
+        )
+        m.get(
+            "https://mockKubernetes:443/api/v1/pods",
             text='{"items":[{"metadata":{"name":"podA", "namespace":"namespaceA"}}, \
-                            {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}')
-        m.get('https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/roles', status_code=403)
-        m.get('https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles', text='{"items":[]}')
-        m.get('https://mockkubernetes:443/version', text='{"major": "1","minor": "13+", "gitVersion": "v1.13.6-gke.13", \
-                          "gitCommit": "fcbc1d20b6bca1936c0317743055ac75aef608ce", "gitTreeState": "clean", "buildDate": "2019-06-19T20:50:07Z", \
-                          "goVersion": "go1.11.5b4", "compiler": "gc", "platform": "linux/amd64"}')
+                            {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}',
+        )
+        m.get(
+            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/roles", status_code=403,
+        )
+        m.get(
+            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles", text='{"items":[]}',
+        )
+        m.get(
+            "https://mockkubernetes:443/version",
+            text='{"major": "1","minor": "13+", "gitVersion": "v1.13.6-gke.13", \
+                   "gitCommit": "fcbc1d20b6bca1936c0317743055ac75aef608ce", \
+                   "gitTreeState": "clean", "buildDate": "2019-06-19T20:50:07Z", \
+                   "goVersion": "go1.11.5b4", "compiler": "gc", \
+                   "platform": "linux/amd64"}',
+        )
 
         h = AccessApiServer(e)
         h.execute()
@@ -60,17 +84,25 @@ def test_AccessApiServer():
     counter = 0
     with requests_mock.Mocker() as m:
         # TODO check that these responses reflect what Kubernetes does
-        m.get('https://mockKubernetesToken:443/api', text='{}')
-        m.get('https://mockKubernetesToken:443/api/v1/namespaces', text='{"items":[{"metadata":{"name":"hello"}}]}')
-        m.get('https://mockKubernetesToken:443/api/v1/pods',
+        m.get("https://mocktoken:443/api", text="{}")
+        m.get(
+            "https://mocktoken:443/api/v1/namespaces", text='{"items":[{"metadata":{"name":"hello"}}]}',
+        )
+        m.get(
+            "https://mocktoken:443/api/v1/pods",
             text='{"items":[{"metadata":{"name":"podA", "namespace":"namespaceA"}}, \
-                            {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}')
-        m.get('https://mockkubernetesToken:443/apis/rbac.authorization.k8s.io/v1/roles', status_code=403)
-        m.get('https://mockkubernetesToken:443/apis/rbac.authorization.k8s.io/v1/clusterroles',
-            text='{"items":[{"metadata":{"name":"my-role"}}]}')
+                            {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}',
+        )
+        m.get(
+            "https://mocktoken:443/apis/rbac.authorization.k8s.io/v1/roles", status_code=403,
+        )
+        m.get(
+            "https://mocktoken:443/apis/rbac.authorization.k8s.io/v1/clusterroles",
+            text='{"items":[{"metadata":{"name":"my-role"}}]}',
+        )
 
         e.auth_token = "so-secret"
-        e.host = "mockKubernetesToken"
+        e.host = "mocktoken"
         h = AccessApiServerWithToken(e)
         h.execute()
 
@@ -78,12 +110,13 @@ def test_AccessApiServer():
         time.sleep(0.01)
         assert counter == 5
 
+
 @handler.subscribe(ListNamespaces)
 class test_ListNamespaces(object):
     def __init__(self, event):
         print("ListNamespaces")
-        assert event.evidence == ['hello']
-        if event.host == "mockKubernetesToken":
+        assert event.evidence == ["hello"]
+        if event.host == "mocktoken":
             assert event.auth_token == "so-secret"
         else:
             assert event.auth_token is None
@@ -101,7 +134,7 @@ class test_ListPodsAndNamespaces(object):
                 assert pod["namespace"] == "namespaceA"
             if pod["name"] == "podB":
                 assert pod["namespace"] == "namespaceB"
-        if event.host == "mockKubernetesToken":
+        if event.host == "mocktoken":
             assert event.auth_token == "so-secret"
             assert "token" in event.name
             assert "anon" not in event.name
@@ -112,6 +145,7 @@ class test_ListPodsAndNamespaces(object):
         global counter
         counter += 1
 
+
 # Should never see this because the API call in the test returns 403 status code
 @handler.subscribe(ListRoles)
 class test_ListRoles(object):
@@ -120,6 +154,7 @@ class test_ListRoles(object):
         assert 0
         global counter
         counter += 1
+
 
 # Should only see this when we have a token because the API call returns an empty list of items
 # in the test where we have no token
@@ -130,6 +165,7 @@ class test_ListClusterRoles(object):
         assert event.auth_token == "so-secret"
         global counter
         counter += 1
+
 
 @handler.subscribe(ServerApiAccess)
 class test_ServerApiAccess(object):
@@ -143,6 +179,7 @@ class test_ServerApiAccess(object):
         global counter
         counter += 1
 
+
 @handler.subscribe(ApiServerPassiveHunterFinished)
 class test_PassiveHunterFinished(object):
     def __init__(self, event):
@@ -150,6 +187,7 @@ class test_PassiveHunterFinished(object):
         assert event.namespaces == ["hello"]
         global counter
         counter += 1
+
 
 def test_AccessApiServerActive():
     e = ApiServerPassiveHunterFinished(namespaces=["hello-namespace"])
@@ -159,7 +197,9 @@ def test_AccessApiServerActive():
 
     with requests_mock.Mocker() as m:
         # TODO more tests here with real responses
-        m.post('https://mockKubernetes:443/api/v1/namespaces', text="""
+        m.post(
+            "https://mockKubernetes:443/api/v1/namespaces",
+            text="""
 {
   "kind": "Namespace",
   "apiVersion": "v1",
@@ -179,14 +219,23 @@ def test_AccessApiServerActive():
     "phase": "Active"
   }
 }
-"""
-)
-        m.post('https://mockKubernetes:443/api/v1/clusterroles', text='{}')
-        m.post('https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles', text='{}')
-        m.post('https://mockkubernetes:443/api/v1/namespaces/hello-namespace/pods', text='{}')
-        m.post('https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/namespaces/hello-namespace/roles', text='{}')
+""",
+        )
+        m.post("https://mockKubernetes:443/api/v1/clusterroles", text="{}")
+        m.post(
+            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles", text="{}",
+        )
+        m.post(
+            "https://mockkubernetes:443/api/v1/namespaces/hello-namespace/pods", text="{}",
+        )
+        m.post(
+            "https://mockkubernetes:443" "/apis/rbac.authorization.k8s.io/v1/namespaces/hello-namespace/roles",
+            text="{}",
+        )
 
-        m.delete('https://mockKubernetes:443/api/v1/namespaces/abcde', text="""
+        m.delete(
+            "https://mockKubernetes:443/api/v1/namespaces/abcde",
+            text="""
 {
   "kind": "Namespace",
   "apiVersion": "v1",
@@ -207,15 +256,18 @@ def test_AccessApiServerActive():
     "phase": "Terminating"
   }
 }
-        """)
+        """,
+        )
 
         h = AccessApiServerActive(e)
         h.execute()
+
 
 @handler.subscribe(CreateANamespace)
 class test_CreateANamespace(object):
     def __init__(self, event):
         assert "abcde" in event.evidence
+
 
 @handler.subscribe(DeleteANamespace)
 class test_DeleteANamespace(object):

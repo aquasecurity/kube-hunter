@@ -14,6 +14,7 @@ class PortDiscovery(Discovery):
     """Port Scanning
     Scans Kubernetes known ports to determine open endpoints for discovery
     """
+
     def __init__(self, event):
         self.event = event
         self.host = event.host

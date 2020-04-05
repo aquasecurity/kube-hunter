@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class KubectlClientEvent(Event):
     """The API server is in charge of all operations on the cluster."""
+
     def __init__(self, version):
         self.version = version
 
@@ -23,6 +24,7 @@ class KubectlClientDiscovery(Discovery):
     """Kubectl Client Discovery
     Checks for the existence of a local kubectl client
     """
+
     def __init__(self, event):
         self.event = event
 
@@ -34,8 +36,8 @@ class KubectlClientDiscovery(Discovery):
             if b"GitVersion" in version_info:
                 # extracting version from kubectl output
                 version_info = version_info.decode()
-                start = version_info.find('GitVersion')
-                version = version_info[start + len("GitVersion':\"") : version_info.find("\",", start)]
+                start = version_info.find("GitVersion")
+                version = version_info[start + len("GitVersion':\"") : version_info.find('",', start)]
         except Exception:
             logger.debug("Could not find kubectl client")
         return version

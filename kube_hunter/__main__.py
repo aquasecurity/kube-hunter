@@ -13,29 +13,27 @@ config.reporter = get_reporter(config.report)
 config.dispatcher = get_dispatcher(config.dispatch)
 logger = logging.getLogger(__name__)
 
-import kube_hunter
+import kube_hunter  # noqa
 
 
 def interactive_set_config():
     """Sets config manually, returns True for success"""
-    options = [("Remote scanning",
-                "scans one or more specific IPs or DNS names"),
-               ("Interface scanning",
-                "scans subnets on all local network interfaces"),
-               ("IP range scanning", "scans a given IP range")]
+    options = [
+        ("Remote scanning", "scans one or more specific IPs or DNS names"),
+        ("Interface scanning", "scans subnets on all local network interfaces"),
+        ("IP range scanning", "scans a given IP range"),
+    ]
 
     print("Choose one of the options below:")
     for i, (option, explanation) in enumerate(options):
-        print("{}. {} ({})".format(i+1, option.ljust(20), explanation))
+        print("{}. {} ({})".format(i + 1, option.ljust(20), explanation))
     choice = input("Your choice: ")
-    if choice == '1':
-        config.remote = input("Remotes (separated by a ','): ").\
-            replace(' ', '').split(',')
-    elif choice == '2':
+    if choice == "1":
+        config.remote = input("Remotes (separated by a ','): ").replace(" ", "").split(",")
+    elif choice == "2":
         config.interface = True
-    elif choice == '3':
-        config.cidr = input("CIDR (example - 192.168.1.0/24): ").\
-            replace(' ', '')
+    elif choice == "3":
+        config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(" ", "")
     else:
         return False
     return True
@@ -51,7 +49,7 @@ def list_hunters():
         print("\n\nActive Hunters:\n---------------")
         for hunter, docs in handler.active_hunters.items():
             name, doc = hunter.parse_docs(docs)
-            print("* {}\n  {}\n".format( name, doc))
+            print("* {}\n  {}\n".format(name, doc))
 
 
 global hunt_started_lock
@@ -61,19 +59,15 @@ hunt_started = False
 
 def main():
     global hunt_started
-    scan_options = [
-        config.pod,
-        config.cidr,
-        config.remote,
-        config.interface
-    ]
+    scan_options = [config.pod, config.cidr, config.remote, config.interface]
     try:
         if config.list:
             list_hunters()
             return
 
         if not any(scan_options):
-            if not interactive_set_config(): return
+            if not interactive_set_config():
+                return
 
         with hunt_started_lock:
             hunt_started = True
@@ -102,5 +96,5 @@ def main():
             hunt_started_lock.release()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

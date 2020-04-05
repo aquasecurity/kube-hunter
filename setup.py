@@ -50,16 +50,11 @@ class PyInstallerCommand(Command):
         for r in requirements:
             command.extend(["--hidden-import", r.key])
         command.append("kube_hunter/__main__.py")
-        print(' '.join(command))
+        print(" ".join(command))
         check_call(command)
 
 
 setup(
-    use_scm_version={
-        "fallback_version": "noversion"
-    },
-    cmdclass={
-        "dependencies": ListDependenciesCommand,
-        "pyinstaller": PyInstallerCommand,
-    },
+    use_scm_version={"fallback_version": "noversion"},
+    cmdclass={"dependencies": ListDependenciesCommand, "pyinstaller": PyInstallerCommand},
 )
