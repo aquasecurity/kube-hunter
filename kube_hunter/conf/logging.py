@@ -13,10 +13,10 @@ def setup_logger(level_name):
         h.close()
         logging.getLogger().removeHandler(h)
 
-    if level_name == "NONE":
+    if level_name.upper() == "NONE":
         logging.disable(logging.CRITICAL)
     else:
-        log_level = logging._nameToLevel.get(level_name, None)
+        log_level = logging._nameToLevel.get(level_name.upper(), None)
         logging.basicConfig(level=log_level or DEFAULT_LEVEL, format=LOG_FORMAT)
         if not log_level:
             logging.warning(f"Unknown log level '{level_name}', using {DEFAULT_LEVEL_NAME}")
