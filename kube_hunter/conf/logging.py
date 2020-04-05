@@ -1,7 +1,7 @@
 import logging
 
 
-DEFAULT_LEVEL = logging.DEBUG
+DEFAULT_LEVEL = logging.INFO
 DEFAULT_LEVEL_NAME = logging.getLevelName(DEFAULT_LEVEL)
 LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s %(message)s"
 
@@ -16,7 +16,7 @@ def setup_logger(level_name):
     if level_name == "NONE":
         logging.disable(logging.CRITICAL)
     else:
-        log_level = getattr(logging._nameToLevel, level_name, None)
+        log_level = logging._nameToLevel.get(level_name, None)
         logging.basicConfig(level=log_level or DEFAULT_LEVEL, format=LOG_FORMAT)
         if not log_level:
-            logging.warning(f"Unknown log level selected, using {DEFAULT_LEVEL_NAME}")
+            logging.warning(f"Unknown log level '{level_name}', using {DEFAULT_LEVEL_NAME}")
