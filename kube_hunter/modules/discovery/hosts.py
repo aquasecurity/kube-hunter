@@ -1,6 +1,7 @@
 import os
 import logging
 import requests
+import itertools
 
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
@@ -69,7 +70,7 @@ class HostDiscoveryHelpers:
                 yield ip
 
     @staticmethod
-    def gen_ips(cidrs):
+    def generate_hosts(cidrs):
         ignore = list()
         scan = list()
         for cidr in cidrs:
@@ -81,8 +82,7 @@ class HostDiscoveryHelpers:
             except AddrFormatError as e:
                 raise ValueError(f"Unable to parse CIDR {cidr}") from e
 
-        for scan_subnet in scan:
-            yield from HostDiscoveryHelpers.filter_subnet(scan_subnet, ignore=ignore)
+        return itertools.chain.from_iterable(HostDiscoveryHelpers.filter_subnet(sb, ignore=ignore) for sb in scan)
 
 
 @handler.subscribe(RunningAsPodEvent)
@@ -179,7 +179,7 @@ class HostDiscovery(Discovery):
 
     def execute(self):
         if config.cidr:
-            for ip in HostDiscoveryHelpers.gen_ips(config.cidr):
+            for ip in HostDiscoveryHelpers.generate_hosts(config.cidr):
                 self.publish_event(NewHostEvent(host=ip))
         elif config.interface:
             self.scan_interfaces()

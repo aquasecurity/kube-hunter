@@ -1,4 +1,5 @@
 import requests_mock
+
 import pytest
 from netaddr import IPNetwork, IPAddress
 
@@ -77,30 +78,30 @@ class testAzureMetadataApi(object):
 
 class TestDiscoveryUtils:
     @staticmethod
-    def test_cidr_discovery():
+    def test_generate_hosts_valid_cidr():
         test_cidr = "192.168.0.0/24"
         expected = set(IPNetwork(test_cidr))
 
-        actual = set(HostDiscoveryHelpers.gen_ips([test_cidr]))
+        actual = set(HostDiscoveryHelpers.generate_hosts([test_cidr]))
 
         assert actual == expected
 
     @staticmethod
-    def test_ignore_cidr():
+    def test_generate_hosts_valid_ignore():
         remove = IPAddress("192.168.1.8")
         scan = "192.168.1.0/24"
         expected = set(ip for ip in IPNetwork(scan) if ip != remove)
 
-        actual = set(HostDiscoveryHelpers.gen_ips([scan, f"!{str(remove)}"]))
+        actual = set(HostDiscoveryHelpers.generate_hosts([scan, f"!{str(remove)}"]))
 
         assert actual == expected
 
     @staticmethod
-    def test_invalid_cidr():
+    def test_generate_hosts_invalid_cidr():
         with pytest.raises(ValueError):
-            list(HostDiscoveryHelpers.gen_ips(["192..2.3/24"]))
+            list(HostDiscoveryHelpers.generate_hosts(["192..2.3/24"]))
 
     @staticmethod
-    def test_invalid_ignore():
+    def test_generate_hosts_invalid_ignore():
         with pytest.raises(ValueError):
-            list(HostDiscoveryHelpers.gen_ips(["192.168.1.8", "!29.2..1/24"]))
+            list(HostDiscoveryHelpers.generate_hosts(["192.168.1.8", "!29.2..1/24"]))
