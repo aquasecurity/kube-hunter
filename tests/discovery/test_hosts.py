@@ -1,4 +1,5 @@
 import requests_mock
+import pytest
 from netaddr import IPNetwork, IPAddress
 
 from kube_hunter.modules.discovery.hosts import (
@@ -74,32 +75,32 @@ class testAzureMetadataApi(object):
         assert config.azure
 
 
-def test_cidr_discovery():
-    expected = list()
-    test_cidr = "192.168.0.0/24"
-    config.cidr = test_cidr
+class TestDiscoveryUtils:
+    @staticmethod
+    def test_cidr_discovery():
+        test_cidr = "192.168.0.0/24"
+        expected = set(IPNetwork(test_cidr))
 
-    for ip in IPNetwork(test_cidr):
-        expected.append(ip)
+        actual = set(HostDiscoveryHelpers.gen_ips([test_cidr]))
 
-    actual = list()
-    for ip in HostDiscoveryHelpers.gen_ips():
-        actual.append(ip)
+        assert actual == expected
 
-    assert actual.sort() == expected.sort()
+    @staticmethod
+    def test_ignore_cidr():
+        remove = IPAddress("192.168.1.8")
+        scan = "192.168.1.0/24"
+        expected = set(ip for ip in IPNetwork(scan) if ip != remove)
 
+        actual = set(HostDiscoveryHelpers.gen_ips([scan, f"!{str(remove)}"]))
 
-def test_ignore_cidr():
-    expected = list()
-    remove = "192.168.1.8"
-    scan = "192.168.1.0/24"
-    for ip in IPNetwork(scan):
-        expected.append(ip)
-    expected.remove(IPAddress(remove))
+        assert actual == expected
 
-    config.cidr = f"{scan},!{remove}/32".split(",")
-    actual = list()
-    for ip in HostDiscoveryHelpers.gen_ips():
-        actual.append(ip)
+    @staticmethod
+    def test_invalid_cidr():
+        with pytest.raises(ValueError):
+            list(HostDiscoveryHelpers.gen_ips(["192..2.3/24"]))
 
-    return actual.sort() == expected.sort()
+    @staticmethod
+    def test_invalid_ignore():
+        with pytest.raises(ValueError):
+            list(HostDiscoveryHelpers.gen_ips(["192.168.1.8", "!29.2..1/24"]))

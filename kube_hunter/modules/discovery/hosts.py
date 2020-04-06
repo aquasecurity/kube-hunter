@@ -3,7 +3,7 @@ import logging
 import requests
 
 from enum import Enum
-from netaddr import IPNetwork, IPAddress
+from netaddr import IPNetwork, IPAddress, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces
 from scapy.all import ICMP, IP, Ether, srp1
 
@@ -61,33 +61,28 @@ class HostScanEvent(Event):
 class HostDiscoveryHelpers:
     # generator, generating a subnet by given a cidr
     @staticmethod
-    def generate_subnet(ip, sn="24", ignore=None):
-        logger.debug(f"HostDiscoveryHelpers.generate_subnet {ip}/{sn}")
-        subnet = f"{ip}/{sn}"
-        for ip in IPNetwork(subnet):
+    def filter_subnet(subnet, ignore=None):
+        for ip in subnet:
             if ignore and any(ip in s for s in ignore):
-                logger.debug(f"HostDiscoveryHelpers.generate_subnet DENIED {ip}")
+                logger.debug(f"HostDiscoveryHelpers.filter_subnet ignoring {ip}")
             else:
-                logger.debug(f"HostDiscoveryHelpers.generate_subnet yielding {ip}")
                 yield ip
 
     @staticmethod
-    def gen_ips():
+    def gen_ips(cidrs):
         ignore = list()
         scan = list()
-        for cidr in config.cidr:
+        for cidr in cidrs:
             try:
-                ip, sn = cidr.split("/")
-            except ValueError:
-                logger.exception(f'Unable to parse CIDR "{config.cidr}"')
-                break
-            if ip.startswith("!"):
-                ignore.append(IPNetwork(f"{ip[1:]}/{sn}"))
-            else:
-                scan.append([ip, sn])
+                if cidr.startswith("!"):
+                    ignore.append(IPNetwork(cidr[1:]))
+                else:
+                    scan.append(IPNetwork(cidr))
+            except AddrFormatError as e:
+                raise ValueError(f"Unable to parse CIDR {cidr}") from e
 
-        for ip, sn in scan:
-            yield from HostDiscoveryHelpers.generate_subnet(ip=ip, sn=sn, ignore=ignore)
+        for scan_subnet in scan:
+            yield from HostDiscoveryHelpers.filter_subnet(scan_subnet, ignore=ignore)
 
 
 @handler.subscribe(RunningAsPodEvent)
@@ -118,7 +113,7 @@ class FromPodHostDiscovery(Discovery):
                 if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork(f"{ip}/{mask}"):
                     should_scan_apiserver = False
                 logger.debug(f"From pod scanning subnet {ip}/{mask}")
-                for ip in HostDiscoveryHelpers.generate_subnet(ip, mask):
+                for ip in IPNetwork(f"{ip}/{mask}"):
                     self.publish_event(NewHostEvent(host=ip, cloud=cloud))
             if should_scan_apiserver:
                 self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
@@ -184,7 +179,7 @@ class HostDiscovery(Discovery):
 
     def execute(self):
         if config.cidr:
-            for ip in HostDiscoveryHelpers.gen_ips():
+            for ip in HostDiscoveryHelpers.gen_ips(config.cidr):
                 self.publish_event(NewHostEvent(host=ip))
         elif config.interface:
             self.scan_interfaces()
@@ -203,7 +198,7 @@ class HostDiscovery(Discovery):
             for ip in [i["addr"] for i in ifaddresses(ifaceName).setdefault(AF_INET, [])]:
                 if not self.event.localhost and InterfaceTypes.LOCALHOST.value in ip.__str__():
                     continue
-                for ip in HostDiscoveryHelpers.generate_subnet(ip, sn):
+                for ip in IPNetwork(f"{ip}/{sn}"):
                     yield ip
 
 

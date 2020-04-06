@@ -61,5 +61,5 @@ def parse_args():
 
     args = parser.parse_args()
     if args.cidr:
-        args.cidr = [str(c) for c in args.cidr.replace(" ", "").split(",")]
+        args.cidr = [c for c in args.cidr.replace(" ", "").split(",")]
     return args
