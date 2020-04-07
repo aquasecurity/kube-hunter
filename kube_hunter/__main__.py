@@ -33,7 +33,11 @@ def interactive_set_config():
     elif choice == "2":
         config.interface = True
     elif choice == "3":
-        config.cidr = input("CIDR (example - 192.168.1.0/24): ").replace(" ", "")
+        config.cidr = (
+            input("CIDR separated by a ',' (example - 192.168.0.0/16,!192.168.0.8/32,!192.168.1.0/24): ")
+            .replace(" ", "")
+            .split(",")
+        )
     else:
         return False
     return True

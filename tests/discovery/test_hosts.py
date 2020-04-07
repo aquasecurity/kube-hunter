@@ -1,10 +1,13 @@
 import requests_mock
+import pytest
 
+from netaddr import IPNetwork, IPAddress
 from kube_hunter.modules.discovery.hosts import (
     FromPodHostDiscovery,
     RunningAsPodEvent,
     HostScanEvent,
     AzureMetadataApi,
+    HostDiscoveryHelpers,
 )
 from kube_hunter.core.events.types import NewHostEvent
 from kube_hunter.core.events import handler
@@ -70,3 +73,34 @@ class testHostDiscoveryEvent(object):
 class testAzureMetadataApi(object):
     def __init__(self, event):
         assert config.azure
+
+
+class TestDiscoveryUtils:
+    @staticmethod
+    def test_generate_hosts_valid_cidr():
+        test_cidr = "192.168.0.0/24"
+        expected = set(IPNetwork(test_cidr))
+
+        actual = set(HostDiscoveryHelpers.generate_hosts([test_cidr]))
+
+        assert actual == expected
+
+    @staticmethod
+    def test_generate_hosts_valid_ignore():
+        remove = IPAddress("192.168.1.8")
+        scan = "192.168.1.0/24"
+        expected = set(ip for ip in IPNetwork(scan) if ip != remove)
+
+        actual = set(HostDiscoveryHelpers.generate_hosts([scan, f"!{str(remove)}"]))
+
+        assert actual == expected
+
+    @staticmethod
+    def test_generate_hosts_invalid_cidr():
+        with pytest.raises(ValueError):
+            list(HostDiscoveryHelpers.generate_hosts(["192..2.3/24"]))
+
+    @staticmethod
+    def test_generate_hosts_invalid_ignore():
+        with pytest.raises(ValueError):
+            list(HostDiscoveryHelpers.generate_hosts(["192.168.1.8", "!29.2..1/24"]))

@@ -1,9 +1,10 @@
 import os
 import logging
 import requests
+import itertools
 
 from enum import Enum
-from netaddr import IPNetwork, IPAddress
+from netaddr import IPNetwork, IPAddress, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces
 from scapy.all import ICMP, IP, Ether, srp1
 
@@ -61,12 +62,27 @@ class HostScanEvent(Event):
 class HostDiscoveryHelpers:
     # generator, generating a subnet by given a cidr
     @staticmethod
-    def generate_subnet(ip, sn="24"):
-        logger.debug(f"HostDiscoveryHelpers.generate_subnet {ip}/{sn}")
-        subnet = f"{ip}/{sn}"
-        for ip in IPNetwork(subnet):
-            logger.debug(f"HostDiscoveryHelpers.generate_subnet yielding {ip}")
-            yield ip
+    def filter_subnet(subnet, ignore=None):
+        for ip in subnet:
+            if ignore and any(ip in s for s in ignore):
+                logger.debug(f"HostDiscoveryHelpers.filter_subnet ignoring {ip}")
+            else:
+                yield ip
+
+    @staticmethod
+    def generate_hosts(cidrs):
+        ignore = list()
+        scan = list()
+        for cidr in cidrs:
+            try:
+                if cidr.startswith("!"):
+                    ignore.append(IPNetwork(cidr[1:]))
+                else:
+                    scan.append(IPNetwork(cidr))
+            except AddrFormatError as e:
+                raise ValueError(f"Unable to parse CIDR {cidr}") from e
+
+        return itertools.chain.from_iterable(HostDiscoveryHelpers.filter_subnet(sb, ignore=ignore) for sb in scan)
 
 
 @handler.subscribe(RunningAsPodEvent)
@@ -97,7 +113,7 @@ class FromPodHostDiscovery(Discovery):
                 if self.event.kubeservicehost and self.event.kubeservicehost in IPNetwork(f"{ip}/{mask}"):
                     should_scan_apiserver = False
                 logger.debug(f"From pod scanning subnet {ip}/{mask}")
-                for ip in HostDiscoveryHelpers.generate_subnet(ip, mask):
+                for ip in IPNetwork(f"{ip}/{mask}"):
                     self.publish_event(NewHostEvent(host=ip, cloud=cloud))
             if should_scan_apiserver:
                 self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
@@ -163,12 +179,7 @@ class HostDiscovery(Discovery):
 
     def execute(self):
         if config.cidr:
-            try:
-                ip, sn = config.cidr.split("/")
-            except ValueError:
-                logger.exception(f'Unable to parse CIDR "{config.cidr}"')
-                return
-            for ip in HostDiscoveryHelpers.generate_subnet(ip, sn=sn):
+            for ip in HostDiscoveryHelpers.generate_hosts(config.cidr):
                 self.publish_event(NewHostEvent(host=ip))
         elif config.interface:
             self.scan_interfaces()
@@ -187,7 +198,7 @@ class HostDiscovery(Discovery):
             for ip in [i["addr"] for i in ifaddresses(ifaceName).setdefault(AF_INET, [])]:
                 if not self.event.localhost and InterfaceTypes.LOCALHOST.value in ip.__str__():
                     continue
-                for ip in HostDiscoveryHelpers.generate_subnet(ip, sn):
+                for ip in IPNetwork(f"{ip}/{sn}"):
                     yield ip
 
 
