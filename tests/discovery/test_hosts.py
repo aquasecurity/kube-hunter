@@ -1,8 +1,7 @@
 import requests_mock
-
 import pytest
-from netaddr import IPNetwork, IPAddress
 
+from netaddr import IPNetwork, IPAddress
 from kube_hunter.modules.discovery.hosts import (
     FromPodHostDiscovery,
     RunningAsPodEvent,
