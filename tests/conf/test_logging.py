@@ -6,9 +6,10 @@ from kube_hunter.conf.logging import setup_logger
 def test_setup_logger_level():
     test_cases = [
         ("INFO", logging.INFO),
-        ("DEBUG", logging.DEBUG),
-        ("CRITICAL", logging.CRITICAL),
+        ("Debug", logging.DEBUG),
+        ("critical", logging.CRITICAL),
         ("NOTEXISTS", logging.INFO),
+        ("BASIC_FORMAT", logging.INFO),
     ]
     for level, expected in test_cases:
         setup_logger(level)

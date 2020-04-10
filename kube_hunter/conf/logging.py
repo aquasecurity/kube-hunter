@@ -16,7 +16,8 @@ def setup_logger(level_name):
     if level_name.upper() == "NONE":
         logging.disable(logging.CRITICAL)
     else:
-        log_level = logging._nameToLevel.get(level_name.upper(), None)
+        log_level = getattr(logging, level_name.upper(), None)
+        log_level = log_level if type(log_level) is int else None
         logging.basicConfig(level=log_level or DEFAULT_LEVEL, format=LOG_FORMAT)
         if not log_level:
             logging.warning(f"Unknown log level '{level_name}', using {DEFAULT_LEVEL_NAME}")
