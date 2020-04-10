@@ -5,8 +5,6 @@ First, let's go through kube-hunter's basic architecture.
 ### Directory Structure  
 ~~~  
 kube-hunter/  
-        plugins/  
-           # your plugin
         kube_hunter/  
             core/  
             modules/  
