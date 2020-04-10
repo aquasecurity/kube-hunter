@@ -62,10 +62,6 @@ class Event(object):
         return history
 
 
-""" Event Types """
-# TODO: make proof an abstract method.
-
-
 class Service(object):
     def __init__(self, name, path="", secure=True):
         self.name = name
@@ -125,8 +121,6 @@ class Vulnerability(object):
 global event_id_count_lock
 event_id_count_lock = threading.Lock()
 event_id_count = 0
-
-""" Discovery/Hunting Events """
 
 
 class NewHostEvent(Event):
@@ -193,9 +187,6 @@ class HuntStarted(Event):
 
 class ReportDispatched(Event):
     pass
-
-
-""" Core Vulnerabilities """
 
 
 class K8sVersionDisclosure(Vulnerability, Event):
