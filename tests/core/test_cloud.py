@@ -1,7 +1,7 @@
 import requests_mock
 import json
 
-from kube_hunter.core.events.types.common import NewHostEvent
+from kube_hunter.core.events.types import NewHostEvent
 
 
 # Testing if it doesn't try to run get_cloud if the cloud type is already set.

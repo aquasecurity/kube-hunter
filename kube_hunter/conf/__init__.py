@@ -6,5 +6,3 @@ config = parse_args()
 setup_logger(config.log)
 
 __all__ = [config]
-
-import plugins  # noqa
