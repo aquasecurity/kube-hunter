@@ -13,8 +13,6 @@ config.reporter = get_reporter(config.report)
 config.dispatcher = get_dispatcher(config.dispatch)
 logger = logging.getLogger(__name__)
 
-import kube_hunter  # noqa
-
 
 def interactive_set_config():
     """Sets config manually, returns True for success"""
