@@ -1,3 +1,4 @@
+# flake8: noqa: E402
 import json
 import requests_mock
 import pytest
@@ -5,6 +6,9 @@ import pytest
 from netaddr import IPNetwork, IPAddress
 from typing import List
 from kube_hunter.conf import Config, get_config, set_config
+
+set_config(Config())
+
 from kube_hunter.core.events import handler
 from kube_hunter.core.types import Hunter
 from kube_hunter.modules.discovery.hosts import (
@@ -61,7 +65,7 @@ class TestFromPodHostDiscovery:
 
 
 @handler.subscribe(HostScanEvent)
-class TestHostDiscovery(Hunter):
+class HunterTestHostDiscovery(Hunter):
     """TestHostDiscovery
     In this set of tests we should only trigger HostScanEvent when remote or cidr are set
     """

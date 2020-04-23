@@ -1,12 +1,16 @@
 import requests_mock
 import json
 
+from kube_hunter.conf import Config, set_config
 from kube_hunter.core.events.types import NewHostEvent
 
+set_config(Config())
 
-# Testing if it doesn't try to run get_cloud if the cloud type is already set.
-# get_cloud(1.2.3.4) will result with an error
+
 def test_presetcloud():
+    """ Testing if it doesn't try to run get_cloud if the cloud type is already set.
+    get_cloud(1.2.3.4) will result with an error
+    """
     expcted = "AWS"
     hostEvent = NewHostEvent(host="1.2.3.4", cloud=expcted)
     assert expcted == hostEvent.cloud
