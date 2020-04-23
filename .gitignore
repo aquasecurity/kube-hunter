@@ -29,3 +29,4 @@ var/
 .DS_Store
 thumbs.db
 __pycache__
+.mypy_cache

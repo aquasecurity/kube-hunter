@@ -1,3 +1,4 @@
+# flake8: noqa: E402
 from . import (
     aks,
     apiserver,
@@ -13,19 +14,3 @@ from . import (
     proxy,
     secrets,
 )
-
-__all__ = [
-    aks,
-    apiserver,
-    arp,
-    capabilities,
-    certificates,
-    cves,
-    dashboard,
-    dns,
-    etcd,
-    kubelet,
-    mounts,
-    proxy,
-    secrets,
-]
