@@ -1,59 +1,50 @@
-from dataclasses import dataclass, field
-from typing import Sequence
-from kube_hunter.conf.parser import parse_args
-from kube_hunter.conf.logging import setup_logger
+from dataclasses import dataclass
+from typing import Any, Optional
 
 
 @dataclass
 class Config:
     """ Config is a configuration container.
     It contains the following fields:
+    - active: Enable active hunters
+    - cidr: Network subnets to scan
+    - dispatcher: Dispatcher object
+    - include_patched_version: Include patches in version comparison
     - interface: Interface scanning mode
+    - list_hunters: Print a list of existing hunters
+    - log_level: Log level
+    - mapping: Report only found components
+    - network_timeout: Timeout for network operations
     - pod: From pod scanning mode
     - quick: Quick scanning mode
-    - include_patched_version: Version comparison include patches
-    - cidr: Network subnets to scan
-    - mapping: Report only found components
     - remote: Hosts to scan
-    - active: Enable active hunters
-    - log: Log level
     - report: Output format
-    - dispatch: Output target
     - statistics: Include hunters statistics
-    - network_timeout: Timeout for network operations
     """
 
+    active: bool = False
+    cidr: Optional[str] = None
+    dispatcher: Optional[Any] = None
+    include_patched_versions: bool = False
     interface: bool = False
+    mapping: bool = False
+    network_timeout: float = 5.0
     pod: bool = False
     quick: bool = False
-    include_patched_versions: bool = False
-    cidr: Sequence[str] = field(default_factory=list)
-    mapping: bool = False
-    remote: Sequence[str] = field(default_factory=list)
-    active: bool = False
-    log_level: str = "INFO"
-    report: str = "plain"
-    dispatch: str = "stdout"
+    remote: Optional[str] = None
+    reporter: Optional[Any] = None
     statistics: bool = False
-    network_timeout: float = 5.0
 
 
-_parsed = parse_args()
-config: Config = Config(
-    interface=_parsed.interface,
-    pod=_parsed.pod,
-    quick=_parsed.quick,
-    include_patched_versions=_parsed.include_patched_versions,
-    cidr=_parsed.cidr,
-    mapping=_parsed.mapping,
-    remote=_parsed.remote,
-    active=_parsed.active,
-    log_level=_parsed.log,
-    report=_parsed.report,
-    dispatch=_parsed.dispatch,
-    statistics=_parsed.statistics,
-    network_timeout=_parsed.network_timeout,
-)
-setup_logger(config.log_level)
+_config: Optional[Config] = None
 
-__all__ = [Config, parse_args, setup_logger, config]
+
+def get_config() -> Config:
+    if not _config:
+        raise ValueError("Configuration is not initialized")
+    return _config
+
+
+def set_config(new_config: Config) -> None:
+    global _config
+    _config = new_config

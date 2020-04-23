@@ -1,9 +1,9 @@
 import logging
 import json
-import requests
 import uuid
+import requests
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.modules.discovery.apiserver import ApiServer
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
@@ -236,6 +236,7 @@ class AccessApiServer(Hunter):
         self.with_token = False
 
     def access_api_server(self):
+        config = get_config()
         logger.debug(f"Passive Hunter is attempting to access the API at {self.path}")
         try:
             r = requests.get(f"{self.path}/api", headers=self.headers, verify=False, timeout=config.network_timeout)
@@ -246,6 +247,7 @@ class AccessApiServer(Hunter):
         return False
 
     def get_items(self, path):
+        config = get_config()
         try:
             items = []
             r = requests.get(path, headers=self.headers, verify=False, timeout=config.network_timeout)
@@ -261,6 +263,7 @@ class AccessApiServer(Hunter):
         return None
 
     def get_pods(self, namespace=None):
+        config = get_config()
         pods = []
         try:
             if not namespace:
@@ -340,6 +343,7 @@ class AccessApiServerActive(ActiveHunter):
         self.path = f"{self.event.protocol}://{self.event.host}:{self.event.port}"
 
     def create_item(self, path, data):
+        config = get_config()
         headers = {"Content-Type": "application/json"}
         if self.event.auth_token:
             headers["Authorization"] = f"Bearer {self.event.auth_token}"
@@ -354,6 +358,7 @@ class AccessApiServerActive(ActiveHunter):
         return None
 
     def patch_item(self, path, data):
+        config = get_config()
         headers = {"Content-Type": "application/json-patch+json"}
         if self.event.auth_token:
             headers["Authorization"] = f"Bearer {self.event.auth_token}"
@@ -369,6 +374,7 @@ class AccessApiServerActive(ActiveHunter):
         return None
 
     def delete_item(self, path):
+        config = get_config()
         headers = {}
         if self.event.auth_token:
             headers["Authorization"] = f"Bearer {self.event.auth_token}"
@@ -570,6 +576,7 @@ class ApiVersionHunter(Hunter):
             self.session.headers.update({"Authorization": f"Bearer {self.event.auth_token}"})
 
     def execute(self):
+        config = get_config()
         if self.event.auth_token:
             logger.debug(
                 "Trying to access the API server version endpoint using pod's"

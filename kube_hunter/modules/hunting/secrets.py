@@ -50,7 +50,7 @@ class AccessSecrets(Hunter):
         for dirname, _, files in os.walk("/var/run/secrets/"):
             for f in files:
                 self.secrets_evidence.append(os.path.join(dirname, f))
-        return True if (len(self.secrets_evidence) > 0) else False
+        return len(self.secrets_evidence) > 0
 
     def execute(self):
         if self.event.auth_token is not None:

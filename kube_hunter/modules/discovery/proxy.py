@@ -1,7 +1,7 @@
 import logging
 import requests
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Service, Event, OpenPortEvent
@@ -29,6 +29,7 @@ class KubeProxy(Discovery):
 
     @property
     def accesible(self):
+        config = get_config()
         endpoint = f"http://{self.host}:{self.port}/api/v1"
         logger.debug("Attempting to discover a proxy service")
         try:

@@ -1,7 +1,7 @@
 import logging
 import threading
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import (
     Event,
@@ -14,20 +14,16 @@ from kube_hunter.core.events.types import (
 
 logger = logging.getLogger(__name__)
 
-global services_lock
 services_lock = threading.Lock()
 services = list()
-
-global vulnerabilities_lock
 vulnerabilities_lock = threading.Lock()
 vulnerabilities = list()
-
 hunters = handler.all_hunters
 
 
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
-class Collector(object):
+class Collector:
     def __init__(self, event=None):
         self.event = event
 
@@ -51,11 +47,12 @@ class TablesPrinted(Event):
 
 
 @handler.subscribe(HuntFinished)
-class SendFullReport(object):
+class SendFullReport:
     def __init__(self, event):
         self.event = event
 
     def execute(self):
+        config = get_config()
         report = config.reporter.get_report(statistics=config.statistics, mapping=config.mapping)
         config.dispatcher.dispatch(report)
         handler.publish_event(ReportDispatched())
@@ -63,7 +60,7 @@ class SendFullReport(object):
 
 
 @handler.subscribe(HuntStarted)
-class StartedInfo(object):
+class StartedInfo:
     def __init__(self, event):
         self.event = event
 

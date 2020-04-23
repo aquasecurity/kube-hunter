@@ -2,7 +2,7 @@ import logging
 import re
 import uuid
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import (
@@ -88,6 +88,7 @@ class ProveVarLogMount(ActiveHunter):
 
     # TODO: replace with multiple subscription to WriteMountToVarLog as well
     def get_varlog_mounters(self):
+        config = get_config()
         logger.debug("accessing /pods manually on ProveVarLogMount")
         pods = self.event.session.get(
             f"{self.base_path}/" + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
@@ -107,6 +108,7 @@ class ProveVarLogMount(ActiveHunter):
 
     def traverse_read(self, host_file, container, mount_path, host_path):
         """Returns content of file on the host, and cleans trails"""
+        config = get_config()
         symlink_name = str(uuid.uuid4())
         # creating symlink to file
         self.run(f"ln -s {host_file} {mount_path}/{symlink_name}", container)

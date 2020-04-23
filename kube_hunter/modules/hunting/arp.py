@@ -2,7 +2,7 @@ import logging
 
 from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft
@@ -32,6 +32,7 @@ class ArpSpoofHunter(ActiveHunter):
         self.event = event
 
     def try_getting_mac(self, ip):
+        config = get_config()
         ans = sr1(ARP(op=1, pdst=ip), timeout=config.network_timeout, verbose=0)
         return ans[ARP].hwsrc if ans else None
 
@@ -51,6 +52,7 @@ class ArpSpoofHunter(ActiveHunter):
         return False
 
     def execute(self):
+        config = get_config()
         self_ip = sr1(IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout)[IP].dst
         arp_responses, _ = srp(
             Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"), timeout=config.netork_timeout, verbose=0,

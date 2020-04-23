@@ -3,7 +3,7 @@ import logging
 
 from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1, srp
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft
@@ -36,6 +36,7 @@ class DnsSpoofHunter(ActiveHunter):
         self.event = event
 
     def get_cbr0_ip_mac(self):
+        config = get_config()
         res = srp1(Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout)
         return res[IP].src, res.src
 
@@ -47,6 +48,7 @@ class DnsSpoofHunter(ActiveHunter):
                 return match.group(1)
 
     def get_kube_dns_ip_mac(self):
+        config = get_config()
         kubedns_svc_ip = self.extract_nameserver_ip()
 
         # getting actual pod ip of kube-dns service, by comparing the src mac of a dns response and arp scanning.
@@ -66,6 +68,7 @@ class DnsSpoofHunter(ActiveHunter):
                 return response[ARP].psrc, response.src
 
     def execute(self):
+        config = get_config()
         logger.debug("Attempting to get kube-dns pod ip")
         self_ip = sr1(IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.netork_timeout)[IP].dst
         cbr0_ip, cbr0_mac = self.get_cbr0_ip_mac()

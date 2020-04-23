@@ -3,7 +3,7 @@ import requests
 import urllib3
 from enum import Enum
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import OpenPortEvent, Event, Service
@@ -47,6 +47,7 @@ class KubeletDiscovery(Discovery):
         self.event = event
 
     def get_read_only_access(self):
+        config = get_config()
         endpoint = f"http://{self.event.host}:{self.event.port}/pods"
         logger.debug(f"Trying to get kubelet read access at {endpoint}")
         r = requests.get(endpoint, timeout=config.network_timeout)
@@ -64,6 +65,7 @@ class KubeletDiscovery(Discovery):
             self.publish_event(SecureKubeletEvent(secure=True, anonymous_auth=False))
 
     def ping_kubelet(self):
+        config = get_config()
         endpoint = f"https://{self.event.host}:{self.event.port}/pods"
         logger.debug("Attempting to get pods info from kubelet")
         try:

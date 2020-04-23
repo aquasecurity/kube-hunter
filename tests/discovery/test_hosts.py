@@ -1,78 +1,75 @@
+import json
 import requests_mock
 import pytest
 
 from netaddr import IPNetwork, IPAddress
+from typing import List
+from kube_hunter.conf import Config, get_config, set_config
+from kube_hunter.core.events import handler
+from kube_hunter.core.types import Hunter
 from kube_hunter.modules.discovery.hosts import (
     FromPodHostDiscovery,
     RunningAsPodEvent,
     HostScanEvent,
-    AzureMetadataApi,
     HostDiscoveryHelpers,
 )
-from kube_hunter.core.events.types import NewHostEvent
-from kube_hunter.core.events import handler
-from kube_hunter.conf import config
 
 
-def test_FromPodHostDiscovery():
-
-    with requests_mock.Mocker() as m:
-        e = RunningAsPodEvent()
-
-        config.azure = False
-        config.remote = None
-        config.cidr = None
-        m.get(
-            "http://169.254.169.254/metadata/instance?api-version=2017-08-01", status_code=404,
+class TestFromPodHostDiscovery:
+    @staticmethod
+    def _make_response(*subnets: List[tuple]) -> str:
+        return json.dumps(
+            {
+                "network": {
+                    "interface": [
+                        {"ipv4": {"subnet": [{"address": address, "prefix": prefix} for address, prefix in subnets]}}
+                    ]
+                }
+            }
         )
-        f = FromPodHostDiscovery(e)
-        assert not f.is_azure_pod()
-        # TODO For now we don't test the traceroute discovery version
-        # f.execute()
 
-        # Test that we generate NewHostEvent for the addresses reported by the Azure Metadata API
-        config.azure = True
-        m.get(
-            "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-            text='{"network":{"interface":[{"ipv4":{"subnet":[{"address": "3.4.5.6", "prefix": "255.255.255.252"}]}}]}}',
-        )
-        assert f.is_azure_pod()
+    def test_is_azure_pod_request_fail(self):
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+
+        with requests_mock.Mocker() as m:
+            m.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", status_code=404)
+            result = f.is_azure_pod()
+
+        assert not result
+
+    def test_is_azure_pod_success(self):
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
+                text=TestFromPodHostDiscovery._make_response(("3.4.5.6", "255.255.255.252")),
+            )
+            result = f.is_azure_pod()
+
+        assert result
+
+    def test_execute_scan_cidr(self):
+        set_config(Config(cidr="1.2.3.4/30"))
+        f = FromPodHostDiscovery(RunningAsPodEvent())
         f.execute()
 
-        # Test that we don't trigger a HostScanEvent unless either config.remote or config.cidr are configured
-        config.remote = "1.2.3.4"
-        f.execute()
-
-        config.azure = False
-        config.remote = None
-        config.cidr = "1.2.3.4/24"
+    def test_execute_scan_remote(self):
+        set_config(Config(remote="1.2.3.4"))
+        f = FromPodHostDiscovery(RunningAsPodEvent())
         f.execute()
 
 
-# In this set of tests we should only trigger HostScanEvent when remote or cidr are set
 @handler.subscribe(HostScanEvent)
-class testHostDiscovery(object):
+class TestHostDiscovery(Hunter):
+    """TestHostDiscovery
+    In this set of tests we should only trigger HostScanEvent when remote or cidr are set
+    """
+
     def __init__(self, event):
+        config = get_config()
         assert config.remote is not None or config.cidr is not None
-        assert config.remote == "1.2.3.4" or config.cidr == "1.2.3.4/24"
-
-
-# In this set of tests we should only get as far as finding a host if it's Azure
-# because we're not running the code that would normally be triggered by a HostScanEvent
-@handler.subscribe(NewHostEvent)
-class testHostDiscoveryEvent(object):
-    def __init__(self, event):
-        assert config.azure
-        assert str(event.host).startswith("3.4.5.")
-        assert config.remote is None
-        assert config.cidr is None
-
-
-# Test that we only report this event for Azure hosts
-@handler.subscribe(AzureMetadataApi)
-class testAzureMetadataApi(object):
-    def __init__(self, event):
-        assert config.azure
+        assert config.remote == "1.2.3.4" or config.cidr == "1.2.3.4/30"
 
 
 class TestDiscoveryUtils:

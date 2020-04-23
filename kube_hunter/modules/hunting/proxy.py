@@ -3,7 +3,7 @@ import requests
 
 from enum import Enum
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability, K8sVersionDisclosure
 from kube_hunter.core.types import (
@@ -53,11 +53,13 @@ class KubeProxy(Hunter):
 
     @property
     def namespaces(self):
+        config = get_config()
         resource_json = requests.get(f"{self.api_url}/namespaces", timeout=config.network_timeout).json()
         return self.extract_names(resource_json)
 
     @property
     def services(self):
+        config = get_config()
         # map between namespaces and service names
         services = dict()
         for namespace in self.namespaces:
@@ -85,6 +87,7 @@ class ProveProxyExposed(ActiveHunter):
         self.event = event
 
     def execute(self):
+        config = get_config()
         version_metadata = requests.get(
             f"http://{self.event.host}:{self.event.port}/version", verify=False, timeout=config.network_timeout,
         ).json()
@@ -102,6 +105,7 @@ class K8sVersionDisclosureProve(ActiveHunter):
         self.event = event
 
     def execute(self):
+        config = get_config()
         version_metadata = requests.get(
             f"http://{self.event.host}:{self.event.port}/version", verify=False, timeout=config.network_timeout,
         ).json()

@@ -1,14 +1,14 @@
 import os
 import logging
-import requests
 import itertools
+import requests
 
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces
 from scapy.all import ICMP, IP, Ether, srp1
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
 from kube_hunter.core.types import Discovery, InformationDisclosure, Azure
@@ -95,6 +95,7 @@ class FromPodHostDiscovery(Discovery):
         self.event = event
 
     def execute(self):
+        config = get_config()
         # Scan any hosts that the user specified
         if config.remote or config.cidr:
             self.publish_event(HostScanEvent())
@@ -104,7 +105,7 @@ class FromPodHostDiscovery(Discovery):
             if self.is_azure_pod():
                 subnets, cloud = self.azure_metadata_discovery()
             else:
-                subnets, ext_ip = self.traceroute_discovery()
+                subnets = self.traceroute_discovery()
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -119,6 +120,7 @@ class FromPodHostDiscovery(Discovery):
                 self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
 
     def is_azure_pod(self):
+        config = get_config()
         try:
             logger.debug("From pod attempting to access Azure Metadata API")
             if (
@@ -136,16 +138,15 @@ class FromPodHostDiscovery(Discovery):
 
     # for pod scanning
     def traceroute_discovery(self):
-        # getting external ip, to determine if cloud cluster
-        external_ip = requests.get("https://canhazip.com", timeout=config.network_timeout).text
-
+        config = get_config()
         node_internal_ip = srp1(
             Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout,
         )[IP].src
-        return [[node_internal_ip, "24"]], external_ip
+        return [[node_internal_ip, "24"]]
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
+        config = get_config()
         logger.debug("From pod attempting to access azure's metadata")
         machine_metadata = requests.get(
             "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
@@ -178,6 +179,7 @@ class HostDiscovery(Discovery):
         self.event = event
 
     def execute(self):
+        config = get_config()
         if config.cidr:
             for ip in HostDiscoveryHelpers.generate_hosts(config.cidr):
                 self.publish_event(NewHostEvent(host=ip))

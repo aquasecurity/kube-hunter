@@ -4,7 +4,7 @@ from collections import defaultdict
 from queue import Queue
 from threading import Thread
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.types import ActiveHunter, HunterBase
 from kube_hunter.core.events.types import Vulnerability, EventFilterBase
 
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 # Inherits Queue object, handles events asynchronously
-class EventQueue(Queue, object):
+class EventQueue(Queue):
     def __init__(self, num_worker=10):
         super(EventQueue, self).__init__()
         self.passive_hunters = dict()
@@ -60,6 +60,7 @@ class EventQueue(Queue, object):
 
     # getting uninstantiated event object
     def subscribe_event(self, event, hook=None, predicate=None):
+        config = get_config()
         if ActiveHunter in hook.__mro__:
             if not config.active:
                 return
@@ -98,6 +99,8 @@ class EventQueue(Queue, object):
 
     # getting instantiated event object
     def publish_event(self, event, caller=None):
+        config = get_config()
+
         # setting event chain
         if caller:
             event.previous = caller.event
