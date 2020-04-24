@@ -4,8 +4,12 @@ import urllib.parse
 import uuid
 
 from kube_hunter.core.events import handler
-from kube_hunter.modules.hunting.kubelet import AnonymousAuthEnabled, FootholdViaSecureKubeletPort, \
-    ExposedExistingPrivilegedContainersViaSecureKubeletPort, MaliciousIntentViaSecureKubeletPort
+from kube_hunter.modules.hunting.kubelet import (
+    AnonymousAuthEnabled,
+    ExposedExistingPrivilegedContainersViaSecureKubeletPort,
+    FootholdViaSecureKubeletPort,
+    MaliciousIntentViaSecureKubeletPort
+)
 
 counter = 0
 pod_list_with_privileged_container = """{
