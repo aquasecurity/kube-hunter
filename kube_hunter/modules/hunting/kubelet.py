@@ -130,10 +130,11 @@ can leverage the existing privileged containers identified to damage the host an
 
     def __init__(self, exposed_existing_privileged_containers):
         Vulnerability.__init__(
-            self, component=KubernetesCluster, name="Exposed Existing Privileged Container(s) Via Secure Kubelet Port", 
-			category=AccessRisk, vid="KHV051",
-		)
+            self, component=KubernetesCluster, name="Exposed Existing Privileged Container(s) Via Secure Kubelet Port",
+            category=AccessRisk, vid="KHV051",
+        )
         self.exposed_existing_privileged_containers = exposed_existing_privileged_containers
+
 
 class PrivilegedContainers(Vulnerability, Event):
     """A Privileged container exist on a node
@@ -204,7 +205,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         metrics = requests.get(f"{self.path}/metrics", timeout=config.network_timeout).text
         for line in metrics.split("\n"):
             if line.startswith("kubernetes_build_info"):
-                for info in line[line.find("{") + 1 : line.find("}")].split(","):
+                for info in line[line.find("{") + 1: line.find("}")].split(","):
                     k, v = info.split("=")
                     if k == "gitVersion":
                         return v.strip('"')
@@ -440,8 +441,7 @@ class SecureKubeletPortHunter(Hunter):
 @handler.subscribe(AnonymousAuthEnabled)
 class FootholdViaSecureKubeletPort(ActiveHunter):
     """Foothold Via Secure Kubelet Port
-    Attempts to demonstrate that a malicious actor can establish foothold into the cluster via a 
-    container abusing the configuration of the kubelet's secure port: authentication-auth=false.
+    Attempts to demonstrate that a malicious actor can establish foothold into the cluster via a container abusing the configuration of the kubelet's secure port: authentication-auth=false.
     """
 
     def __init__(self, event):
@@ -538,7 +538,7 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
             for pod_data in pods_data:
                 pod_namespace = pod_data["metadata"]["namespace"]
                 pod_id = pod_data["metadata"]["name"]
-                
+
                 for container_data in pod_data["spec"]["containers"]:
                     container_name = container_data["name"]
 
@@ -562,9 +562,7 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
                             + "\n\nCertificate authority: {}".format(certificate_authority) \
                             + "\nEnvironment variables: {}".format(environment_variables)
 
-                        if (container_data.get("securityContext", {}).get("privileged") or
-                                "SYS_ADMIN" in container_data.get("securityContext", 
-                                {}).get("capabilities", {}).get("add", [])):
+                        if (container_data.get("securityContext", {}).get("privileged") or "SYS_ADMIN" in container_data.get("securityContext", {}).get("capabilities", {}).get("add", [])):
                             exposed_existing_privileged_containers.append({
                                 "pod_namespace": pod_namespace,
                                 "pod_id": pod_id,
@@ -592,8 +590,7 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
 @handler.subscribe(ExposedExistingPrivilegedContainersViaSecureKubeletPort)
 class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
     """Malicious Intent Via Secure Kubelet Port
-    Attempts to demonstrate that a malicious actor can leverage existing privileged containers exposed via the kubelet's secure port, 
-    due to anonymous auth enabled misconfiguration, such that a process can be started or modified on the host.
+    Attempts to demonstrate that a malicious actor can leverage existing privileged containers exposed via the kubelet's secure port, due to anonymous auth enabled misconfiguration, such that a process can be started or modified on the host.
     """
 
     def __init__(self, event, seconds_to_wait_for_os_command=1):
@@ -601,10 +598,10 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         self.base_url = "https://{host}:10250/".format(host=self.event.host)
         self.seconds_to_wait_for_os_command = seconds_to_wait_for_os_command
 
-    def clean_attacked_exposed_existing_privileged_container(self, 
-        run_request_url, file_system_or_partition, directory_created, 
-        file_created, seconds_to_wait_for_os_command):
-        
+    def clean_attacked_exposed_existing_privileged_container(self,
+                                                             run_request_url, file_system_or_partition, directory_created,
+                                                             file_created, seconds_to_wait_for_os_command):
+
         self.rm_command(
             run_request_url,
             "{}/etc/cron.daily/{}".format(
@@ -648,9 +645,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
 
-                if (FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
-                        and not MaliciousIntentViaSecureKubeletPort.check_file_exists(run_request_url, 
-                        file_to_remove)):
+                if (FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome) and not MaliciousIntentViaSecureKubeletPort.check_file_exists(run_request_url, file_to_remove)):
                     return True
 
         return False
@@ -672,10 +667,10 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             {"cmd": "touch {}".format(file_to_create)}
         )
 
-    def attack_exposed_existing_privileged_container(self, run_request_url, directory_created, seconds_to_wait_for_os_command, file_name = None):
+    def attack_exposed_existing_privileged_container(self, run_request_url, directory_created, seconds_to_wait_for_os_command, file_name=None):
         if file_name is None:
             file_name = "harmless-honestly" + str(uuid.uuid1())
-        
+
         file_name_with_path = "{}/etc/cron.daily/{}".format(
             directory_created,
             file_name
@@ -728,11 +723,9 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
 
-                if (FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
-                        and not MaliciousIntentViaSecureKubeletPort.check_directory_exists(run_request_url, 
-                        directory_to_remove)):
+                if (FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome) and not MaliciousIntentViaSecureKubeletPort.check_directory_exists(run_request_url, directory_to_remove)):
                     return True
-        
+
         return False
 
     @staticmethod
@@ -764,9 +757,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
 
-                if (FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
-                        and  MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, 
-                        directory) != current_files_and_directories):
+                if (FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome) and MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, directory) != current_files_and_directories):
                     return True
 
         return False
@@ -818,10 +809,10 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                         root_value = split[1]
 
                         return root_value, root_value_type
-        
+
         return None, None
 
-    def process_exposed_existing_privileged_container(self, run_request_url, seconds_to_wait_for_os_command, directory_to_create = None):
+    def process_exposed_existing_privileged_container(self, run_request_url, seconds_to_wait_for_os_command, directory_to_create=None):
         if directory_to_create is None:
             directory_to_create = "/kube-hunter_" + str(uuid.uuid1())
 
@@ -890,7 +881,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
         return {"result": False}
 
-    def execute(self, directory_to_create = None, file_name = None):
+    def execute(self, directory_to_create=None, file_name=None):
         temp_message = ""
 
         for exposed_existing_privileged_containers in self.event.exposed_existing_privileged_containers:
@@ -905,7 +896,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             )
 
             is_exposed_existing_privileged_container_privileged = self.process_exposed_existing_privileged_container(
-                run_request_url, 
+                run_request_url,
                 self.seconds_to_wait_for_os_command,
                 directory_to_create
             )

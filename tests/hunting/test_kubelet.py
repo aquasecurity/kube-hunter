@@ -49,15 +49,8 @@ KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
 KUBERNETES_SERVICE_HOST=10.96.0.1
 HOME=/root"""
 exposed_privileged_containers = [
-        {
-            "certificate_authority": ca,
-            "container_name": "ubuntu",
-            "environment_variables": env,
-            "pod_id": "kube-hunter-privileged-deployment-86dc79f945-sjjps",
-            "pod_namespace": "kube-hunter-privileged",
-            "service_account_token": service_account_token
-        }
-    ]
+    {"certificate_authority": ca, "container_name": "ubuntu", "environment_variables": env, "pod_id": "kube-hunter-privileged-deployment-86dc79f945-sjjps", "pod_namespace": "kube-hunter-privileged", "service_account_token": service_account_token}
+]
 cat_proc_cmdline = "BOOT_IMAGE=/boot/bzImage root=LABEL=Mock loglevel=3 console=ttyS0"
 
 
@@ -138,7 +131,7 @@ def test_has_no_exception_result_with_exception():
 
     return_value = FootholdViaSecureKubeletPort.has_no_exception(mock_result)
 
-    assert return_value == False
+    assert return_value is False
 
 
 def test_has_no_exception_result_without_exception():
@@ -146,7 +139,7 @@ def test_has_no_exception_result_without_exception():
 
     return_value = FootholdViaSecureKubeletPort.has_no_exception(mock_result)
 
-    assert return_value == True
+    assert return_value is True
 
 
 def test_has_no_error_result_with_error():
@@ -154,7 +147,7 @@ def test_has_no_error_result_with_error():
 
     return_value = FootholdViaSecureKubeletPort.has_no_error(mock_result)
 
-    assert return_value == False
+    assert return_value is False
 
 
 def test_has_no_error_result_without_error():
@@ -162,7 +155,7 @@ def test_has_no_error_result_without_error():
 
     return_value = FootholdViaSecureKubeletPort.has_no_error(mock_result)
 
-    assert return_value == True
+    assert return_value is True
 
 
 def test_has_no_error_nor_exception_result_without_exception_and_without_error():
@@ -170,7 +163,7 @@ def test_has_no_error_nor_exception_result_without_exception_and_without_error()
 
     return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
 
-    assert return_value == True
+    assert return_value is True
 
 
 def test_has_no_error_nor_exception_result_with_exception_and_without_error():
@@ -178,7 +171,7 @@ def test_has_no_error_nor_exception_result_with_exception_and_without_error():
 
     return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
 
-    assert return_value == False
+    assert return_value is False
 
 
 def test_has_no_error_nor_exception_result_without_exception_and_with_error():
@@ -186,7 +179,7 @@ def test_has_no_error_nor_exception_result_without_exception_and_with_error():
 
     return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
 
-    assert return_value == False
+    assert return_value is False
 
 
 def test_has_no_error_nor_exception_result_with_exception_and_with_error():
@@ -194,7 +187,7 @@ def test_has_no_error_nor_exception_result_with_exception_and_with_error():
 
     return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
 
-    assert return_value == False
+    assert return_value is False
 
 
 def footholdviasecurekubeletport_success(anonymous_auth_enabled_event, security_context_definition_to_test):
@@ -214,14 +207,12 @@ def footholdviasecurekubeletport_success(anonymous_auth_enabled_event, security_
             )
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /var/run/secrets/kubernetes.io/serviceaccount/token", safe=""),
             text=service_account_token
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt", safe=""),
             text=ca
         )
@@ -283,8 +274,7 @@ def test_check_file_exists_existing_file():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls mock.txt", safe=""),
             text="mock.txt"
         )
@@ -294,7 +284,7 @@ def test_check_file_exists_existing_file():
             "mock.txt"
         )
 
-        assert return_value == True
+        assert return_value is True
 
 
 def test_check_file_exists_non_existent_file():
@@ -302,8 +292,7 @@ def test_check_file_exists_non_existent_file():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls nonexistentmock.txt", safe=""),
             text="ls: nonexistentmock.txt: No such file or directory"
         )
@@ -313,7 +302,7 @@ def test_check_file_exists_non_existent_file():
             "nonexistentmock.txt"
         )
 
-        assert return_value == False
+        assert return_value is False
 
 
 rm_command_removed_successfully_callback_counter = 0
@@ -334,14 +323,12 @@ def test_rm_command_removed_successfully():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls mock.txt", safe=""),
             text=rm_command_removed_successfully_callback
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "rm -f mock.txt", safe=""),
             text=""
         )
@@ -352,7 +339,7 @@ def test_rm_command_removed_successfully():
             seconds_to_wait_for_os_command=None
         )
 
-        assert return_value == True
+        assert return_value is True
 
 
 def test_rm_command_removed_failed():
@@ -360,14 +347,12 @@ def test_rm_command_removed_failed():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls mock.txt", safe=""),
             text="mock.txt"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "rm -f mock.txt", safe=""),
             text="Permission denied"
         )
@@ -378,7 +363,7 @@ def test_rm_command_removed_failed():
             seconds_to_wait_for_os_command=None
         )
 
-        assert return_value == False
+        assert return_value is False
 
 
 def create_test_event():
@@ -401,14 +386,12 @@ def test_attack_exposed_existing_privileged_container_success():
         )
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "touch {}".format(file_name_with_path), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "chmod {} {}".format("755", file_name_with_path), safe=""),
             text=""
         )
@@ -421,7 +404,7 @@ def test_attack_exposed_existing_privileged_container_success():
             file_name
         )
 
-        assert return_value["result"] == True
+        assert return_value["result"] is True
 
 
 def test_attack_exposed_existing_privileged_container_failure_when_touch():
@@ -436,8 +419,7 @@ def test_attack_exposed_existing_privileged_container_failure_when_touch():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "touch {}".format(file_name_with_path), safe=""),
             text="Operation not permitted"
         )
@@ -450,7 +432,7 @@ def test_attack_exposed_existing_privileged_container_failure_when_touch():
             file_name
         )
 
-        assert return_value["result"] == False
+        assert return_value["result"] is False
 
 
 def test_attack_exposed_existing_privileged_container_failure_when_chmod():
@@ -465,14 +447,12 @@ def test_attack_exposed_existing_privileged_container_failure_when_chmod():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "touch {}".format(file_name_with_path), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "chmod {} {}".format("755", file_name_with_path), safe=""),
             text="Permission denied"
         )
@@ -485,7 +465,7 @@ def test_attack_exposed_existing_privileged_container_failure_when_chmod():
             file_name
         )
 
-        assert return_value["result"] == False
+        assert return_value["result"] is False
 
 
 def test_check_directory_exists_existing_directory():
@@ -493,8 +473,7 @@ def test_check_directory_exists_existing_directory():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls Mock", safe=""),
             text="mock.txt"
         )
@@ -504,7 +483,7 @@ def test_check_directory_exists_existing_directory():
             "Mock"
         )
 
-        assert return_value == True
+        assert return_value is True
 
 
 def test_check_directory_exists_non_existent_directory():
@@ -512,8 +491,7 @@ def test_check_directory_exists_non_existent_directory():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls Mock", safe=""),
             text="ls: Mock: No such file or directory"
         )
@@ -523,7 +501,7 @@ def test_check_directory_exists_non_existent_directory():
             "Mock"
         )
 
-        assert return_value == False
+        assert return_value is False
 
 
 rmdir_command_removed_successfully_callback_counter = 0
@@ -544,14 +522,12 @@ def test_rmdir_command_removed_successfully():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls Mock", safe=""),
             text=rmdir_command_removed_successfully_callback
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "rmdir Mock", safe=""),
             text=""
         )
@@ -562,7 +538,7 @@ def test_rmdir_command_removed_successfully():
             seconds_to_wait_for_os_command=None
         )
 
-        assert return_value == True
+        assert return_value is True
 
 
 def test_rmdir_command_removed_failed():
@@ -570,14 +546,12 @@ def test_rmdir_command_removed_failed():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "ls Mock", safe=""),
             text="mock.txt"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "rmdir Mock", safe=""),
             text="Permission denied"
         )
@@ -588,7 +562,7 @@ def test_rmdir_command_removed_failed():
             seconds_to_wait_for_os_command=None
         )
 
-        assert return_value == False
+        assert return_value is False
 
 
 def test_get_root_values_success():
@@ -612,32 +586,27 @@ def test_process_exposed_existing_privileged_container_success():
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /proc/cmdline", safe=""),
             text=cat_proc_cmdline
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "findfs LABEL=Mock", safe=""),
             text="/dev/mock_fs"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mkdir {}".format(directory_created), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mount {} {}".format("/dev/mock_fs", directory_created), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat {}/etc/hostname".format(directory_created), safe=""),
             text="mockhostname"
         )
@@ -649,7 +618,7 @@ def test_process_exposed_existing_privileged_container_success():
             directory_created
         )
 
-        assert return_value["result"] == True
+        assert return_value["result"] is True
 
 
 def test_process_exposed_existing_privileged_container_failure_when_cat_cmdline():
@@ -659,8 +628,7 @@ def test_process_exposed_existing_privileged_container_failure_when_cat_cmdline(
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /proc/cmdline", safe=""),
             text="Permission denied"
         )
@@ -672,7 +640,7 @@ def test_process_exposed_existing_privileged_container_failure_when_cat_cmdline(
             directory_created
         )
 
-        assert return_value["result"] == False
+        assert return_value["result"] is False
 
 
 def test_process_exposed_existing_privileged_container_failure_when_findfs():
@@ -682,14 +650,12 @@ def test_process_exposed_existing_privileged_container_failure_when_findfs():
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /proc/cmdline", safe=""),
             text=cat_proc_cmdline
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "findfs LABEL=Mock", safe=""),
             text="Permission denied"
         )
@@ -701,7 +667,7 @@ def test_process_exposed_existing_privileged_container_failure_when_findfs():
             directory_created
         )
 
-        assert return_value["result"] == False
+        assert return_value["result"] is False
 
 
 def test_process_exposed_existing_privileged_container_failure_when_mkdir():
@@ -711,20 +677,17 @@ def test_process_exposed_existing_privileged_container_failure_when_mkdir():
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /proc/cmdline", safe=""),
             text=cat_proc_cmdline
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "findfs LABEL=Mock", safe=""),
             text="/dev/mock_fs"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mkdir {}".format(directory_created), safe=""),
             text="Permission denied"
         )
@@ -736,7 +699,7 @@ def test_process_exposed_existing_privileged_container_failure_when_mkdir():
             directory_created
         )
 
-        assert return_value["result"] == False
+        assert return_value["result"] is False
 
 
 def test_process_exposed_existing_privileged_container_failure_when_mount():
@@ -746,26 +709,22 @@ def test_process_exposed_existing_privileged_container_failure_when_mount():
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /proc/cmdline", safe=""),
             text=cat_proc_cmdline
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "findfs LABEL=Mock", safe=""),
             text="/dev/mock_fs"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mkdir {}".format(directory_created), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mount {} {}".format("/dev/mock_fs", directory_created), safe=""),
             text="Permission denied"
         )
@@ -777,7 +736,7 @@ def test_process_exposed_existing_privileged_container_failure_when_mount():
             directory_created
         )
 
-        assert return_value["result"] == False
+        assert return_value["result"] is False
 
 
 def test_process_exposed_existing_privileged_container_failure_when_cat_hostname():
@@ -787,32 +746,27 @@ def test_process_exposed_existing_privileged_container_failure_when_cat_hostname
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /proc/cmdline", safe=""),
             text=cat_proc_cmdline
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "findfs LABEL=Mock", safe=""),
             text="/dev/mock_fs"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mkdir {}".format(directory_created), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mount {} {}".format("/dev/mock_fs", directory_created), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat {}/etc/hostname".format(directory_created), safe=""),
             text="Permission denied"
         )
@@ -824,7 +778,7 @@ def test_process_exposed_existing_privileged_container_failure_when_cat_hostname
             directory_created
         )
 
-        assert return_value["result"] == False
+        assert return_value["result"] is False
 
 
 def test_maliciousintentviasecurekubeletport_success():
@@ -839,44 +793,37 @@ def test_maliciousintentviasecurekubeletport_success():
         )
 
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat /proc/cmdline", safe=""),
             text=cat_proc_cmdline
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "findfs LABEL=Mock", safe=""),
             text="/dev/mock_fs"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mkdir {}".format(directory_created), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "mount {} {}".format("/dev/mock_fs", directory_created), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "cat {}/etc/hostname".format(directory_created), safe=""),
             text="mockhostname"
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "touch {}".format(file_name_with_path), safe=""),
             text=""
         )
         mocker.post(
-            run_url +
-            urllib.parse.quote(
+            run_url + urllib.parse.quote(
                 "chmod {} {}".format("755", file_name_with_path), safe=""),
             text=""
         )
