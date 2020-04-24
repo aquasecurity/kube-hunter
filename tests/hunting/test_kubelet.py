@@ -49,7 +49,9 @@ KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
 KUBERNETES_SERVICE_HOST=10.96.0.1
 HOME=/root"""
 exposed_privileged_containers = [
-    {"certificate_authority": ca, "container_name": "ubuntu", "environment_variables": env, "pod_id": "kube-hunter-privileged-deployment-86dc79f945-sjjps", "pod_namespace": "kube-hunter-privileged", "service_account_token": service_account_token}
+    {"certificate_authority": ca, "container_name": "ubuntu", "environment_variables": env,
+     "pod_id": "kube-hunter-privileged-deployment-86dc79f945-sjjps", "pod_namespace": "kube-hunter-privileged",
+     "service_account_token": service_account_token}
 ]
 cat_proc_cmdline = "BOOT_IMAGE=/boot/bzImage root=LABEL=Mock loglevel=3 console=ttyS0"
 
@@ -224,7 +226,8 @@ def footholdviasecurekubeletport_success(anonymous_auth_enabled_event, security_
         class_being_tested = FootholdViaSecureKubeletPort(anonymous_auth_enabled_event)
         class_being_tested.execute()
 
-        assert "FootholdViaSecureKubeletPort: The following containers have been successfully breached." in class_being_tested.event.evidence
+        assert "FootholdViaSecureKubeletPort: The following containers have been successfully breached." \
+            in class_being_tested.event.evidence
 
     assert counter == 1
 
@@ -240,7 +243,8 @@ def test_footholdviasecurekubeletport_success_with_privileged_container_via_capa
     anonymous_auth_enabled_event = AnonymousAuthEnabled()
     anonymous_auth_enabled_event.host = "localhost"
 
-    footholdviasecurekubeletport_success(anonymous_auth_enabled_event, "\"capabilities\": { \"add\": [\"SYS_ADMIN\"] }")
+    footholdviasecurekubeletport_success(anonymous_auth_enabled_event,
+                                         "\"capabilities\": { \"add\": [\"SYS_ADMIN\"] }")
 
 
 def test_footholdviasecurekubeletport_connectivity_issues():
@@ -367,8 +371,9 @@ def test_rm_command_removed_failed():
 
 
 def create_test_event():
-    exposed_existing_privileged_containers_via_secure_kubelet_port_event = ExposedExistingPrivilegedContainersViaSecureKubeletPort(
-        exposed_privileged_containers)
+    exposed_existing_privileged_containers_via_secure_kubelet_port_event = \
+        ExposedExistingPrivilegedContainersViaSecureKubeletPort(
+            exposed_privileged_containers)
     exposed_existing_privileged_containers_via_secure_kubelet_port_event.host = "localhost"
 
     return exposed_existing_privileged_containers_via_secure_kubelet_port_event
@@ -834,6 +839,7 @@ def test_maliciousintentviasecurekubeletport_success():
             file_name
         )
 
-        message = "The following exposed existing privileged containers have been successfully abused by starting/modifying a process in the host."
+        message = "The following exposed existing privileged containers have been successfully"
+        message += " abused by starting/modifying a process in the host."
 
         assert message in class_being_tested.event.evidence
