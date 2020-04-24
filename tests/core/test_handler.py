@@ -1,3 +1,9 @@
+# flake8: noqa: E402
+
+from kube_hunter.conf import config
+
+config.active = True
+
 from kube_hunter.core.events.handler import handler
 from kube_hunter.modules.discovery.apiserver import ApiServiceDiscovery
 from kube_hunter.modules.discovery.dashboard import KubeDashboard as KubeDashboardDiscovery
@@ -94,23 +100,20 @@ def test_passive_hunters_registered():
     assert expected_odd == actual_odd, "Unexpected passive hunters are registered"
 
 
-# TODO (#334): Active hunters registration cannot be tested since it requires `config.active` to be set
-# def test_active_hunters_registered():
-#     expected_missing = set()
-#     expected_odd = set()
-#
-#     registered_active = remove_test_hunters(handler.active_hunters.keys())
-#     actual_missing = ACTIVE_HUNTERS - registered_active
-#     actual_odd = registered_active - ACTIVE_HUNTERS
-#
-#     assert expected_missing == actual_missing, "Active hunters are missing"
-#     assert expected_odd == actual_odd, "Unexpected active hunters are registered"
+def test_active_hunters_registered():
+    expected_missing = set()
+    expected_odd = set()
+
+    registered_active = remove_test_hunters(handler.active_hunters.keys())
+    actual_missing = ACTIVE_HUNTERS - registered_active
+    actual_odd = registered_active - ACTIVE_HUNTERS
+
+    assert expected_missing == actual_missing, "Active hunters are missing"
+    assert expected_odd == actual_odd, "Unexpected active hunters are registered"
 
 
 def test_all_hunters_registered():
-    # TODO: Enable active hunting mode in testing
-    # expected = PASSIVE_HUNTERS | ACTIVE_HUNTERS
-    expected = PASSIVE_HUNTERS
+    expected = PASSIVE_HUNTERS | ACTIVE_HUNTERS
     actual = remove_test_hunters(handler.all_hunters.keys())
 
     assert expected == actual

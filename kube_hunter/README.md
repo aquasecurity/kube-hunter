@@ -75,10 +75,10 @@ in order to prevent circular dependency bug.
 
 Following the above example, let's figure out the imports:  
 ```python  
-from ...core.types import Hunter  
-from ...core.events import handler  
+from kube_hunter.core.types import Hunter  
+from kube_hunter.core.events import handler  
   
-from ...core.events.types import OpenPortEvent  
+from kube_hunter.core.events.types import OpenPortEvent  
   
 @handler.subscribe(OpenPortEvent, predicate=lambda event: event.port == 30000)  
 class KubeDashboardDiscovery(Hunter):  
@@ -90,13 +90,13 @@ class KubeDashboardDiscovery(Hunter):
 As you can see, all of the types here come from the `core` module. 
   
 ### Core Imports  
-relative import: `...core.events`  
+Absolute import: `kube_hunter.core.events`  
 
 |Name|Description|
 |---|---|
 |handler|Core object for using events, every module should import this object|
 
-relative import `...core.events.types`  
+Absolute import `kube_hunter.core.events.types`  
 
 |Name|Description|
 |---|---|
@@ -104,7 +104,7 @@ relative import `...core.events.types`
 |Vulnerability|Base class for defining a new vulnerability|
 |OpenPortEvent|Published when a new port is discovered. open port is assigned to the `port ` attribute|
   
-relative import: `...core.types`  
+Absolute import: `kube_hunter.core.types`  
 
 |Type|Description|
 |---|---|
