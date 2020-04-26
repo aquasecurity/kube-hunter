@@ -1,17 +1,37 @@
 #!/usr/bin/env python3
+# flake8: noqa: E402
 
 import logging
 import threading
 
-from kube_hunter.conf import config
+from kube_hunter.conf import Config, set_config
+from kube_hunter.conf.parser import parse_args
+from kube_hunter.conf.logging import setup_logger
+
+args = parse_args()
+config = Config(
+    active=args.active,
+    cidr=args.cidr,
+    include_patched_versions=args.include_patched_versions,
+    interface=args.interface,
+    mapping=args.mapping,
+    network_timeout=args.network_timeout,
+    pod=args.pod,
+    quick=args.quick,
+    remote=args.remote,
+    statistics=args.statistics,
+)
+setup_logger(args.log)
+set_config(config)
+
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import HuntFinished, HuntStarted
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
 from kube_hunter.modules.report import get_reporter, get_dispatcher
 
-config.reporter = get_reporter(config.report)
-config.dispatcher = get_dispatcher(config.dispatch)
 logger = logging.getLogger(__name__)
+config.dispatcher = get_dispatcher(args.dispatch)
+config.reporter = get_reporter(args.report)
 
 
 def interactive_set_config():
@@ -54,7 +74,6 @@ def list_hunters():
             print("* {}\n  {}\n".format(name, doc))
 
 
-global hunt_started_lock
 hunt_started_lock = threading.Lock()
 hunt_started = False
 
@@ -63,7 +82,7 @@ def main():
     global hunt_started
     scan_options = [config.pod, config.cidr, config.remote, config.interface]
     try:
-        if config.list:
+        if args.list:
             list_hunters()
             return
 

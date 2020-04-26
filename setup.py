@@ -1,6 +1,7 @@
-from subprocess import check_call
-from pkg_resources import parse_requirements
 from configparser import ConfigParser
+from pkg_resources import parse_requirements
+from subprocess import check_call
+from typing import Any, List
 from setuptools import setup, Command
 
 
@@ -8,7 +9,7 @@ class ListDependenciesCommand(Command):
     """A custom command to list dependencies"""
 
     description = "list package dependencies"
-    user_options = []
+    user_options: List[Any] = []
 
     def initialize_options(self):
         pass
@@ -27,7 +28,7 @@ class PyInstallerCommand(Command):
     """A custom command to run PyInstaller to build standalone executable."""
 
     description = "run PyInstaller on kube-hunter entrypoint"
-    user_options = []
+    user_options: List[Any] = []
 
     def initialize_options(self):
         pass

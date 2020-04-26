@@ -1,5 +1,10 @@
+# flake8: noqa: E402
 import requests_mock
 import time
+
+from kube_hunter.conf import Config, set_config
+
+set_config(Config())
 
 from kube_hunter.modules.discovery.apiserver import ApiServer, ApiServiceDiscovery
 from kube_hunter.core.events.types import Event

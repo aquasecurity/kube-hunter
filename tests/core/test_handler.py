@@ -1,8 +1,8 @@
 # flake8: noqa: E402
 
-from kube_hunter.conf import config
+from kube_hunter.conf import Config, set_config
 
-config.active = True
+set_config(Config(active=True))
 
 from kube_hunter.core.events.handler import handler
 from kube_hunter.modules.discovery.apiserver import ApiServiceDiscovery

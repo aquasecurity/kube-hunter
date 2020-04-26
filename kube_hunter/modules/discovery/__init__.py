@@ -1,3 +1,4 @@
+# flake8: noqa: E402
 from . import (
     apiserver,
     dashboard,
@@ -8,14 +9,3 @@ from . import (
     ports,
     proxy,
 )
-
-__all__ = [
-    apiserver,
-    dashboard,
-    etcd,
-    hosts,
-    kubectl,
-    kubelet,
-    ports,
-    proxy,
-]

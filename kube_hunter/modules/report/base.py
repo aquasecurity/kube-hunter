@@ -8,7 +8,7 @@ from kube_hunter.modules.report.collector import (
 )
 
 
-class BaseReporter(object):
+class BaseReporter:
     def get_nodes(self):
         nodes = list()
         node_locations = set()

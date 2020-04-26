@@ -1,8 +1,8 @@
+import logging
 import threading
 import requests
-import logging
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.types import (
     InformationDisclosure,
     DenialOfService,
@@ -17,7 +17,7 @@ from kube_hunter.core.types import (
 logger = logging.getLogger(__name__)
 
 
-class EventFilterBase(object):
+class EventFilterBase:
     def __init__(self, event):
         self.event = event
 
@@ -28,7 +28,7 @@ class EventFilterBase(object):
         return self.event
 
 
-class Event(object):
+class Event:
     def __init__(self):
         self.previous = None
         self.hunter = None
@@ -62,7 +62,7 @@ class Event(object):
         return history
 
 
-class Service(object):
+class Service:
     def __init__(self, name, path="", secure=True):
         self.name = name
         self.secure = secure
@@ -79,7 +79,7 @@ class Service(object):
         return self.__doc__
 
 
-class Vulnerability(object):
+class Vulnerability:
     severity = dict(
         {
             InformationDisclosure: "medium",
@@ -118,7 +118,6 @@ class Vulnerability(object):
         return self.severity.get(self.category, "low")
 
 
-global event_id_count_lock
 event_id_count_lock = threading.Lock()
 event_id_count = 0
 
@@ -140,6 +139,7 @@ class NewHostEvent(Event):
         return self.cloud_type
 
     def get_cloud(self):
+        config = get_config()
         try:
             logger.debug("Checking whether the cluster is deployed on azure's cloud")
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection

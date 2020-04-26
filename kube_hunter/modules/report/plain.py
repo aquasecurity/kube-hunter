@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from prettytable import ALL, PrettyTable
 
 from kube_hunter.modules.report.base import BaseReporter
@@ -46,7 +44,6 @@ class PlainReporter(BaseReporter):
             if vulnerabilities_len:
                 output += self.vulns_table()
             output += "\nKube Hunter couldn't find any clusters"
-            # print("\nKube Hunter couldn't find any clusters. {}".format("Maybe try with --active?" if not config.active else ""))
         return output
 
     def nodes_table(self):

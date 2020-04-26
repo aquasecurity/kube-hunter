@@ -1,7 +1,7 @@
 import logging
 import requests
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, OpenPortEvent
 from kube_hunter.core.types import (
@@ -83,6 +83,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
         self.write_evidence = ""
 
     def db_keys_write_access(self):
+        config = get_config()
         logger.debug(f"Trying to write keys remotely on host {self.event.host}")
         data = {"value": "remotely written data"}
         try:
@@ -115,6 +116,7 @@ class EtcdRemoteAccess(Hunter):
         self.protocol = "https"
 
     def db_keys_disclosure(self):
+        config = get_config()
         logger.debug(f"{self.event.host} Passive hunter is attempting to read etcd keys remotely")
         try:
             r = requests.get(
@@ -126,6 +128,7 @@ class EtcdRemoteAccess(Hunter):
             return False
 
     def version_disclosure(self):
+        config = get_config()
         logger.debug(f"Trying to check etcd version remotely at {self.event.host}")
         try:
             r = requests.get(
@@ -139,6 +142,7 @@ class EtcdRemoteAccess(Hunter):
             return False
 
     def insecure_access(self):
+        config = get_config()
         logger.debug(f"Trying to access etcd insecurely at {self.event.host}")
         try:
             r = requests.get(

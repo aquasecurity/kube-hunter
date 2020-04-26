@@ -1,7 +1,7 @@
 import logging
 from packaging import version
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from kube_hunter.core.types import (
@@ -111,7 +111,7 @@ class CveUtils:
     @staticmethod
     def get_base_release(full_ver):
         # if LegacyVersion, converting manually to a base version
-        if type(full_ver) == version.LegacyVersion:
+        if isinstance(full_ver, version.LegacyVersion):
             return version.parse(".".join(full_ver._version.split(".")[:2]))
         return version.parse(".".join(map(str, full_ver._version.release[:2])))
 
@@ -122,7 +122,7 @@ class CveUtils:
 
     @staticmethod
     def to_raw_version(v):
-        if type(v) != version.LegacyVersion:
+        if not isinstance(v, version.LegacyVersion):
             return ".".join(map(str, v._version.release))
         return v._version
 
@@ -159,7 +159,7 @@ class CveUtils:
 
         # default to classic compare, unless the check_version is legacy.
         version_compare_func = CveUtils.basic_compare
-        if type(check_v) == version.LegacyVersion:
+        if isinstance(check_v, version.LegacyVersion):
             version_compare_func = CveUtils.version_compare
 
         if check_version not in fix_versions:
@@ -170,7 +170,7 @@ class CveUtils:
 
                 # if the check version and the current fix has the same base release
                 if base_check_v == base_fix_v:
-                    # when check_version is legacy, we use a custom compare func, to handle differences between versions.
+                    # when check_version is legacy, we use a custom compare func, to handle differences between versions
                     if version_compare_func(check_v, fix_v) == -1:
                         # determine vulnerable if smaller and with same base version
                         vulnerable = True
@@ -194,6 +194,7 @@ class K8sClusterCveHunter(Hunter):
         self.event = event
 
     def execute(self):
+        config = get_config()
         logger.debug(f"Checking known CVEs for k8s API version: {self.event.version}")
         cve_mapping = {
             ServerApiVersionEndPointAccessPE: ["1.10.11", "1.11.5", "1.12.3"],
@@ -217,6 +218,7 @@ class KubectlCVEHunter(Hunter):
         self.event = event
 
     def execute(self):
+        config = get_config()
         cve_mapping = {
             KubectlCpVulnerability: ["1.11.9", "1.12.7", "1.13.5", "1.14.0"],
             IncompleteFixToKubectlCpVulnerability: ["1.12.9", "1.13.6", "1.14.2"],
