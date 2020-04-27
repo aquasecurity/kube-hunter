@@ -1,11 +1,11 @@
-import requests
 import logging
+import requests
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFilterBase
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 
 KNOWN_API_PORTS = [443, 6443, 8080]
 
@@ -57,6 +57,7 @@ class ApiServiceDiscovery(Discovery):
                 self.publish_event(K8sApiService(protocol))
 
     def has_api_behaviour(self, protocol):
+        config = get_config()
         try:
             r = self.session.get(f"{protocol}://{self.event.host}:{self.event.port}", timeout=config.network_timeout)
             if ("k8s" in r.text) or ('"code"' in r.text and r.status_code != 200):
@@ -93,6 +94,7 @@ class ApiServiceClassify(EventFilterBase):
 
     def classify_using_version_endpoint(self):
         """Tries to classify by accessing /version. if could not access succeded, returns"""
+        config = get_config()
         try:
             endpoint = f"{self.event.protocol}://{self.event.host}:{self.event.port}/version"
             versions = self.session.get(endpoint, timeout=config.network_timeout).json()

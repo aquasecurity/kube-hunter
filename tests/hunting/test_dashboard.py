@@ -2,7 +2,11 @@ import json
 
 from types import SimpleNamespace
 from requests_mock import Mocker
-from kube_hunter.modules.hunting.dashboard import KubeDashboard
+from kube_hunter.conf import Config, set_config
+
+set_config(Config())
+
+from kube_hunter.modules.hunting.dashboard import KubeDashboard  # noqa: E402
 
 
 class TestKubeDashboard:

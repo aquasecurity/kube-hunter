@@ -2,7 +2,7 @@ import json
 import logging
 import requests
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, OpenPortEvent, Service
 from kube_hunter.core.types import Discovery
@@ -28,6 +28,7 @@ class KubeDashboard(Discovery):
 
     @property
     def secure(self):
+        config = get_config()
         endpoint = f"http://{self.event.host}:{self.event.port}/api/v1/service/default"
         logger.debug("Attempting to discover an Api server to access dashboard")
         try:

@@ -63,5 +63,5 @@ publish:
 
 .PHONY: clean
 clean:
-	rm -rf build/ dist/ *.egg-info/ .eggs/ .pytest_cache/ .coverage *.spec
+	rm -rf build/ dist/ *.egg-info/ .eggs/ .pytest_cache/ .mypy_cache .coverage *.spec
 	find . -type d -name __pycache__ -exec rm -rf '{}' +

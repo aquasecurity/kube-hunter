@@ -1,3 +1,8 @@
+# flake8: noqa: E402
+from kube_hunter.conf import Config, set_config
+
+set_config(Config())
+
 from kube_hunter.modules.report import get_reporter, get_dispatcher
 from kube_hunter.modules.report.factory import (
     YAMLReporter,

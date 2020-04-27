@@ -2,7 +2,7 @@ import json
 import logging
 import requests
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.modules.hunting.kubelet import ExposedRunHandler
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
@@ -33,6 +33,7 @@ class AzureSpnHunter(Hunter):
 
     # getting a container that has access to the azure.json file
     def get_key_container(self):
+        config = get_config()
         endpoint = f"{self.base_url}/pods"
         logger.debug("Trying to find container with access to azure.json file")
         try:
@@ -69,6 +70,7 @@ class ProveAzureSpnExposure(ActiveHunter):
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
+        config = get_config()
         run_url = "/".join(self.base_url, "run", container["namespace"], container["pod"], container["name"])
         return requests.post(run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout)
 

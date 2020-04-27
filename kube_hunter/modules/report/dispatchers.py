@@ -5,7 +5,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-class HTTPDispatcher(object):
+class HTTPDispatcher:
     def dispatch(self, report):
         logger.debug("Dispatching report via HTTP")
         dispatch_method = os.environ.get("KUBEHUNTER_HTTP_DISPATCH_METHOD", "POST").upper()
@@ -24,7 +24,7 @@ class HTTPDispatcher(object):
             logger.exception(f"Could not dispatch report to {dispatch_url}")
 
 
-class STDOUTDispatcher(object):
+class STDOUTDispatcher:
     def dispatch(self, report):
         logger.debug("Dispatching report via stdout")
         print(report)

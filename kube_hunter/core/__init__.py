@@ -1,4 +1,3 @@
+# flake8: noqa: E402
 from . import types
 from . import events
-
-__all__ = [types, events]

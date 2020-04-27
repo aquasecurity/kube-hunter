@@ -1,4 +1,4 @@
-class HunterBase(object):
+class HunterBase:
     publishedVulnerabilities = 0
 
     @staticmethod

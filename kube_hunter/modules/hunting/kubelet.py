@@ -8,7 +8,7 @@ import requests
 import urllib3
 import uuid
 
-from kube_hunter.conf import config
+from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from kube_hunter.core.types import (
@@ -27,9 +27,6 @@ from kube_hunter.modules.discovery.kubelet import (
 
 logger = logging.getLogger(__name__)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-""" Vulnerabilities """
 
 
 class ExposedPodsHandler(Vulnerability, Event):
@@ -205,6 +202,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
         self.pods_endpoint_data = ""
 
     def get_k8s_version(self):
+        config = get_config()
         logger.debug("Passive hunter is attempting to find kubernetes version")
         metrics = requests.get(f"{self.path}/metrics", timeout=config.network_timeout).text
         for line in metrics.split("\n"):
@@ -226,12 +224,14 @@ class ReadOnlyKubeletPortHunter(Hunter):
         return privileged_containers if len(privileged_containers) > 0 else None
 
     def get_pods_endpoint(self):
+        config = get_config()
         logger.debug("Attempting to find pods endpoints")
         response = requests.get(f"{self.path}/pods", timeout=config.network_timeout)
         if "items" in response.text:
             return response.json()
 
     def check_healthz_endpoint(self):
+        config = get_config()
         r = requests.get(f"{self.path}/healthz", verify=False, timeout=config.network_timeout)
         return r.text if r.status_code == 200 else False
 
@@ -258,7 +258,7 @@ class SecureKubeletPortHunter(Hunter):
     Hunts specific endpoints on an open secured Kubelet
     """
 
-    class DebugHandlers(object):
+    class DebugHandlers:
         """ all methods will return the handler name if successful """
 
         def __init__(self, path, pod, session=None):
@@ -268,6 +268,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # outputs logs from a specific container
         def test_container_logs(self):
+            config = get_config()
             logs_url = self.path + KubeletHandlers.CONTAINERLOGS.value.format(
                 pod_namespace=self.pod["namespace"], pod_id=self.pod["name"], container_name=self.pod["container"],
             )
@@ -275,6 +276,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # need further investigation on websockets protocol for further implementation
         def test_exec_container(self):
+            config = get_config()
             # opens a stream to connect to using a web socket
             headers = {"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
             exec_url = self.path + KubeletHandlers.EXEC.value.format(
@@ -292,6 +294,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # need further investigation on websockets protocol for further implementation
         def test_port_forward(self):
+            config = get_config()
             headers = {
                 "Upgrade": "websocket",
                 "Connection": "Upgrade",
@@ -309,6 +312,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # executes one command and returns output
         def test_run_container(self):
+            config = get_config()
             run_url = self.path + KubeletHandlers.RUN.value.format(
                 pod_namespace="test", pod_id="test", container_name="test", cmd="",
             )
@@ -317,12 +321,14 @@ class SecureKubeletPortHunter(Hunter):
 
         # returns list of currently running pods
         def test_running_pods(self):
+            config = get_config()
             pods_url = self.path + KubeletHandlers.RUNNINGPODS.value
             r = self.session.get(pods_url, verify=False, timeout=config.network_timeout)
             return r.json() if r.status_code == 200 else False
 
         # need further investigation on the differences between attach and exec
         def test_attach_container(self):
+            config = get_config()
             # headers={"X-Stream-Protocol-Version": "v2.channel.k8s.io"}
             attach_url = self.path + KubeletHandlers.ATTACH.value.format(
                 pod_namespace=self.pod["namespace"],
@@ -339,6 +345,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # checks access to logs endpoint
         def test_logs_endpoint(self):
+            config = get_config()
             logs_url = self.session.get(
                 self.path + KubeletHandlers.LOGS.value.format(path=""), timeout=config.network_timeout,
             ).text
@@ -346,6 +353,7 @@ class SecureKubeletPortHunter(Hunter):
 
         # returns the cmd line used to run the kubelet
         def test_pprof_cmdline(self):
+            config = get_config()
             cmd = self.session.get(
                 self.path + KubeletHandlers.PPROF_CMDLINE.value, verify=False, timeout=config.network_timeout,
             )
@@ -368,11 +376,13 @@ class SecureKubeletPortHunter(Hunter):
         self.pods_endpoint_data = ""
 
     def get_pods_endpoint(self):
+        config = get_config()
         response = self.session.get(f"{self.path}/pods", verify=False, timeout=config.network_timeout)
         if "items" in response.text:
             return response.json()
 
     def check_healthz_endpoint(self):
+        config = get_config()
         r = requests.get(f"{self.path}/healthz", verify=False, timeout=config.network_timeout)
         return r.text if r.status_code == 200 else False
 
@@ -389,6 +399,7 @@ class SecureKubeletPortHunter(Hunter):
         self.test_handlers()
 
     def test_handlers(self):
+        config = get_config()
         # if kube-hunter runs in a pod, we test with kube-hunter's pod
         pod = self.kubehunter_pod if config.pod else self.get_random_pod()
         if pod:
@@ -899,6 +910,7 @@ class ProveRunHandler(ActiveHunter):
         self.base_path = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
+        config = get_config()
         run_url = KubeletHandlers.RUN.value.format(
             pod_namespace=container["namespace"],
             pod_id=container["pod"],
@@ -910,6 +922,7 @@ class ProveRunHandler(ActiveHunter):
         ).text
 
     def execute(self):
+        config = get_config()
         r = self.event.session.get(
             self.base_path + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
         )
@@ -943,6 +956,7 @@ class ProveContainerLogsHandler(ActiveHunter):
         self.base_url = f"{protocol}://{self.event.host}:{self.event.port}/"
 
     def execute(self):
+        config = get_config()
         pods_raw = self.event.session.get(
             self.base_url + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
         ).text
@@ -978,6 +992,7 @@ class ProveSystemLogs(ActiveHunter):
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     def execute(self):
+        config = get_config()
         audit_logs = self.event.session.get(
             f"{self.base_url}/" + KubeletHandlers.LOGS.value.format(path="audit/audit.log"),
             verify=False,
