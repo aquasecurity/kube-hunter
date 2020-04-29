@@ -118,13 +118,15 @@ You can run kube-hunter directly on your machine.
 
 You will need the following installed:
 * python 3.x
-* pip
+* pip3
+
+Note: These instructions assume `pip3` - please substitute with `pip` if that is the executable name on your system.
 
 ##### Install with pip
 
 Install:
 ~~~
-pip install kube-hunter
+pip3 install kube-hunter
 ~~~
 
 Run:
@@ -141,7 +143,8 @@ git clone https://github.com/aquasecurity/kube-hunter.git
 Install module dependencies. (You may prefer to do this within a [Virtual Environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/))
 ~~~
 cd ./kube-hunter
-pip install -r requirements.txt
+pip3 install setuptools-scm
+pip3 install -r requirements.txt
 ~~~
 
 Run:
