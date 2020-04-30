@@ -143,7 +143,6 @@ git clone https://github.com/aquasecurity/kube-hunter.git
 Install module dependencies. (You may prefer to do this within a [Virtual Environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/))
 ~~~
 cd ./kube-hunter
-pip3 install setuptools-scm
 pip3 install -r requirements.txt
 ~~~
 
