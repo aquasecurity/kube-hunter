@@ -1,3 +1,4 @@
+# flake8: noqa: E402
 from kube_hunter.conf import Config, set_config
 
 set_config(Config())
@@ -5,6 +6,7 @@ set_config(Config())
 from kube_hunter.core.events.types import Event
 from kube_hunter.modules.hunting.certificates import CertificateDiscovery, CertificateEmail
 from kube_hunter.core.events import handler
+
 
 def test_CertificateDiscovery():
     cert = """
@@ -33,9 +35,8 @@ rceJuGsnJEQ=
     c = CertificateDiscovery(Event())
     c.examine_certificate(cert)
 
+
 @handler.subscribe(CertificateEmail)
 class test_CertificateEmail(object):
     def __init__(self, event):
         assert event.email == b"build@nodejs.org0"
-
-
