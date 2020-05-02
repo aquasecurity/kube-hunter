@@ -3,75 +3,79 @@ import logging
 import requests
 
 from kube_hunter.conf import get_config
+from kube_hunter.core.pubsub.subscription import subscribe
+from kube_hunter.core.types import Vulnerability
+from kube_hunter.core.types import AKSCluster, ActiveHunter, Hunter, IdentityTheft
 from kube_hunter.modules.hunting.kubelet import ExposedRunHandler
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import Hunter, ActiveHunter, IdentityTheft, Azure
 
 logger = logging.getLogger(__name__)
 
 
-class AzureSpnExposure(Vulnerability, Event):
+class AzureSpnExposure(Vulnerability):
     """The SPN is exposed, potentially allowing an attacker to gain access to the Azure subscription"""
 
-    def __init__(self, container):
-        Vulnerability.__init__(
-            self, Azure, "Azure SPN Exposure", category=IdentityTheft, vid="KHV004",
-        )
+    container: dict
+
+    def __init__(self, container: dict):
+        super().__init__(name="Azure SPN Exposure", component=AKSCluster, vid="KHV004", category=IdentityTheft)
         self.container = container
 
 
-@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud == "Azure")
+@subscribe(ExposedRunHandler, predicate=lambda event: event.cloud == "Azure")
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
     """
 
     def __init__(self, event):
-        self.event = event
-        self.base_url = f"https://{self.event.host}:{self.event.port}"
+        super().__init__(event)
+        self.base_url = f"https://{event.host}:{event.port}"
 
-    # getting a container that has access to the azure.json file
     def get_key_container(self):
+        """Get a container that has access to the azure.json file"""
         config = get_config()
         endpoint = f"{self.base_url}/pods"
         logger.debug("Trying to find container with access to azure.json file")
         try:
-            r = requests.get(endpoint, verify=False, timeout=config.network_timeout)
+            pods = requests.get(endpoint, verify=False, timeout=config.network_timeout).json()["items"]
         except requests.Timeout:
-            logger.debug("failed getting pod info")
+            logger.debug("Failed getting pod info from kubelet: timed out")
+        except Exception:
+            logger.debug("Failed getting pod info from kubelet", exc_info=True)
         else:
-            pods_data = r.json().get("items", [])
-            for pod_data in pods_data:
-                for container in pod_data["spec"]["containers"]:
+            for pod in pods:
+                for container in pod["spec"]["containers"]:
                     for mount in container["volumeMounts"]:
                         path = mount["mountPath"]
                         if "/etc/kubernetes/azure.json".startswith(path):
                             return {
                                 "name": container["name"],
-                                "pod": pod_data["metadata"]["name"],
-                                "namespace": pod_data["metadata"]["namespace"],
+                                "pod": pod["metadata"]["name"],
+                                "namespace": pod["metadata"]["namespace"],
                             }
 
     def execute(self):
         container = self.get_key_container()
         if container:
-            self.publish_event(AzureSpnExposure(container=container))
+            yield AzureSpnExposure(container=container)
 
 
-@handler.subscribe(AzureSpnExposure)
+@subscribe(AzureSpnExposure)
 class ProveAzureSpnExposure(ActiveHunter):
     """Azure SPN Hunter
     Gets the azure subscription file on the host by executing inside a container
     """
 
     def __init__(self, event):
-        self.event = event
-        self.base_url = f"https://{self.event.host}:{self.event.port}"
+        super().__init__(event)
+        self.base_url = f"https://{event.host}:{event.port}"
 
-    def run(self, command, container):
+    def run(self, command: str, container: dict):
         config = get_config()
-        run_url = "/".join(self.base_url, "run", container["namespace"], container["pod"], container["name"])
+        namespace = container["namespace"]
+        pod = container["pod"]
+        name = container["name"]
+        run_url = f"{self.base_url}/run/{namespace}/{pod}/{name}"
         return requests.post(run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout)
 
     def execute(self):

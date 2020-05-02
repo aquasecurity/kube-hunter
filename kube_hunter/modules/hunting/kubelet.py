@@ -7,16 +7,17 @@ import requests
 import urllib3
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
+from kube_hunter.core.pubsub.subscription import subscribe
+from kube_hunter.core.events import K8sVersionDisclosure
 from kube_hunter.core.types import (
-    Hunter,
+    AccessRisk,
     ActiveHunter,
+    Hunter,
+    InformationDisclosure,
     KubernetesCluster,
     Kubelet,
-    InformationDisclosure,
     RemoteCodeExec,
-    AccessRisk,
+    Vulnerability,
 )
 from kube_hunter.modules.discovery.kubelet import (
     ReadOnlyKubeletEvent,
@@ -27,128 +28,127 @@ logger = logging.getLogger(__name__)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class ExposedPodsHandler(Vulnerability, Event):
+class ExposedPodsHandler(Vulnerability):
     """An attacker could view sensitive information about pods that are
     bound to a Node using the /pods endpoint"""
 
     def __init__(self, pods):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Pods", category=InformationDisclosure,
+        super().__init__(
+            name="Exposed Pods", component=Kubelet, category=InformationDisclosure, evidence=f"count: {len(pods)}",
         )
         self.pods = pods
-        self.evidence = f"count: {len(self.pods)}"
 
 
-class AnonymousAuthEnabled(Vulnerability, Event):
+class AnonymousAuthEnabled(Vulnerability):
     """The kubelet is misconfigured, potentially allowing secure access to all requests on the kubelet,
     without the need to authenticate"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Anonymous Authentication", category=RemoteCodeExec, vid="KHV036",
-        )
+        super().__init__(name="Anonymous Authentication", component=Kubelet, category=RemoteCodeExec, vid="KHV036")
 
 
-class ExposedContainerLogsHandler(Vulnerability, Event):
+class ExposedContainerLogsHandler(Vulnerability):
     """Output logs from a running container are using the exposed /containerLogs endpoint"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Container Logs", category=InformationDisclosure, vid="KHV037",
-        )
+        super().__init__(name="Exposed Container Logs", component=Kubelet, category=InformationDisclosure, vid="KHV037")
 
 
-class ExposedRunningPodsHandler(Vulnerability, Event):
+class ExposedRunningPodsHandler(Vulnerability):
     """Outputs a list of currently running pods,
     and some of their metadata, which can reveal sensitive information"""
 
     def __init__(self, count):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Running Pods", category=InformationDisclosure, vid="KHV038",
+        super().__init__(
+            name="Exposed Running Pods",
+            component=Kubelet,
+            category=InformationDisclosure,
+            vid="KHV038",
+            evidence=f"{count} running pods",
         )
         self.count = count
-        self.evidence = "{} running pods".format(self.count)
 
 
-class ExposedExecHandler(Vulnerability, Event):
+class ExposedExecHandler(Vulnerability):
     """An attacker could run arbitrary commands on a container"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Exec On Container", category=RemoteCodeExec, vid="KHV039",
-        )
+        super().__init__(name="Exposed Exec On Container", component=Kubelet, category=RemoteCodeExec, vid="KHV039")
 
 
-class ExposedRunHandler(Vulnerability, Event):
+class ExposedRunHandler(Vulnerability):
     """An attacker could run an arbitrary command inside a container"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Run Inside Container", category=RemoteCodeExec, vid="KHV040",
-        )
+        super().__init__(name="Exposed Run Inside Container", component=Kubelet, category=RemoteCodeExec, vid="KHV040")
 
 
-class ExposedPortForwardHandler(Vulnerability, Event):
+class ExposedPortForwardHandler(Vulnerability):
     """An attacker could set port forwarding rule on a pod"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Port Forward", category=RemoteCodeExec, vid="KHV041",
-        )
+        super().__init__(name="Exposed Port Forward", component=Kubelet, category=RemoteCodeExec, vid="KHV041")
 
 
-class ExposedAttachHandler(Vulnerability, Event):
+class ExposedAttachHandler(Vulnerability):
     """Opens a websocket that could enable an attacker
     to attach to a running container"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Attaching To Container", category=RemoteCodeExec, vid="KHV042",
+        super().__init__(
+            name="Exposed Attaching To Container", component=Kubelet, category=RemoteCodeExec, vid="KHV042"
         )
 
 
-class ExposedHealthzHandler(Vulnerability, Event):
+class ExposedHealthzHandler(Vulnerability):
     """By accessing the open /healthz handler,
     an attacker could get the cluster health state without authenticating"""
 
     def __init__(self, status):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Cluster Health Disclosure", category=InformationDisclosure, vid="KHV043",
+        super().__init__(
+            name="Cluster Health Disclosure",
+            component=Kubelet,
+            category=InformationDisclosure,
+            vid="KHV043",
+            evidence=f"status: {status}",
         )
         self.status = status
-        self.evidence = f"status: {self.status}"
 
 
-class PrivilegedContainers(Vulnerability, Event):
+class PrivilegedContainers(Vulnerability):
     """A Privileged container exist on a node
     could expose the node/cluster to unwanted root operations"""
 
     def __init__(self, containers):
-        Vulnerability.__init__(
-            self, component=KubernetesCluster, name="Privileged Container", category=AccessRisk, vid="KHV044",
+        super().__init__(
+            name="Privileged Container",
+            component=KubernetesCluster,
+            category=AccessRisk,
+            vid="KHV044",
+            evidence=f"pod: {containers[0][0]}, container: {containers[0][1]}, count: {len(containers)}",
         )
         self.containers = containers
-        self.evidence = f"pod: {containers[0][0]}, " f"container: {containers[0][1]}, " f"count: {len(containers)}"
 
 
-class ExposedSystemLogs(Vulnerability, Event):
+class ExposedSystemLogs(Vulnerability):
     """System logs are exposed from the /logs endpoint on the kubelet"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed System Logs", category=InformationDisclosure, vid="KHV045",
-        )
+        super().__init__(name="Exposed System Logs", component=Kubelet, category=InformationDisclosure, vid="KHV045")
 
 
-class ExposedKubeletCmdline(Vulnerability, Event):
+class ExposedKubeletCmdline(Vulnerability):
     """Commandline flags that were passed to the kubelet can be obtained from the pprof endpoints"""
 
     def __init__(self, cmdline):
-        Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Kubelet Cmdline", category=InformationDisclosure, vid="KHV046",
+        super().__init__(
+            name="Exposed Kubelet Cmdline",
+            component=Kubelet,
+            category=InformationDisclosure,
+            vid="KHV046",
+            evidence=f"cmdline: {cmdline}",
         )
         self.cmdline = cmdline
-        self.evidence = f"cmdline: {self.cmdline}"
 
 
 class KubeletHandlers(Enum):
@@ -172,14 +172,14 @@ class KubeletHandlers(Enum):
     PPROF_CMDLINE = "debug/pprof/cmdline"
 
 
-@handler.subscribe(ReadOnlyKubeletEvent)
+@subscribe(ReadOnlyKubeletEvent)
 class ReadOnlyKubeletPortHunter(Hunter):
     """Kubelet Readonly Ports Hunter
     Hunts specific endpoints on open ports in the readonly Kubelet server
     """
 
     def __init__(self, event):
-        self.event = event
+        super().__init__(event)
         self.path = f"http://{self.event.host}:{self.event.port}"
         self.pods_endpoint_data = ""
 
@@ -223,18 +223,16 @@ class ReadOnlyKubeletPortHunter(Hunter):
         privileged_containers = self.find_privileged_containers()
         healthz = self.check_healthz_endpoint()
         if k8s_version:
-            self.publish_event(
-                K8sVersionDisclosure(version=k8s_version, from_endpoint="/metrics", extra_info="on Kubelet")
-            )
+            yield K8sVersionDisclosure(version=k8s_version, from_endpoint="/metrics", extra_info="on Kubelet")
         if privileged_containers:
-            self.publish_event(PrivilegedContainers(containers=privileged_containers))
+            yield PrivilegedContainers(containers=privileged_containers)
         if healthz:
-            self.publish_event(ExposedHealthzHandler(status=healthz))
+            yield ExposedHealthzHandler(status=healthz)
         if self.pods_endpoint_data:
-            self.publish_event(ExposedPodsHandler(pods=self.pods_endpoint_data["items"]))
+            yield ExposedPodsHandler(pods=self.pods_endpoint_data["items"])
 
 
-@handler.subscribe(SecureKubeletEvent)
+@subscribe(SecureKubeletEvent)
 class SecureKubeletPortHunter(Hunter):
     """Kubelet Secure Ports Hunter
     Hunts specific endpoints on an open secured Kubelet
@@ -342,7 +340,7 @@ class SecureKubeletPortHunter(Hunter):
             return cmd.text if cmd.status_code == 200 else None
 
     def __init__(self, event):
-        self.event = event
+        super().__init__(event)
         self.session = requests.Session()
         if self.event.secure:
             self.session.headers.update({"Authorization": f"Bearer {self.event.auth_token}"})
@@ -370,15 +368,15 @@ class SecureKubeletPortHunter(Hunter):
 
     def execute(self):
         if self.event.anonymous_auth:
-            self.publish_event(AnonymousAuthEnabled())
+            yield AnonymousAuthEnabled()
 
         self.pods_endpoint_data = self.get_pods_endpoint()
         healthz = self.check_healthz_endpoint()
         if self.pods_endpoint_data:
-            self.publish_event(ExposedPodsHandler(pods=self.pods_endpoint_data["items"]))
+            yield ExposedPodsHandler(pods=self.pods_endpoint_data["items"])
         if healthz:
-            self.publish_event(ExposedHealthzHandler(status=healthz))
-        self.test_handlers()
+            yield ExposedHealthzHandler(status=healthz)
+        yield from self.test_handlers()
 
     def test_handlers(self):
         config = get_config()
@@ -390,22 +388,22 @@ class SecureKubeletPortHunter(Hunter):
                 # TODO: use named expressions, introduced in python3.8
                 running_pods = debug_handlers.test_running_pods()
                 if running_pods:
-                    self.publish_event(ExposedRunningPodsHandler(count=len(running_pods["items"])))
+                    yield ExposedRunningPodsHandler(count=len(running_pods["items"]))
                 cmdline = debug_handlers.test_pprof_cmdline()
                 if cmdline:
-                    self.publish_event(ExposedKubeletCmdline(cmdline=cmdline))
+                    yield ExposedKubeletCmdline(cmdline=cmdline)
                 if debug_handlers.test_container_logs():
-                    self.publish_event(ExposedContainerLogsHandler())
+                    yield ExposedContainerLogsHandler()
                 if debug_handlers.test_exec_container():
-                    self.publish_event(ExposedExecHandler())
+                    yield ExposedExecHandler()
                 if debug_handlers.test_run_container():
-                    self.publish_event(ExposedRunHandler())
+                    yield ExposedRunHandler()
                 if debug_handlers.test_port_forward():
-                    self.publish_event(ExposedPortForwardHandler())  # not implemented
+                    yield ExposedPortForwardHandler()  # not implemented
                 if debug_handlers.test_attach_container():
-                    self.publish_event(ExposedAttachHandler())
+                    yield ExposedAttachHandler()
                 if debug_handlers.test_logs_endpoint():
-                    self.publish_event(ExposedSystemLogs())
+                    yield ExposedSystemLogs()
             except Exception:
                 logger.debug("Failed testing debug handlers", exc_info=True)
 
@@ -434,14 +432,14 @@ class SecureKubeletPortHunter(Hunter):
                     }
 
 
-@handler.subscribe(ExposedRunHandler)
+@subscribe(ExposedRunHandler)
 class ProveRunHandler(ActiveHunter):
     """Kubelet Run Hunter
     Executes uname inside of a random container
     """
 
     def __init__(self, event):
-        self.event = event
+        super().__init__(event)
         self.base_path = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
@@ -479,14 +477,14 @@ class ProveRunHandler(ActiveHunter):
                         break
 
 
-@handler.subscribe(ExposedContainerLogsHandler)
+@subscribe(ExposedContainerLogsHandler)
 class ProveContainerLogsHandler(ActiveHunter):
     """Kubelet Container Logs Hunter
     Retrieves logs from a random container
     """
 
     def __init__(self, event):
-        self.event = event
+        super().__init__(event)
         protocol = "https" if self.event.port == 10250 else "http"
         self.base_url = f"{protocol}://{self.event.host}:{self.event.port}/"
 
@@ -516,14 +514,14 @@ class ProveContainerLogsHandler(ActiveHunter):
                         return
 
 
-@handler.subscribe(ExposedSystemLogs)
+@subscribe(ExposedSystemLogs)
 class ProveSystemLogs(ActiveHunter):
     """Kubelet System Logs Hunter
     Retrieves commands from host's system audit
     """
 
     def __init__(self, event):
-        self.event = event
+        super().__init__(event)
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     def execute(self):

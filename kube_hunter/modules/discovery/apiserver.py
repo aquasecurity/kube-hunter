@@ -1,11 +1,10 @@
 import logging
 import requests
 
-from kube_hunter.core.types import Discovery
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFilterBase
-
 from kube_hunter.conf import get_config
+from kube_hunter.core.events import OpenPortEvent
+from kube_hunter.core.pubsub.subscription import Event, EventFilter, subscribe
+from kube_hunter.core.types import Discovery, Service
 
 KNOWN_API_PORTS = [443, 6443, 8080]
 
@@ -36,16 +35,16 @@ class MetricsServer(Service, Event):
         self.protocol = "https"
 
 
-# Other devices could have this port open, but we can check to see if it looks like a Kubernetes api
+# Other applications could have this port open, but we can check to see if it looks like a Kubernetes api
 # A Kubernetes API service will respond with a JSON message that includes a "code" field for the HTTP status code
-@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port in KNOWN_API_PORTS)
+@subscribe(OpenPortEvent, predicate=lambda event: event.port in KNOWN_API_PORTS)
 class ApiServiceDiscovery(Discovery):
     """API Service Discovery
     Checks for the existence of K8s API Services
     """
 
     def __init__(self, event):
-        self.event = event
+        super().__init__(event)
         self.session = requests.Session()
         self.session.verify = False
 
@@ -54,37 +53,37 @@ class ApiServiceDiscovery(Discovery):
         protocols = ["http", "https"]
         for protocol in protocols:
             if self.has_api_behaviour(protocol):
-                self.publish_event(K8sApiService(protocol))
+                yield K8sApiService(protocol)
 
     def has_api_behaviour(self, protocol):
         config = get_config()
         try:
-            r = self.session.get(f"{protocol}://{self.event.host}:{self.event.port}", timeout=config.network_timeout)
+            endpoint = f"{protocol}://{self.event.host}:{self.event.port}"
+            r = self.session.get(endpoint, timeout=config.network_timeout)
             if ("k8s" in r.text) or ('"code"' in r.text and r.status_code != 200):
                 return True
         except requests.exceptions.SSLError:
-            logger.debug(f"{[protocol]} protocol not accepted on {self.event.host}:{self.event.port}")
+            logger.debug(f"{protocol} protocol not accepted on {self.event.host}:{self.event.port}")
         except Exception:
-            logger.debug(f"Failed probing {self.event.host}:{self.event.port}", exc_info=True)
+            logger.debug(f"Failed probing {endpoint}", exc_info=True)
 
 
-# Acts as a Filter for services, In the case that we can classify the API,
+# Acts as a filter for services, in the case that we can classify the API,
 # We swap the filtered event with a new corresponding Service to next be published
 # The classification can be regarding the context of the execution,
 # Currently we classify: Metrics Server and Api Server
 # If running as a pod:
-# We know the Api server IP, so we can classify easily
-# If not:
-# We determine by accessing the /version on the service.
-# Api Server will contain a major version field, while the Metrics will not
-@handler.subscribe(K8sApiService)
-class ApiServiceClassify(EventFilterBase):
+# We know the API server IP, so we can classify easily
+# If not, we determine by accessing the /version on the service.
+# API Server will contain a major version field, while the metrics will not
+@subscribe(K8sApiService)
+class ApiServiceClassify(EventFilter):
     """API Service Classifier
     Classifies an API service
     """
 
     def __init__(self, event):
-        self.event = event
+        super().__init__(event)
         self.classified = False
         self.session = requests.Session()
         self.session.verify = False
@@ -115,7 +114,6 @@ class ApiServiceClassify(EventFilterBase):
                 self.event = ApiServer()
             else:
                 self.event = MetricsServer()
-        # if not running as pod.
         else:
             self.classify_using_version_endpoint()
 

@@ -4,36 +4,36 @@ import logging
 from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1, srp
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft
-from kube_hunter.modules.hunting.arp import PossibleArpSpoofing
+from kube_hunter.core.pubsub.subscription import subscribe
+from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft, Vulnerability
+from kube_hunter.modules.hunting.arp import PossibleARPSpoofing
 
 logger = logging.getLogger(__name__)
 
 
-class PossibleDnsSpoofing(Vulnerability, Event):
+class PossibleDNSSpoofing(Vulnerability):
     """A malicious pod running on the cluster could potentially run a DNS Spoof attack
-    and perform a MITM attack on applications running in the cluster."""
+    and perform a MITM attack on applications running in the cluster"""
 
-    def __init__(self, kubedns_pod_ip):
-        Vulnerability.__init__(
-            self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft, vid="KHV030",
+    dns_ip: str
+
+    def __init__(self, dns_ip: str):
+        super().__init__(
+            name="Possible DNS Spoof",
+            component=KubernetesCluster,
+            category=IdentityTheft,
+            vid="KHV030",
+            evidence="Cluster DNS at {dns_ip}",
         )
-        self.kubedns_pod_ip = kubedns_pod_ip
-        self.evidence = "kube-dns at: {}".format(self.kubedns_pod_ip)
+        self.dns_ip = dns_ip
 
 
-# Only triggered with RunningAsPod base event
-@handler.subscribe(PossibleArpSpoofing)
-class DnsSpoofHunter(ActiveHunter):
+@subscribe(PossibleARPSpoofing)
+class DNSSpoofHunter(ActiveHunter):
     """DNS Spoof Hunter
     Checks for the possibility for a malicious pod to compromise DNS requests of the cluster
     (results are based on the running node)
     """
-
-    def __init__(self, event):
-        self.event = event
 
     def get_cbr0_ip_mac(self):
         config = get_config()
@@ -46,6 +46,7 @@ class DnsSpoofHunter(ActiveHunter):
             match = re.search(r"nameserver (\d+.\d+.\d+.\d+)", f.read())
             if match:
                 return match.group(1)
+        return None
 
     def get_kube_dns_ip_mac(self):
         config = get_config()
@@ -74,11 +75,11 @@ class DnsSpoofHunter(ActiveHunter):
         cbr0_ip, cbr0_mac = self.get_cbr0_ip_mac()
 
         kubedns = self.get_kube_dns_ip_mac()
-        if kubedns:
+        if not kubedns:
+            logger.debug("Could not get cluster dns identity")
+        else:
             kubedns_ip, kubedns_mac = kubedns
             logger.debug(f"ip={self_ip} kubednsip={kubedns_ip} cbr0ip={cbr0_ip}")
             if kubedns_mac != cbr0_mac:
                 # if self pod in the same subnet as kube-dns pod
-                self.publish_event(PossibleDnsSpoofing(kubedns_pod_ip=kubedns_ip))
-        else:
-            logger.debug("Could not get kubedns identity")
+                yield PossibleDNSSpoofing(kubedns_ip)

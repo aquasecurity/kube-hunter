@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
-# flake8: noqa: E402
 
 import logging
-import threading
+import time
 
+from typing import Sequence, Type
 from kube_hunter.conf import Config, set_config
-from kube_hunter.conf.parser import parse_args
 from kube_hunter.conf.logging import setup_logger
+from kube_hunter.conf.parser import parse_args
+from kube_hunter.core.events import HuntFinished, HuntStarted, ReportDispatched
+from kube_hunter.core.types import HunterBase
+from kube_hunter.core.pubsub.eventqueue import EventQueue
+from kube_hunter.modules.discovery.all import all_discovery
+from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
+from kube_hunter.modules.hunting.all import active_hunters, all_hunters, passive_hunters
+from kube_hunter.modules.report.collector import Collector
+from kube_hunter.modules.report.factory import get_reporter, get_dispatcher
 
 args = parse_args()
+setup_logger(args.log)
 config = Config(
     active=args.active,
-    cidr=args.cidr,
+    cidr=args.cidr.split(","),
     include_patched_versions=args.include_patched_versions,
     interface=args.interface,
     mapping=args.mapping,
@@ -21,20 +30,12 @@ config = Config(
     remote=args.remote,
     statistics=args.statistics,
 )
-setup_logger(args.log)
 set_config(config)
 
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import HuntFinished, HuntStarted
-from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
-from kube_hunter.modules.report import get_reporter, get_dispatcher
-
 logger = logging.getLogger(__name__)
-config.dispatcher = get_dispatcher(args.dispatch)
-config.reporter = get_reporter(args.report)
 
 
-def interactive_set_config():
+def interactive_set_config() -> bool:
     """Sets config manually, returns True for success"""
     options = [
         ("Remote scanning", "scans one or more specific IPs or DNS names"),
@@ -43,8 +44,8 @@ def interactive_set_config():
     ]
 
     print("Choose one of the options below:")
-    for i, (option, explanation) in enumerate(options):
-        print("{}. {} ({})".format(i + 1, option.ljust(20), explanation))
+    for i, (option, explanation) in enumerate(options, start=1):
+        print("{}. {} ({})".format(i, option.ljust(20), explanation))
     choice = input("Your choice: ")
     if choice == "1":
         config.remote = input("Remotes (separated by a ','): ").replace(" ", "").split(",")
@@ -61,60 +62,72 @@ def interactive_set_config():
     return True
 
 
+def print_hunters(hunters: Sequence[Type[HunterBase]]):
+    for hunter in hunters:
+        header, description = hunter.parse_docs()
+        print(f"* {header}\n  {description}\n")
+
+
 def list_hunters():
     print("\nPassive Hunters:\n----------------")
-    for hunter, docs in handler.passive_hunters.items():
-        name, doc = hunter.parse_docs(docs)
-        print("* {}\n  {}\n".format(name, doc))
+    print_hunters(passive_hunters())
 
     if config.active:
         print("\n\nActive Hunters:\n---------------")
-        for hunter, docs in handler.active_hunters.items():
-            name, doc = hunter.parse_docs(docs)
-            print("* {}\n  {}\n".format(name, doc))
+        print_hunters(active_hunters())
 
 
-hunt_started_lock = threading.Lock()
-hunt_started = False
+def publish_start_events(handler: EventQueue, from_pod: bool = False):
+    handler.publish_event(HuntStarted())
+    if from_pod:
+        handler.publish_event(RunningAsPodEvent())
+    else:
+        handler.publish_event(HostScanEvent())
 
 
 def main():
-    global hunt_started
-    scan_options = [config.pod, config.cidr, config.remote, config.interface]
-    try:
-        if args.list:
-            list_hunters()
+    if args.list:
+        list_hunters()
+        return
+
+    if not any([config.pod, config.cidr, config.remote, config.interface]):
+        if not interactive_set_config():
             return
 
-        if not any(scan_options):
-            if not interactive_set_config():
-                return
+    handler = EventQueue()
+    for discovery in all_discovery():
+        handler.register(discovery)
 
-        with hunt_started_lock:
-            hunt_started = True
-        handler.publish_event(HuntStarted())
-        if config.pod:
-            handler.publish_event(RunningAsPodEvent())
-        else:
-            handler.publish_event(HostScanEvent())
+    hunters = all_hunters() if config.active else passive_hunters()
+    for hunter in hunters:
+        handler.register(hunter)
 
-        # Blocking to see discovery output
-        handler.join()
+    handler.start()
+    publish_start_events(handler, config.pod)
+
+    try:
+        while not handler.finished():
+            time.sleep(2)
     except KeyboardInterrupt:
         logger.debug("Kube-Hunter stopped by user")
-    # happens when running a container without interactive option
     except EOFError:
-        logger.error("\033[0;31mPlease run again with -it\033[0m")
+        logger.error("No tty set. If running in docker try using '-it' flags")
     finally:
-        hunt_started_lock.acquire()
-        if hunt_started:
-            hunt_started_lock.release()
-            handler.publish_event(HuntFinished())
-            handler.join()
-            handler.free()
-            logger.debug("Cleaned Queue")
-        else:
-            hunt_started_lock.release()
+        handler.publish_event(HuntFinished())
+        handler.stop(wait=True)
+        logger.debug("Event queue closed")
+
+    dispatcher = get_dispatcher(args.dispatch)
+    reporter = get_reporter(args.report)
+    report = reporter.get_report(
+        services=Collector.services,
+        vulnerabilities=Collector.vulnerabilities,
+        hunters=hunters,
+        statistics=config.statistics,
+        mapping=config.mapping,
+    )
+    dispatcher.dispatch(report)
+    handler.publish_event(ReportDispatched())
 
 
 if __name__ == "__main__":

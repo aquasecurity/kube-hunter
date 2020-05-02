@@ -6,10 +6,6 @@ import pytest
 from netaddr import IPNetwork, IPAddress
 from typing import List
 from kube_hunter.conf import Config, get_config, set_config
-
-set_config(Config())
-
-from kube_hunter.core.events import handler
 from kube_hunter.core.types import Hunter
 from kube_hunter.modules.discovery.hosts import (
     FromPodHostDiscovery,
@@ -33,6 +29,7 @@ class TestFromPodHostDiscovery:
         )
 
     def test_is_azure_pod_request_fail(self):
+        set_config(Config())
         f = FromPodHostDiscovery(RunningAsPodEvent())
 
         with requests_mock.Mocker() as m:
@@ -42,6 +39,7 @@ class TestFromPodHostDiscovery:
         assert not result
 
     def test_is_azure_pod_success(self):
+        set_config(Config())
         f = FromPodHostDiscovery(RunningAsPodEvent())
 
         with requests_mock.Mocker() as m:
@@ -54,26 +52,20 @@ class TestFromPodHostDiscovery:
         assert result
 
     def test_execute_scan_cidr(self):
+        expected = [HostScanEvent]
+
         set_config(Config(cidr="1.2.3.4/30"))
-        f = FromPodHostDiscovery(RunningAsPodEvent())
-        f.execute()
+        actual = list(type(event) for event in FromPodHostDiscovery(RunningAsPodEvent()).execute())
+
+        assert expected == actual
 
     def test_execute_scan_remote(self):
+        expected = [HostScanEvent]
+
         set_config(Config(remote="1.2.3.4"))
-        f = FromPodHostDiscovery(RunningAsPodEvent())
-        f.execute()
+        actual = list(type(event) for event in FromPodHostDiscovery(RunningAsPodEvent()).execute())
 
-
-@handler.subscribe(HostScanEvent)
-class HunterTestHostDiscovery(Hunter):
-    """TestHostDiscovery
-    In this set of tests we should only trigger HostScanEvent when remote or cidr are set
-    """
-
-    def __init__(self, event):
-        config = get_config()
-        assert config.remote is not None or config.cidr is not None
-        assert config.remote == "1.2.3.4" or config.cidr == "1.2.3.4/30"
+        assert expected == actual
 
 
 class TestDiscoveryUtils:

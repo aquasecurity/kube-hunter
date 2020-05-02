@@ -1,11 +1,10 @@
-import json
 import logging
 import requests
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Event, OpenPortEvent, Service
-from kube_hunter.core.types import Discovery
+from kube_hunter.core.events import OpenPortEvent
+from kube_hunter.core.pubsub.subscription import Event, subscribe
+from kube_hunter.core.types import Discovery, Service
 
 logger = logging.getLogger(__name__)
 
@@ -17,14 +16,11 @@ class KubeDashboardEvent(Service, Event):
         Service.__init__(self, name="Kubernetes Dashboard", **kargs)
 
 
-@handler.subscribe(OpenPortEvent, predicate=lambda x: x.port == 30000)
+@subscribe(OpenPortEvent, predicate=lambda event: event.port == 30000)
 class KubeDashboard(Discovery):
     """K8s Dashboard Discovery
     Checks for the existence of a Dashboard
     """
-
-    def __init__(self, event):
-        self.event = event
 
     @property
     def secure(self):
@@ -33,7 +29,7 @@ class KubeDashboard(Discovery):
         logger.debug("Attempting to discover an Api server to access dashboard")
         try:
             r = requests.get(endpoint, timeout=config.network_timeout)
-            if "listMeta" in r.text and len(json.loads(r.text)["errors"]) == 0:
+            if "listMeta" in r.text and not r.json()["errors"]:
                 return False
         except requests.Timeout:
             logger.debug(f"failed getting {endpoint}", exc_info=True)
@@ -41,4 +37,4 @@ class KubeDashboard(Discovery):
 
     def execute(self):
         if not self.secure:
-            self.publish_event(KubeDashboardEvent())
+            yield KubeDashboardEvent()

@@ -1,3 +1,4 @@
+import abc
 import logging
 import os
 import requests
@@ -5,8 +6,14 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-class HTTPDispatcher:
-    def dispatch(self, report):
+class Dispatcher(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def dispatch(self, report: str):
+        pass
+
+
+class HTTPDispatcher(Dispatcher):
+    def dispatch(self, report: str):
         logger.debug("Dispatching report via HTTP")
         dispatch_method = os.environ.get("KUBEHUNTER_HTTP_DISPATCH_METHOD", "POST").upper()
         dispatch_url = os.environ.get("KUBEHUNTER_HTTP_DISPATCH_URL", "https://localhost/")
@@ -24,7 +31,7 @@ class HTTPDispatcher:
             logger.exception(f"Could not dispatch report to {dispatch_url}")
 
 
-class STDOUTDispatcher:
-    def dispatch(self, report):
+class STDOUTDispatcher(Dispatcher):
+    def dispatch(self, report: str):
         logger.debug("Dispatching report via stdout")
         print(report)

@@ -1,47 +1,32 @@
-# flake8: noqa: E402
 import requests_mock
-import time
 
 from kube_hunter.conf import Config, set_config
-
-set_config(Config())
-
 from kube_hunter.modules.discovery.apiserver import ApiServer, ApiServiceDiscovery
-from kube_hunter.core.events.types import Event
-from kube_hunter.core.events import handler
-
-counter = 0
 
 
-def test_ApiServer():
-    global counter
-    counter = 0
-    with requests_mock.Mocker() as m:
-        m.get("https://mockOther:443", text="elephant")
-        m.get("https://mockKubernetes:443", text='{"code":403}', status_code=403)
-        m.get(
-            "https://mockKubernetes:443/version", text='{"major": "1.14.10"}', status_code=200,
-        )
+class TestApiServiceDiscovery:
+    def test_has_api_behavior(self):
+        with requests_mock.Mocker() as m:
+            m.get("https://mockOther:443", text="elephant")
+            m.get("https://mockKubernetes:443", text='{"code":403}', status_code=403)
+            m.get(
+                "https://mockKubernetes:443/version", text='{"major": "1.14.10"}', status_code=200,
+            )
 
-        e = Event()
-        e.protocol = "https"
-        e.port = 443
-        e.host = "mockOther"
+            e = Event()
+            e.protocol = "https"
+            e.port = 443
+            e.host = "mockOther"
 
-        a = ApiServiceDiscovery(e)
-        a.execute()
+            a = ApiServiceDiscovery(e)
+            a.execute()
 
-        e.host = "mockKubernetes"
-        a.execute()
-
-    # Allow the events to be processed. Only the one to mockKubernetes should trigger an event
-    time.sleep(1)
-    assert counter == 1
+            e.host = "mockKubernetes"
+            a.execute()
 
 
 def test_ApiServerWithServiceAccountToken():
-    global counter
-    counter = 0
+
     with requests_mock.Mocker() as m:
         m.get(
             "https://mockKubernetes:443", request_headers={"Authorization": "Bearer very_secret"}, text='{"code":200}',

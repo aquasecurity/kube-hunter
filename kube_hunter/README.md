@@ -119,11 +119,15 @@ As discussed above, we know there are a lot of different types of events that ca
 Let's see some examples of creating different types of events:  
 ### Vulnerability  
 ```python  
-class ExposedMasterCN(Vulnerability, Event):  
+class ExposedMasterCN(Vulnerability):  
     """Explanation about this vulnerability and what it can do when exploited"""  
-    def __init__(self, master_ip):  
-        Vulnerability.__init__(self, component=KubernetesCluster, name="Master Exposed From Certificate", category=InformationDisclosure)
-        self.evidence = master_ip
+    def __init__(self, master_ip: str):  
+        super().__init__(
+            name="Master Exposed From Certificate",
+            component=KubernetesCluster,
+            category=InformationDisclosure
+            evidence=master_ip,
+        )
 ```  
   
 ### Service  
@@ -190,7 +194,7 @@ To prove a vulnerability, create an `ActiveHunter` that is subscribed to the vul
 A filter can change an event's attribute or remove it completely before it gets published to Hunters.
 
 To create a filter:
-* create a class that inherits from `EventFilterBase` (from `kube_hunter.core.events.types`)   
+* create a class that inherits from `EventFilter` (from `kube_hunter.core.pubsub.subscription`)   
 * use `@handler.subscribe(Event)` to filter a specific `Event`
 * define a `__init__(self, event)` method, and save the event in your class  
 * implement `self.execute(self)` method, __returns a new event, or None to remove event__  
@@ -206,11 +210,11 @@ __Make sure to return the event from the execute method, or the event will not g
  
 For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `kube_hunter/modules/report/`
 ```python
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Service, EventFilterBase
+from kube_hunter.core.pubsub.subscription import EventFilter, subscribe
+from kube_hunter.core.types import Service
 
-@handler.subscribe(Service)
-class LocalHostFilter(EventFilterBase):
+@subscribe(Service)
+class LocalHostFilter(EventFilter):
     # return None to filter out event
     def execute(self):
         if self.event.host == "127.0.0.1":
@@ -222,12 +226,12 @@ That means other Hunters that are subscribed to this Service will not get trigge
 That opens up a wide variety of possible operations, as this not only can __filter out__ events, but you can actually __change event attributes__, for example:
 
 ```python
-from kube_hunter.core.events import handler
-from kube_hunter.core.types import InformationDisclosure
-from kube_hunter.core.events.types import Vulnerability, EventFilterBase
+from kube_hunter.core.pubsub.subscription import Event, EventFilter, subscribe
+from kube_hunter.core.types import InformationDisclosure, Vulnerability
 
-@handler.subscribe(Vulnerability)
-class CensorInformation(EventFilterBase):
+
+@subscribe(Vulnerability)
+class CensorInformation(EventFilter):
     # return None to filter out event
     def execute(self):
         if self.event.category == InformationDisclosure:

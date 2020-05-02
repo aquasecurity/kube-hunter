@@ -2,162 +2,155 @@ import logging
 import requests
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Vulnerability, Event, OpenPortEvent
+from kube_hunter.core.events import OpenPortEvent
+from kube_hunter.core.pubsub.subscription import subscribe
 from kube_hunter.core.types import (
+    AccessRisk,
     ActiveHunter,
     Hunter,
-    KubernetesCluster,
     InformationDisclosure,
+    KubernetesCluster,
     RemoteCodeExec,
     UnauthenticatedAccess,
-    AccessRisk,
+    Vulnerability,
 )
 
 logger = logging.getLogger(__name__)
 ETCD_PORT = 2379
 
 
-""" Vulnerabilities """
-
-
-class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
+class EtcdRemoteWriteAccessEvent(Vulnerability):
     """Remote write access might grant an attacker full control over the kubernetes cluster"""
 
-    def __init__(self, write_res):
-        Vulnerability.__init__(
-            self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec, vid="KHV031",
+    def __init__(self, write_response: str):
+        super().__init__(
+            name="Etcd Remote Write Access Event",
+            component=KubernetesCluster,
+            category=RemoteCodeExec,
+            vid="KHV031",
+            evidence=write_response,
         )
-        self.evidence = write_res
 
 
-class EtcdRemoteReadAccessEvent(Vulnerability, Event):
-    """Remote read access might expose to an attacker cluster's possible exploits, secrets and more."""
+class EtcdRemoteReadAccess(Vulnerability):
+    """Remote read access might expose to an attacker cluster's possible exploits, secrets and more"""
 
     def __init__(self, keys):
-        Vulnerability.__init__(
-            self, KubernetesCluster, name="Etcd Remote Read Access Event", category=AccessRisk, vid="KHV032",
+        super().__init__(
+            name="Etcd Remote Read Access",
+            component=KubernetesCluster,
+            category=AccessRisk,
+            vid="KHV032",
+            evidence=keys,
         )
-        self.evidence = keys
 
 
-class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
+class EtcdRemoteVersionDisclosure(Vulnerability):
     """Remote version disclosure might give an attacker a valuable data to attack a cluster"""
 
-    def __init__(self, version):
-
-        Vulnerability.__init__(
-            self,
-            KubernetesCluster,
+    def __init__(self, version: str):
+        super().__init__(
             name="Etcd Remote version disclosure",
+            component=KubernetesCluster,
             category=InformationDisclosure,
             vid="KHV033",
+            evidence=version,
         )
-        self.evidence = version
 
 
-class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
+class EtcdAccessEnabledWithoutAuth(Vulnerability):
     """Etcd is accessible using HTTP (without authorization and authentication),
-    it would allow a potential attacker to
-     gain access to the etcd"""
+    it would allow a potential attacker to gain access to the store cluster data"""
 
-    def __init__(self, version):
-        Vulnerability.__init__(
-            self,
-            KubernetesCluster,
+    def __init__(self, version: str):
+        super().__init__(
             name="Etcd is accessible using insecure connection (HTTP)",
+            component=KubernetesCluster,
             category=UnauthenticatedAccess,
             vid="KHV034",
+            evidence=version,
         )
-        self.evidence = version
 
 
-# Active Hunter
-@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == ETCD_PORT)
+@subscribe(OpenPortEvent, predicate=lambda event: event.port == ETCD_PORT)
 class EtcdRemoteAccessActive(ActiveHunter):
     """Etcd Remote Access
-    Checks for remote write access to etcd, will attempt to add a new key to the etcd DB"""
-
-    def __init__(self, event):
-        self.event = event
-        self.write_evidence = ""
+    Checks for remote write access to etcd, will attempt to add a new key"""
 
     def db_keys_write_access(self):
         config = get_config()
-        logger.debug(f"Trying to write keys remotely on host {self.event.host}")
+        logger.debug(f"Trying to write keys remotely on etcd host {self.event.host}")
         data = {"value": "remotely written data"}
         try:
-            r = requests.post(
-                f"{self.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys/message",
-                data=data,
-                timeout=config.network_timeout,
+            response = requests.post(
+                f"https://{self.event.host}:{ETCD_PORT}/v2/keys/message", data=data, timeout=config.network_timeout,
             )
-            self.write_evidence = r.content if r.status_code == 200 and r.content else False
-            return self.write_evidence
-        except requests.exceptions.ConnectionError:
-            return False
+            response.raise_for_status()
+            return response.text
+        except Exception:
+            logger.debug(f"Failed to write keys to {self.event.host}", exc_info=True)
+            return None
 
     def execute(self):
-        if self.db_keys_write_access():
-            self.publish_event(EtcdRemoteWriteAccessEvent(self.write_evidence))
+        response = self.db_keys_write_access()
+        if response:
+            yield EtcdRemoteWriteAccessEvent(response)
 
 
-# Passive Hunter
-@handler.subscribe(OpenPortEvent, predicate=lambda p: p.port == ETCD_PORT)
+@subscribe(OpenPortEvent, predicate=lambda event: event.port == ETCD_PORT)
 class EtcdRemoteAccess(Hunter):
     """Etcd Remote Access
-    Checks for remote availability of etcd, its version, and read access to the DB
+    Checks for remote read access to etcd
     """
 
-    def __init__(self, event):
-        self.event = event
-        self.version_evidence = ""
-        self.keys_evidence = ""
+    def __init__(self, event: OpenPortEvent):
+        super().__init__(event)
         self.protocol = "https"
 
     def db_keys_disclosure(self):
         config = get_config()
-        logger.debug(f"{self.event.host} Passive hunter is attempting to read etcd keys remotely")
+        logger.debug(f"Trying attempting to read etcd keys from {self.event.host}")
         try:
-            r = requests.get(
-                f"{self.protocol}://{self.eventhost}:{ETCD_PORT}/v2/keys", verify=False, timeout=config.network_timeout,
-            )
-            self.keys_evidence = r.content if r.status_code == 200 and r.content != "" else False
-            return self.keys_evidence
-        except requests.exceptions.ConnectionError:
-            return False
+            endpoint = f"{self.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys"
+            response = requests.get(endpoint, verify=False, timeout=config.network_timeout)
+            response.raise_for_status()
+            return response.content
+        except Exception:
+            logger.debug(f"Failed to read keys from {self.event.host}", exc_info=True)
+            return None
 
     def version_disclosure(self):
         config = get_config()
-        logger.debug(f"Trying to check etcd version remotely at {self.event.host}")
+        logger.debug(f"Trying to check etcd version remotely of {self.event.host}")
         try:
-            r = requests.get(
-                f"{self.protocol}://{self.event.host}:{ETCD_PORT}/version",
-                verify=False,
-                timeout=config.network_timeout,
-            )
-            self.version_evidence = r.content if r.status_code == 200 and r.content else False
-            return self.version_evidence
-        except requests.exceptions.ConnectionError:
-            return False
+            endpint = f"{self.protocol}://{self.event.host}:{ETCD_PORT}/version"
+            response = requests.get(endpint, verify=False, timeout=config.network_timeout)
+            response.raise_for_status()
+            return response.content
+        except Exception:
+            logger.debug(f"Failed to get etcd version of {self.event.host}", exc_info=True)
+            return None
 
     def insecure_access(self):
         config = get_config()
         logger.debug(f"Trying to access etcd insecurely at {self.event.host}")
         try:
-            r = requests.get(
-                f"http://{self.event.host}:{ETCD_PORT}/version", verify=False, timeout=config.network_timeout,
-            )
-            return r.content if r.status_code == 200 and r.content else False
-        except requests.exceptions.ConnectionError:
-            return False
+            endpoint = f"http://{self.event.host}:{ETCD_PORT}/version"
+            response = requests.get(endpoint, verify=False, timeout=config.network_timeout)
+            response.raise_for_status()
+            return response.content
+        except Exception:
+            logger.debug(f"Failed to insecurely get etcd version of {self.event.host}", exc_info=True)
+            return None
 
     def execute(self):
-        if self.insecure_access():  # make a decision between http and https protocol
+        if self.insecure_access():
             self.protocol = "http"
-        if self.version_disclosure():
-            self.publish_event(EtcdRemoteVersionDisclosureEvent(self.version_evidence))
+        version = self.version_disclosure()
+        if version:
+            yield EtcdRemoteVersionDisclosure(version)
             if self.protocol == "http":
-                self.publish_event(EtcdAccessEnabledWithoutAuthEvent(self.version_evidence))
-            if self.db_keys_disclosure():
-                self.publish_event(EtcdRemoteReadAccessEvent(self.keys_evidence))
+                yield EtcdAccessEnabledWithoutAuth(version)
+            keys = self.db_keys_disclosure()
+            if keys:
+                yield EtcdRemoteReadAccess(keys)

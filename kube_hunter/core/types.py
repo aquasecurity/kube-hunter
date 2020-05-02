@@ -1,23 +1,31 @@
-class HunterBase:
-    publishedVulnerabilities = 0
+import abc
 
-    @staticmethod
-    def parse_docs(docs):
-        """returns tuple of (name, docs)"""
-        if not docs:
-            return __name__, "<no documentation>"
-        docs = docs.strip().split("\n")
-        for i, line in enumerate(docs):
-            docs[i] = line.strip()
-        return docs[0], " ".join(docs[1:]) if len(docs[1:]) else "<no documentation>"
+from typing import ClassVar, Iterator, Tuple
+from dataclasses import dataclass
+from kube_hunter.core.pubsub.subscription import Event, Subscriber
+
+
+class HunterBase(Subscriber, metaclass=abc.ABCMeta):
+    published_vulnerabilities: ClassVar[int] = 0
 
     @classmethod
-    def get_name(cls):
-        name, _ = cls.parse_docs(cls.__doc__)
-        return name
+    def parse_docs(cls) -> Tuple[str, str]:
+        """Returns tuple of (name, description)"""
+        if not cls.__doc__:
+            return cls.__name__, "Documentation unavailable"
+        docs = [line.strip() for line in cls.__doc__.strip().split("\n")]
+        header = docs[0]
+        description = "\n".join(docs[1:]) or "Documentation unavailable"
+        return header, description
 
-    def publish_event(self, event):
-        handler.publish_event(event, caller=self)
+    @classmethod
+    def get_name(cls) -> str:
+        doc = cls.__doc__ or ""
+        return doc.strip().split("\n")[0].strip() or cls.__name__
+
+    @abc.abstractmethod
+    def execute(self) -> Iterator[Event]:
+        pass
 
 
 class ActiveHunter(HunterBase):
@@ -32,57 +40,64 @@ class Discovery(HunterBase):
     pass
 
 
-class KubernetesCluster:
-    """Kubernetes Cluster"""
-
-    name = "Kubernetes Cluster"
-
-
-class KubectlClient:
-    """The kubectl client binary is used by the user to interact with the cluster"""
-
-    name = "Kubectl Client"
+@dataclass
+class Component:
+    name: str
+    description: str
 
 
-class Kubelet(KubernetesCluster):
-    """The kubelet is the primary "node agent" that runs on each node"""
-
-    name = "Kubelet"
-
-
-class Azure(KubernetesCluster):
-    """Azure Cluster"""
-
-    name = "Azure"
+KubernetesCluster = Component(name="Kubernetes Cluster", description="Kubernetes container orchestrstor")
+KubectlClient = Component(
+    name="Kubectl Client",
+    description="The kubectl client binary is used by a user to interact with kubernetes clusters",
+)
+Kubelet = Component(name="Kubelet", description="Kubelet is an agent that runs on each kubernetes node")
+AKSCluster = Component(name="AKS Cluster", description="Azure managed kubernetes cluster")
 
 
-class InformationDisclosure:
-    name = "Information Disclosure"
+@dataclass
+class Category:
+    name: str
+    severity: str
 
 
-class RemoteCodeExec:
-    name = "Remote Code Execution"
+NoCategory = Category(name="", severity="")
+InformationDisclosure = Category(name="Information Disclosure", severity="medium")
+RemoteCodeExec = Category(name="Remote Code Execution", severity="high")
+IdentityTheft = Category(name="Identity Theft", severity="high")
+UnauthenticatedAccess = Category(name="Unauthenticated Access", severity="low")
+AccessRisk = Category(name="Access Risk", severity="low")
+PrivilegeEscalation = Category(name="Privilege Escalation", severity="high")
+DenialOfService = Category(name="Denial of Service", severity="medium")
 
 
-class IdentityTheft:
-    name = "Identity Theft"
+@dataclass
+class Service:
+    name: str
+    path: str = ""
+    secure: bool = True
+    role: str = "Node"
+
+    def __post_init__(self):
+        if not self.path.startswith("/"):
+            self.path = f"/{self.path}"
+
+    def explain(self):
+        return self.__doc__ or ""
 
 
-class UnauthenticatedAccess:
-    name = "Unauthenticated Access"
+@dataclass
+class Vulnerability(Event):
+    name: str
+    component: Component
+    vid: str = "None"  # TODO: make vid mandatory once migration is done
+    category: Category = NoCategory
+    evidence: str = ""
+    role: str = "Node"
+    description: str = ""
 
+    def __post_init__(self):
+        Event.__init__(self)
 
-class AccessRisk:
-    name = "Access Risk"
-
-
-class PrivilegeEscalation(KubernetesCluster):
-    name = "Privilege Escalation"
-
-
-class DenialOfService:
-    name = "Denial of Service"
-
-
-# import is in the bottom to break import loops
-from .events import handler  # noqa
+    def explain(self):
+        return self.description or self.__doc__ or ""

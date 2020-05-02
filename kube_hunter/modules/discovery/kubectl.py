@@ -2,31 +2,28 @@ import logging
 import subprocess
 
 from kube_hunter.core.types import Discovery
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import HuntStarted, Event
+from kube_hunter.core.events import HuntStarted
+from kube_hunter.core.pubsub.subscription import Event, subscribe
 
 logger = logging.getLogger(__name__)
 
 
-class KubectlClientEvent(Event):
+class KubectlClientFound(Event):
     """The API server is in charge of all operations on the cluster."""
 
     def __init__(self, version):
+        super().__init__()
         self.version = version
 
     def location(self):
         return "local machine"
 
 
-# Will be triggered on start of every hunt
-@handler.subscribe(HuntStarted)
+@subscribe(HuntStarted)
 class KubectlClientDiscovery(Discovery):
     """Kubectl Client Discovery
     Checks for the existence of a local kubectl client
     """
-
-    def __init__(self, event):
-        self.event = event
 
     def get_kubectl_binary_version(self):
         version = None
@@ -46,4 +43,4 @@ class KubectlClientDiscovery(Discovery):
         logger.debug("Attempting to discover a local kubectl client")
         version = self.get_kubectl_binary_version()
         if version:
-            self.publish_event(KubectlClientEvent(version=version))
+            yield KubectlClientFound(version=version)

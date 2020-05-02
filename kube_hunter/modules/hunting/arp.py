@@ -3,33 +3,29 @@ import logging
 from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft
+from kube_hunter.core.pubsub.subscription import subscribe
+from kube_hunter.core.types import ActiveHunter, IdentityTheft, KubernetesCluster, Vulnerability
 from kube_hunter.modules.hunting.capabilities import CapNetRawEnabled
 
 logger = logging.getLogger(__name__)
 
 
-class PossibleArpSpoofing(Vulnerability, Event):
+class PossibleARPSpoofing(Vulnerability):
     """A malicious pod running on the cluster could potentially run an ARP Spoof attack
-    and perform a MITM between pods on the node."""
+    and perform a MITM between pods on the node"""
 
     def __init__(self):
-        Vulnerability.__init__(
-            self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft, vid="KHV020",
+        super().__init__(
+            name="Possible Arp Spoofing", component=KubernetesCluster, vid="KHV020", category=IdentityTheft
         )
 
 
-@handler.subscribe(CapNetRawEnabled)
-class ArpSpoofHunter(ActiveHunter):
+@subscribe(CapNetRawEnabled)
+class ARPSpoofHunter(ActiveHunter):
     """Arp Spoof Hunter
     Checks for the possibility of running an ARP spoof
     attack from within a pod (results are based on the running node)
     """
-
-    def __init__(self, event):
-        self.event = event
 
     def try_getting_mac(self, ip):
         config = get_config()
@@ -62,4 +58,4 @@ class ArpSpoofHunter(ActiveHunter):
         if len(arp_responses) > 1:
             # L3 plugin not installed
             if not self.detect_l3_on_host(arp_responses):
-                self.publish_event(PossibleArpSpoofing())
+                yield PossibleARPSpoofing()

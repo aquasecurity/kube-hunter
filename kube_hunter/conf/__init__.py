@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Optional, Sequence
 
 
 @dataclass
@@ -8,7 +8,6 @@ class Config:
     It contains the following fields:
     - active: Enable active hunters
     - cidr: Network subnets to scan
-    - dispatcher: Dispatcher object
     - include_patched_version: Include patches in version comparison
     - interface: Interface scanning mode
     - list_hunters: Print a list of existing hunters
@@ -18,21 +17,18 @@ class Config:
     - pod: From pod scanning mode
     - quick: Quick scanning mode
     - remote: Hosts to scan
-    - report: Output format
     - statistics: Include hunters statistics
     """
 
     active: bool = False
-    cidr: Optional[str] = None
-    dispatcher: Optional[Any] = None
+    cidr: Optional[Sequence[str]] = None
     include_patched_versions: bool = False
     interface: bool = False
     mapping: bool = False
     network_timeout: float = 5.0
     pod: bool = False
     quick: bool = False
-    remote: Optional[str] = None
-    reporter: Optional[Any] = None
+    remote: Optional[Sequence[str]] = None
     statistics: bool = False
 
 

@@ -1,68 +1,52 @@
-from kube_hunter.core.types import Discovery
-from kube_hunter.modules.report.collector import (
-    services,
-    vulnerabilities,
-    hunters,
-    services_lock,
-    vulnerabilities_lock,
-)
+import abc
+
+from typing import Sequence, Type
+from kube_hunter.core.types import HunterBase, Service, Vulnerability
 
 
-class BaseReporter:
-    def get_nodes(self):
-        nodes = list()
-        node_locations = set()
-        with services_lock:
-            for service in services:
-                node_location = str(service.host)
-                if node_location not in node_locations:
-                    nodes.append({"type": "Node/Master", "location": node_location})
-                    node_locations.add(node_location)
-        return nodes
+class BaseReporter(metaclass=abc.ABCMeta):
+    def get_nodes(self, services: Sequence[Service]):
+        node_locations = {str(service.host) for service in services}  # type: ignore  # dynamic field "host"
+        return [{"type": "Node/Master", "location": location} for location in node_locations]
 
-    def get_services(self):
-        with services_lock:
-            return [
-                {"service": service.get_name(), "location": f"{service.host}:{service.port}{service.get_path()}"}
-                for service in services
-            ]
+    def get_services(self, services: Sequence[Service]):
+        return [
+            # dynamic fields "host" and "port"
+            {"service": service.name, "location": f"{service.host}:{service.port}{service.path}"}  # type: ignore
+            for service in services
+        ]
 
-    def get_vulnerabilities(self):
-        with vulnerabilities_lock:
-            return [
-                {
-                    "location": vuln.location(),
-                    "vid": vuln.get_vid(),
-                    "category": vuln.category.name,
-                    "severity": vuln.get_severity(),
-                    "vulnerability": vuln.get_name(),
-                    "description": vuln.explain(),
-                    "evidence": str(vuln.evidence),
-                    "hunter": vuln.hunter.get_name(),
-                }
-                for vuln in vulnerabilities
-            ]
+    def get_vulnerabilities(self, vulnerabilities: Sequence[Vulnerability]):
+        return [
+            {
+                "location": vuln.location(),
+                "vid": vuln.vid,
+                "category": vuln.category.name,
+                "severity": vuln.category.severity,
+                "vulnerability": vuln.name,
+                "description": vuln.explain(),
+                "evidence": vuln.evidence or "None",
+                "hunter": vuln.hunter.get_name(),
+            }
+            for vuln in vulnerabilities
+        ]
 
-    def get_hunter_statistics(self):
+    def get_hunter_statistics(self, hunters: Sequence[Type[HunterBase]]):
         hunters_data = []
-        for hunter, docs in hunters.items():
-            if Discovery not in hunter.__mro__:
-                name, doc = hunter.parse_docs(docs)
-                hunters_data.append(
-                    {"name": name, "description": doc, "vulnerabilities": hunter.publishedVulnerabilities}
-                )
+        for hunter in hunters:
+            name, description = hunter.parse_docs()
+            hunters_data.append(
+                {"name": name, "description": description, "vulnerabilities": hunter.published_vulnerabilities}
+            )
         return hunters_data
 
-    def get_report(self, *, statistics, **kwargs):
-        report = {
-            "nodes": self.get_nodes(),
-            "services": self.get_services(),
-            "vulnerabilities": self.get_vulnerabilities(),
-        }
-
-        if statistics:
-            report["hunter_statistics"] = self.get_hunter_statistics()
-
-        report["kburl"] = "https://aquasecurity.github.io/kube-hunter/kb/{vid}"
-
-        return report
+    @abc.abstractmethod
+    def get_report(
+        self,
+        services: Sequence[Service],
+        vulnerabilities: Sequence[Vulnerability],
+        hunters: Sequence[Type[HunterBase]],
+        statistics: bool = False,
+        mapping: bool = False,
+    ) -> str:
+        pass

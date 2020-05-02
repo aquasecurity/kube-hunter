@@ -1,8 +1,8 @@
 import json
 
-from types import SimpleNamespace
 from requests_mock import Mocker
 from kube_hunter.conf import Config, set_config
+from kube_hunter.core.events import OpenPortEvent
 
 set_config(Config())
 
@@ -14,7 +14,7 @@ class TestKubeDashboard:
     def get_nodes_mock(result: dict, **kwargs):
         with Mocker() as m:
             m.get("http://mockdashboard:8000/api/v1/node", text=json.dumps(result), **kwargs)
-            hunter = KubeDashboard(SimpleNamespace(host="mockdashboard", port=8000))
+            hunter = KubeDashboard(OpenPortEvent(host="mockdashboard", port=8000))
             return hunter.get_nodes()
 
     @staticmethod

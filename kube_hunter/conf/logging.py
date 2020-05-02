@@ -13,9 +13,9 @@ logging.getLogger("scapy.loading").setLevel(logging.CRITICAL)
 def setup_logger(level_name):
     # Remove any existing handlers
     # Unnecessary in Python 3.8 since `logging.basicConfig` has `force` parameter
-    for h in logging.getLogger().handlers[:]:
-        h.close()
-        logging.getLogger().removeHandler(h)
+    for handler in logging.getLogger().handlers[:]:
+        handler.close()
+        logging.getLogger().removeHandler(handler)
 
     if level_name.upper() == "NONE":
         logging.disable(logging.CRITICAL)

