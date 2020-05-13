@@ -8,7 +8,7 @@ from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, Service
 
 logger = logging.getLogger(__name__)
-email_pattern = re.compile(r"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
+email_pattern = re.compile(rb"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
 
 
 class CertificateEmail(Vulnerability, Event):
@@ -39,8 +39,11 @@ class CertificateDiscovery(Hunter):
         except ssl.SSLError:
             # If the server doesn't offer SSL on this port we won't get a certificate
             return
+        self.examine_certificate(cert)
+
+    def examine_certificate(self, cert):
         c = cert.strip(ssl.PEM_HEADER).strip(ssl.PEM_FOOTER)
-        certdata = base64.decodebytes(c)
+        certdata = base64.b64decode(c)
         emails = re.findall(email_pattern, certdata)
         for email in emails:
             self.publish_event(CertificateEmail(email=email))
