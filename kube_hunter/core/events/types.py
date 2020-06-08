@@ -148,7 +148,7 @@ class NewHostEvent(Event):
             ).json()
             return result["cloud"] or "NoCloud"
         except requests.ConnectionError:
-            logger.info(f"Failed to connect cloud type service", exc_info=True)
+            logger.info("Failed to connect cloud type service", exc_info=True)
         except Exception:
             logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
         return "NoCloud"
