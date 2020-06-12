@@ -4,7 +4,7 @@
 import logging
 import threading
 
-from kube_hunter.conf import Config, set_config, add_config
+from kube_hunter.conf import Config, set_config
 from kube_hunter.conf.parser import parse_args
 from kube_hunter.conf.logging import setup_logger
 
