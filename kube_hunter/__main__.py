@@ -8,7 +8,11 @@ from kube_hunter.conf import Config, set_config
 from kube_hunter.conf.parser import parse_args
 from kube_hunter.conf.logging import setup_logger
 
-args = parse_args()
+from kube_hunter.plugins import initialize_plugin_manager
+
+pm = initialize_plugin_manager()
+# Using a plugin hook for adding arguments before parsing
+args = parse_args(add_args_hook=pm.hook.parser_add_arguments)
 config = Config(
     active=args.active,
     cidr=args.cidr,
@@ -23,6 +27,9 @@ config = Config(
 )
 setup_logger(args.log)
 set_config(config)
+
+# Running all other registered plugins before execution
+pm.hook.load_plugin(args=args)
 
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import HuntFinished, HuntStarted
