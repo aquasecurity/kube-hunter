@@ -1,7 +1,6 @@
 import pluggy
 
 from kube_hunter.plugins import hookspecs
-from kube_hunter.conf import parser
 
 hookimpl = pluggy.HookimplMarker("kube-hunter")
 
@@ -17,5 +16,7 @@ def initialize_plugin_manager():
     pm.load_setuptools_entrypoints("kube_hunter")
 
     # default registration of builtin implemented plugins
+    from kube_hunter.conf import parser
     pm.register(parser)
+    
     return pm
