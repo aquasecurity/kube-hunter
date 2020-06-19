@@ -1,1 +1,1 @@
-kube_hunter / __main__.py
+kube_hunter/__main__.py
