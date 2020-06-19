@@ -17,6 +17,7 @@ def initialize_plugin_manager():
 
     # default registration of builtin implemented plugins
     from kube_hunter.conf import parser
+
     pm.register(parser)
 
     return pm
