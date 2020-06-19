@@ -28,7 +28,7 @@ config = Config(
 setup_logger(args.log)
 set_config(config)
 
-# Running all other registered plugins before execution 
+# Running all other registered plugins before execution
 pm.hook.load_plugin(args=args)
 
 from kube_hunter.core.events import handler
