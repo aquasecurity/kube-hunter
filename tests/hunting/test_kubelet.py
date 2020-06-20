@@ -37,10 +37,6 @@ pod_list_with_privileged_container = """{
 }
 """
 service_account_token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IlR0YmxoMXh..."
-ca = """-----BEGIN CERTIFICATE-----
-MIIC5zCCAc+gAwIBAgIBATANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwptaW5p
-...
------END CERTIFICATE-----"""
 env = """PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 HOSTNAME=kube-hunter-privileged-deployment-86dc79f945-sjjps
 KUBERNETES_SERVICE_PORT=443
@@ -54,7 +50,6 @@ KUBERNETES_SERVICE_HOST=10.96.0.1
 HOME=/root"""
 exposed_privileged_containers = [
     {
-        "certificate_authority": ca,
         "container_name": "ubuntu",
         "environment_variables": env,
         "pod_id": "kube-hunter-privileged-deployment-86dc79f945-sjjps",
@@ -207,9 +202,6 @@ def footholdviasecurekubeletport_success(anonymous_auth_enabled_event, security_
         mocker.post(
             run_url + urllib.parse.quote("cat /var/run/secrets/kubernetes.io/serviceaccount/token", safe=""),
             text=service_account_token,
-        )
-        mocker.post(
-            run_url + urllib.parse.quote("cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt", safe=""), text=ca,
         )
         mocker.post(run_url + "env", text=env)
 

