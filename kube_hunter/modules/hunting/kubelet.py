@@ -467,8 +467,9 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
         self.base_url = "https://{host}:10250/".format(host=self.event.host)
 
     def get_request(self, url, verify=False):
+        config = get_config()
         try:
-            response_text = requests.get(url, verify).text.rstrip()
+            response_text = requests.get(url, verify, timeout=config.network_timeout).text.rstrip()
 
             return response_text
         except Exception as ex:
@@ -477,8 +478,9 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
 
     @staticmethod
     def post_request(url, params, verify=False):
+        config = get_config()
         try:
-            response_text = requests.post(url, verify, params=params).text.rstrip()
+            response_text = requests.post(url, verify, params=params, timeout=config.network_timeout).text.rstrip()
 
             return response_text
         except Exception as ex:
