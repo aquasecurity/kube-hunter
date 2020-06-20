@@ -58,6 +58,9 @@ exposed_privileged_containers = [
     }
 ]
 cat_proc_cmdline = "BOOT_IMAGE=/boot/bzImage root=LABEL=Mock loglevel=3 console=ttyS0"
+number_of_rm_attempts = 1
+number_of_umount_attempts = 1
+number_of_rmdir_attempts = 1
 
 
 def test_get_request_valid_url():
@@ -344,7 +347,6 @@ def test_attack_exposed_existing_privileged_container_success():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
-        number_of_rm_attempts = 1
         file_name = "harmless-honestly-mock" + str(uuid.uuid1())
         file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
 
@@ -461,6 +463,7 @@ def test_rmdir_command_removed_successfully():
         return_value = MaliciousIntentViaSecureKubeletPort.rmdir_command(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
             "Mock",
+            number_of_rmdir_attempts=1,
             seconds_to_wait_for_os_command=None,
         )
 
@@ -477,6 +480,7 @@ def test_rmdir_command_removed_failed():
         return_value = MaliciousIntentViaSecureKubeletPort.rmdir_command(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
             "Mock",
+            number_of_rmdir_attempts=1,
             seconds_to_wait_for_os_command=None,
         )
 
@@ -516,6 +520,8 @@ def test_process_exposed_existing_privileged_container_success():
         class_being_tested = MaliciousIntentViaSecureKubeletPort(create_test_event())
         return_value = class_being_tested.process_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
+            number_of_umount_attempts,
+            number_of_rmdir_attempts,
             None,
             directory_created,
         )
@@ -534,6 +540,8 @@ def test_process_exposed_existing_privileged_container_failure_when_cat_cmdline(
         class_being_tested = MaliciousIntentViaSecureKubeletPort(create_test_event())
         return_value = class_being_tested.process_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
+            number_of_umount_attempts,
+            number_of_rmdir_attempts,
             None,
             directory_created,
         )
@@ -553,6 +561,8 @@ def test_process_exposed_existing_privileged_container_failure_when_findfs():
         class_being_tested = MaliciousIntentViaSecureKubeletPort(create_test_event())
         return_value = class_being_tested.process_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
+            number_of_umount_attempts,
+            number_of_rmdir_attempts,
             None,
             directory_created,
         )
@@ -575,6 +585,8 @@ def test_process_exposed_existing_privileged_container_failure_when_mkdir():
         class_being_tested = MaliciousIntentViaSecureKubeletPort(create_test_event())
         return_value = class_being_tested.process_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
+            number_of_umount_attempts,
+            number_of_rmdir_attempts,
             None,
             directory_created,
         )
@@ -599,6 +611,8 @@ def test_process_exposed_existing_privileged_container_failure_when_mount():
         class_being_tested = MaliciousIntentViaSecureKubeletPort(create_test_event())
         return_value = class_being_tested.process_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
+            number_of_umount_attempts,
+            number_of_rmdir_attempts,
             None,
             directory_created,
         )
@@ -626,6 +640,8 @@ def test_process_exposed_existing_privileged_container_failure_when_cat_hostname
         class_being_tested = MaliciousIntentViaSecureKubeletPort(create_test_event())
         return_value = class_being_tested.process_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
+            number_of_umount_attempts,
+            number_of_rmdir_attempts,
             None,
             directory_created,
         )

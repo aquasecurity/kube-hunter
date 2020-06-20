@@ -607,6 +607,8 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         self.base_url = "https://{host}:10250/".format(host=self.event.host)
         self.seconds_to_wait_for_os_command = seconds_to_wait_for_os_command
         self.number_of_rm_attempts = 5
+        self.number_of_rmdir_attempts = 5
+        self.number_of_umount_attempts = 5
 
     def clean_attacked_exposed_existing_privileged_container(
         self,
@@ -615,6 +617,8 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         directory_created,
         file_created,
         number_of_rm_attempts,
+        number_of_umount_attempts,
+        number_of_rmdir_attempts,
         seconds_to_wait_for_os_command,
     ):
 
@@ -626,10 +630,16 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         )
 
         self.umount_command(
-            run_request_url, file_system_or_partition, directory_created, seconds_to_wait_for_os_command
+            run_request_url,
+            file_system_or_partition,
+            directory_created,
+            number_of_umount_attempts,
+            seconds_to_wait_for_os_command,
         )
 
-        self.rmdir_command(run_request_url, directory_created, seconds_to_wait_for_os_command)
+        self.rmdir_command(
+            run_request_url, directory_created, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
+        )
 
     @staticmethod
     def check_file_exists(run_request_url, file):
@@ -693,9 +703,11 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         return FootholdViaSecureKubeletPort.has_no_error_nor_exception(directory_exists)
 
     @staticmethod
-    def rmdir_command(run_request_url, directory_to_remove, seconds_to_wait_for_os_command):
+    def rmdir_command(
+        run_request_url, directory_to_remove, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
+    ):
         if MaliciousIntentViaSecureKubeletPort.check_directory_exists(run_request_url, directory_to_remove):
-            for _ in range(10):
+            for _ in range(number_of_rmdir_attempts):
                 command_execution_outcome = FootholdViaSecureKubeletPort.post_request(
                     run_request_url, {"cmd": "rmdir {}".format(directory_to_remove)}
                 )
@@ -718,13 +730,15 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         return FootholdViaSecureKubeletPort.post_request(run_request_url, {"cmd": "ls {}".format(file_or_directory)})
 
     @staticmethod
-    def umount_command(run_request_url, file_system_or_partition, directory, seconds_to_wait_for_os_command):
+    def umount_command(
+        run_request_url, file_system_or_partition, directory, number_of_umount_attempts, seconds_to_wait_for_os_command,
+    ):
         # Note: the logic implemented proved more reliable than using "df"
         # command to resolve for mounted systems/partitions.
         current_files_and_directories = MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, directory)
 
         if MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, directory) == current_files_and_directories:
-            for _ in range(10):
+            for _ in range(number_of_umount_attempts):
                 # Ref: http://man7.org/linux/man-pages/man2/umount.2.html
                 command_execution_outcome = FootholdViaSecureKubeletPort.post_request(
                     run_request_url, {"cmd": "umount {} {}".format(file_system_or_partition, directory)}
@@ -786,7 +800,12 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         return None, None
 
     def process_exposed_existing_privileged_container(
-        self, run_request_url, seconds_to_wait_for_os_command, directory_to_create=None
+        self,
+        run_request_url,
+        number_of_umount_attempts,
+        number_of_rmdir_attempts,
+        seconds_to_wait_for_os_command,
+        directory_to_create=None,
     ):
         if directory_to_create is None:
             directory_to_create = "/kube-hunter_" + str(uuid.uuid1())
@@ -833,10 +852,16 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                                     run_request_url,
                                     file_system_or_partition,
                                     directory_created,
+                                    number_of_umount_attempts,
                                     seconds_to_wait_for_os_command,
                                 )
 
-                            self.rmdir_command(run_request_url, directory_created, seconds_to_wait_for_os_command)
+                            self.rmdir_command(
+                                run_request_url,
+                                directory_created,
+                                number_of_rmdir_attempts,
+                                seconds_to_wait_for_os_command,
+                            )
 
         return {"result": False}
 
@@ -851,7 +876,11 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             run_request_url = self.base_url + "run/{}/{}/{}".format(pod_namespace, pod_id, container_name)
 
             is_exposed_existing_privileged_container_privileged = self.process_exposed_existing_privileged_container(
-                run_request_url, self.seconds_to_wait_for_os_command, directory_to_create
+                run_request_url,
+                self.number_of_umount_attempts,
+                self.number_of_rmdir_attempts,
+                self.seconds_to_wait_for_os_command,
+                directory_to_create,
             )
 
             if is_exposed_existing_privileged_container_privileged["result"]:
@@ -878,6 +907,8 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                         directory_created,
                         file_created,
                         self.number_of_rm_attempts,
+                        self.number_of_umount_attempts,
+                        self.number_of_rmdir_attempts,
                         self.seconds_to_wait_for_os_command,
                     )
 
