@@ -347,7 +347,7 @@ def test_attack_exposed_existing_privileged_container_success():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
-        file_name = "harmless-honestly-mock" + str(uuid.uuid1())
+        file_name = "kube-hunter-mock" + str(uuid.uuid1())
         file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
 
         mocker.post(run_url + urllib.parse.quote("touch {}".format(file_name_with_path), safe=""), text="")
@@ -368,7 +368,7 @@ def test_attack_exposed_existing_privileged_container_success():
 def test_attack_exposed_existing_privileged_container_failure_when_touch():
     with requests_mock.Mocker() as mocker:
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
-        file_name = "harmless-honestly-mock" + str(uuid.uuid1())
+        file_name = "kube-hunter-mock" + str(uuid.uuid1())
         file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
 
         url = "https://localhost:10250/"
@@ -392,7 +392,7 @@ def test_attack_exposed_existing_privileged_container_failure_when_touch():
 def test_attack_exposed_existing_privileged_container_failure_when_chmod():
     with requests_mock.Mocker() as mocker:
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
-        file_name = "harmless-honestly-mock" + str(uuid.uuid1())
+        file_name = "kube-hunter-mock" + str(uuid.uuid1())
         file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
 
         url = "https://localhost:10250/"
@@ -654,7 +654,7 @@ def test_maliciousintentviasecurekubeletport_success():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
-        file_name = "harmless-honestly-mock" + str(uuid.uuid1())
+        file_name = "kube-hunter-mock" + str(uuid.uuid1())
         file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
 
         mocker.post(run_url + urllib.parse.quote("cat /proc/cmdline", safe=""), text=cat_proc_cmdline)

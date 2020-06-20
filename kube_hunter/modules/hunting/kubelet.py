@@ -680,7 +680,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         self, run_request_url, directory_created, number_of_rm_attempts, seconds_to_wait_for_os_command, file_name=None
     ):
         if file_name is None:
-            file_name = "harmless-honestly" + str(uuid.uuid1())
+            file_name = "kube-hunter" + str(uuid.uuid1())
 
         file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
 
