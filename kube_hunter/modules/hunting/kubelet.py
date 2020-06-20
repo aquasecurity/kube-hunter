@@ -551,12 +551,12 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
 
                     run_request_url = self.base_url + "run/{}/{}/{}".format(pod_namespace, pod_id, container_name)
 
-                    is_container_exposed = self.process_container(run_request_url)
+                    extracted_data = self.process_container(run_request_url)
 
-                    if is_container_exposed["result"]:
-                        service_account_token = is_container_exposed["service_account_token"]
-                        certificate_authority = is_container_exposed["certificate_authority"]
-                        environment_variables = is_container_exposed["environment_variables"]
+                    if extracted_data["result"]:
+                        service_account_token = extracted_data["service_account_token"]
+                        certificate_authority = extracted_data["certificate_authority"]
+                        environment_variables = extracted_data["environment_variables"]
 
                         temp_message += (
                             "\n\nPod namespace: {}".format(pod_namespace)
