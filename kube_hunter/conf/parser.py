@@ -1,9 +1,13 @@
 from argparse import ArgumentParser
+from kube_hunter.plugins import hookimpl
 
 
-def parse_args():
-    parser = ArgumentParser(description="kube-hunter - hunt for security weaknesses in Kubernetes clusters")
-
+@hookimpl
+def parser_add_arguments(parser):
+    """
+    This is the default hook implementation for parse_add_argument
+    Contains initialization for all default arguments
+    """
     parser.add_argument(
         "--list", action="store_true", help="Displays all tests in kubehunter (add --active flag to see active tests)",
     )
@@ -58,6 +62,18 @@ def parse_args():
     parser.add_argument("--statistics", action="store_true", help="Show hunting statistics")
 
     parser.add_argument("--network-timeout", type=float, default=5.0, help="network operations timeout")
+
+
+def parse_args(add_args_hook):
+    """
+    Function handles all argument parsing
+
+    @param add_arguments: hook for adding arguments to it's given ArgumentParser parameter
+    @return: parsed arguments dict
+    """
+    parser = ArgumentParser(description="kube-hunter - hunt for security weaknesses in Kubernetes clusters")
+    # adding all arguments to the parser
+    add_args_hook(parser=parser)
 
     args = parser.parse_args()
     if args.cidr:
