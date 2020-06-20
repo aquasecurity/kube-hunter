@@ -306,6 +306,7 @@ def test_rm_command_removed_successfully():
         return_value = MaliciousIntentViaSecureKubeletPort.rm_command(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
             "mock.txt",
+            number_of_rm_attempts=1,
             seconds_to_wait_for_os_command=None,
         )
 
@@ -322,6 +323,7 @@ def test_rm_command_removed_failed():
         return_value = MaliciousIntentViaSecureKubeletPort.rm_command(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
             "mock.txt",
+            number_of_rm_attempts=1,
             seconds_to_wait_for_os_command=None,
         )
 
@@ -342,6 +344,7 @@ def test_attack_exposed_existing_privileged_container_success():
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
+        number_of_rm_attempts = 1
         file_name = "harmless-honestly-mock" + str(uuid.uuid1())
         file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
 
@@ -352,6 +355,7 @@ def test_attack_exposed_existing_privileged_container_success():
         return_value = class_being_tested.attack_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
             directory_created,
+            number_of_rm_attempts,
             None,
             file_name,
         )

@@ -606,14 +606,22 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         self.event = event
         self.base_url = "https://{host}:10250/".format(host=self.event.host)
         self.seconds_to_wait_for_os_command = seconds_to_wait_for_os_command
+        self.number_of_rm_attempts = 5
 
     def clean_attacked_exposed_existing_privileged_container(
-        self, run_request_url, file_system_or_partition, directory_created, file_created, seconds_to_wait_for_os_command
+        self,
+        run_request_url,
+        file_system_or_partition,
+        directory_created,
+        file_created,
+        number_of_rm_attempts,
+        seconds_to_wait_for_os_command,
     ):
 
         self.rm_command(
             run_request_url,
             "{}/etc/cron.daily/{}".format(directory_created, file_created),
+            number_of_rm_attempts,
             seconds_to_wait_for_os_command,
         )
 
@@ -630,9 +638,9 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         return FootholdViaSecureKubeletPort.has_no_error_nor_exception(file_exists)
 
     @staticmethod
-    def rm_command(run_request_url, file_to_remove, seconds_to_wait_for_os_command):
+    def rm_command(run_request_url, file_to_remove, number_of_rm_attempts, seconds_to_wait_for_os_command):
         if MaliciousIntentViaSecureKubeletPort.check_file_exists(run_request_url, file_to_remove):
-            for _ in range(10):
+            for _ in range(number_of_rm_attempts):
                 command_execution_outcome = FootholdViaSecureKubeletPort.post_request(
                     run_request_url, {"cmd": "rm -f {}".format(file_to_remove)}
                 )
@@ -659,7 +667,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         return FootholdViaSecureKubeletPort.post_request(run_request_url, {"cmd": "touch {}".format(file_to_create)})
 
     def attack_exposed_existing_privileged_container(
-        self, run_request_url, directory_created, seconds_to_wait_for_os_command, file_name=None
+        self, run_request_url, directory_created, number_of_rm_attempts, seconds_to_wait_for_os_command, file_name=None
     ):
         if file_name is None:
             file_name = "harmless-honestly" + str(uuid.uuid1())
@@ -674,7 +682,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             if FootholdViaSecureKubeletPort.has_no_error_nor_exception(permissions_changed):
                 return {"result": True, "file_created": file_name}
 
-            self.rm_command(run_request_url, file_name_with_path, seconds_to_wait_for_os_command)
+            self.rm_command(run_request_url, file_name_with_path, number_of_rm_attempts, seconds_to_wait_for_os_command)
 
         return {"result": False}
 
@@ -854,7 +862,11 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
                 # Execute attack attempt: start/modify process in host.
                 attack_successful_on_exposed_privileged_container = self.attack_exposed_existing_privileged_container(
-                    run_request_url, directory_created, self.seconds_to_wait_for_os_command, file_name
+                    run_request_url,
+                    directory_created,
+                    self.number_of_rm_attempts,
+                    self.seconds_to_wait_for_os_command,
+                    file_name,
                 )
 
                 if attack_successful_on_exposed_privileged_container["result"]:
@@ -865,6 +877,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                         file_system_or_partition,
                         directory_created,
                         file_created,
+                        self.number_of_rm_attempts,
                         self.seconds_to_wait_for_os_command,
                     )
 
