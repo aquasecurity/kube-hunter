@@ -677,6 +677,8 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if first_check and not second_check:
                     return True
 
+        logger.warning("kube-hunter: Unable to remove file: " + file_to_remove)
+
         return False
 
     def chmod_command(self, run_request_url, permissions, file):
@@ -728,6 +730,8 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if first_check and not second_check:
                     return True
 
+        logger.warning("kube-hunter: Unable to remove directory: " + directory_to_remove)
+
         return False
 
     def ls_command(self, run_request_url, file_or_directory):
@@ -760,6 +764,8 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
                 if first_check and second_check:
                     return True
+
+        logger.warning("kube-hunter: Unable to unmount " + file_system_or_partition + " at: " + directory)
 
         return False
 
