@@ -349,7 +349,7 @@ class SecureKubeletPortHunter(Hunter):
             # self.session.cert = self.event.client_cert
         # copy session to event
         self.event.session = self.session
-        self.path = "https://{self.event.host}:10250"
+        self.path = f"https://{self.event.host}:10250"
         self.kubehunter_pod = {
             "name": "kube-hunter",
             "namespace": "default",
