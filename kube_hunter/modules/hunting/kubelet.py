@@ -671,7 +671,18 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if first_check and not second_check:
                     return True
 
-        logger.warning("kube-hunter: Unable to remove file: " + file_to_remove)
+        pod_id = run_request_url.replace(self.base_url + "run/", "").split("/")[1]
+        container_name = run_request_url.replace(self.base_url + "run/", "").split("/")[2]
+        logger.warning(
+            "kube-hunter: "
+            + "POD="
+            + pod_id
+            + ", "
+            + "CONTAINER="
+            + container_name
+            + " - Unable to remove file: "
+            + file_to_remove
+        )
 
         return False
 
@@ -724,7 +735,18 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if first_check and not second_check:
                     return True
 
-        logger.warning("kube-hunter: Unable to remove directory: " + directory_to_remove)
+        pod_id = run_request_url.replace(self.base_url + "run/", "").split("/")[1]
+        container_name = run_request_url.replace(self.base_url + "run/", "").split("/")[2]
+        logger.warning(
+            "kube-hunter: "
+            + "POD="
+            + pod_id
+            + ", "
+            + "CONTAINER="
+            + container_name
+            + " - Unable to remove directory: "
+            + directory_to_remove
+        )
 
         return False
 
@@ -759,7 +781,20 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if first_check and second_check:
                     return True
 
-        logger.warning("kube-hunter: Unable to unmount " + file_system_or_partition + " at: " + directory)
+        pod_id = run_request_url.replace(self.base_url + "run/", "").split("/")[1]
+        container_name = run_request_url.replace(self.base_url + "run/", "").split("/")[2]
+        logger.warning(
+            "kube-hunter: "
+            + "POD="
+            + pod_id
+            + ", "
+            + "CONTAINER="
+            + container_name
+            + " - Unable to unmount "
+            + file_system_or_partition
+            + " at: "
+            + directory
+        )
 
         return False
 
