@@ -425,7 +425,7 @@ class SecureKubeletPortHunter(Hunter):
                 pod_data = next(filter(is_kubesystem_pod, pods_data), None)
 
             if pod_data:
-                container_data = next(pod_data["spec"]["containers"], None)
+                container_data = pod_data["spec"]["containers"][0]
                 if container_data:
                     return {
                         "name": pod_data["metadata"]["name"],
