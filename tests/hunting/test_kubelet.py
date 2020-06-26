@@ -7,7 +7,7 @@ from kube_hunter.core.events import handler
 from kube_hunter.modules.hunting.kubelet import (
     AnonymousAuthEnabled,
     ExposedExistingPrivilegedContainersViaSecureKubeletPort,
-    FootholdViaSecureKubeletPort,
+    ProveAnonymousAuth,
     MaliciousIntentViaSecureKubeletPort,
 )
 
@@ -83,7 +83,7 @@ def create_test_event_type_two():
 
 
 def test_get_request_valid_url():
-    class_being_tested = FootholdViaSecureKubeletPort(create_test_event_type_one())
+    class_being_tested = ProveAnonymousAuth(create_test_event_type_one())
 
     with requests_mock.Mocker(session=class_being_tested.event.session) as session_mock:
         url = "https://localhost:10250/mock"
@@ -96,7 +96,7 @@ def test_get_request_valid_url():
 
 
 def test_get_request_invalid_url():
-    class_being_tested = FootholdViaSecureKubeletPort(create_test_event_type_one())
+    class_being_tested = ProveAnonymousAuth(create_test_event_type_one())
 
     with requests_mock.Mocker(session=class_being_tested.event.session) as session_mock:
         url = "https://localhost:10250/[mock]"
@@ -109,7 +109,7 @@ def test_get_request_invalid_url():
 
 
 def post_request(url, params, expected_return_value, exception=None):
-    class_being_tested_one = FootholdViaSecureKubeletPort(create_test_event_type_one())
+    class_being_tested_one = ProveAnonymousAuth(create_test_event_type_one())
 
     with requests_mock.Mocker(session=class_being_tested_one.event.session) as session_mock:
         mock_params = {"text": "mock"} if not exception else {"exc": exception}
@@ -157,7 +157,7 @@ def test_post_request_invalid_url_without_parameters():
 def test_has_no_exception_result_with_exception():
     mock_result = "Exception: Mock."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_exception(mock_result)
+    return_value = ProveAnonymousAuth.has_no_exception(mock_result)
 
     assert return_value is False
 
@@ -165,7 +165,7 @@ def test_has_no_exception_result_with_exception():
 def test_has_no_exception_result_without_exception():
     mock_result = "Mock."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_exception(mock_result)
+    return_value = ProveAnonymousAuth.has_no_exception(mock_result)
 
     assert return_value is True
 
@@ -173,7 +173,7 @@ def test_has_no_exception_result_without_exception():
 def test_has_no_error_result_with_error():
     mock_result = "Mock exited with error."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_error(mock_result)
+    return_value = ProveAnonymousAuth.has_no_error(mock_result)
 
     assert return_value is False
 
@@ -181,7 +181,7 @@ def test_has_no_error_result_with_error():
 def test_has_no_error_result_without_error():
     mock_result = "Mock."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_error(mock_result)
+    return_value = ProveAnonymousAuth.has_no_error(mock_result)
 
     assert return_value is True
 
@@ -189,7 +189,7 @@ def test_has_no_error_result_without_error():
 def test_has_no_error_nor_exception_result_without_exception_and_without_error():
     mock_result = "Mock."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
+    return_value = ProveAnonymousAuth.has_no_error_nor_exception(mock_result)
 
     assert return_value is True
 
@@ -197,7 +197,7 @@ def test_has_no_error_nor_exception_result_without_exception_and_without_error()
 def test_has_no_error_nor_exception_result_with_exception_and_without_error():
     mock_result = "Exception: Mock."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
+    return_value = ProveAnonymousAuth.has_no_error_nor_exception(mock_result)
 
     assert return_value is False
 
@@ -205,7 +205,7 @@ def test_has_no_error_nor_exception_result_with_exception_and_without_error():
 def test_has_no_error_nor_exception_result_without_exception_and_with_error():
     mock_result = "Mock exited with error."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
+    return_value = ProveAnonymousAuth.has_no_error_nor_exception(mock_result)
 
     assert return_value is False
 
@@ -213,12 +213,12 @@ def test_has_no_error_nor_exception_result_without_exception_and_with_error():
 def test_has_no_error_nor_exception_result_with_exception_and_with_error():
     mock_result = "Exception: Mock. Mock exited with error."
 
-    return_value = FootholdViaSecureKubeletPort.has_no_error_nor_exception(mock_result)
+    return_value = ProveAnonymousAuth.has_no_error_nor_exception(mock_result)
 
     assert return_value is False
 
 
-def footholdviasecurekubeletport_success(anonymous_auth_enabled_event, security_context_definition_to_test):
+def proveanonymousauth_success(anonymous_auth_enabled_event, security_context_definition_to_test):
     global counter
     counter = 0
 
@@ -239,27 +239,24 @@ def footholdviasecurekubeletport_success(anonymous_auth_enabled_event, security_
         )
         session_mock.post(run_url + "env", text=env)
 
-        class_being_tested = FootholdViaSecureKubeletPort(anonymous_auth_enabled_event)
+        class_being_tested = ProveAnonymousAuth(anonymous_auth_enabled_event)
         class_being_tested.execute()
 
-        assert (
-            "FootholdViaSecureKubeletPort: The following containers have been successfully breached."
-            in class_being_tested.event.evidence
-        )
+        assert "The following containers have been successfully breached." in class_being_tested.event.evidence
 
     assert counter == 1
 
 
-def test_footholdviasecurekubeletport_success_with_privileged_container_via_privileged_setting():
-    footholdviasecurekubeletport_success(create_test_event_type_one(), '"privileged": true')
+def test_proveanonymousauth_success_with_privileged_container_via_privileged_setting():
+    proveanonymousauth_success(create_test_event_type_one(), '"privileged": true')
 
 
-def test_footholdviasecurekubeletport_success_with_privileged_container_via_capabilities():
-    footholdviasecurekubeletport_success(create_test_event_type_one(), '"capabilities": { "add": ["SYS_ADMIN"] }')
+def test_proveanonymousauth_success_with_privileged_container_via_capabilities():
+    proveanonymousauth_success(create_test_event_type_one(), '"capabilities": { "add": ["SYS_ADMIN"] }')
 
 
-def test_footholdviasecurekubeletport_connectivity_issues():
-    class_being_tested = FootholdViaSecureKubeletPort(create_test_event_type_one())
+def test_proveanonymousauth_connectivity_issues():
+    class_being_tested = ProveAnonymousAuth(create_test_event_type_one())
 
     with requests_mock.Mocker(session=class_being_tested.event.session) as session_mock:
         url = "https://" + class_being_tested.event.host + ":10250/"

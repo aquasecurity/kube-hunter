@@ -28,7 +28,7 @@ from kube_hunter.modules.hunting.dashboard import KubeDashboard
 from kube_hunter.modules.hunting.dns import DnsSpoofHunter
 from kube_hunter.modules.hunting.etcd import EtcdRemoteAccess, EtcdRemoteAccessActive
 from kube_hunter.modules.hunting.kubelet import (
-    FootholdViaSecureKubeletPort,
+    ProveAnonymousAuth,
     MaliciousIntentViaSecureKubeletPort,
     ProveContainerLogsHandler,
     ProveRunHandler,
@@ -79,7 +79,7 @@ ACTIVE_HUNTERS = {
     ProveVarLogMount,
     ProveProxyExposed,
     K8sVersionDisclosureProve,
-    FootholdViaSecureKubeletPort,
+    ProveAnonymousAuth,
     MaliciousIntentViaSecureKubeletPort,
 }
 
