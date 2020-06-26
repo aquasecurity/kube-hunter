@@ -584,7 +584,7 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
                     + temp_message
                 )
 
-                self.event.evidence = "{}: {}".format(self.__class__.__name__, message)
+                self.event.evidence = "{}".format(message)
 
             if exposed_existing_privileged_containers:
                 self.publish_event(
@@ -927,7 +927,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 + temp_message
             )
 
-            self.event.evidence = "{}: {}".format(self.__class__.__name__, message)
+            self.event.evidence = "{}".format(message)
         else:
             message = (
                 "The following exposed existing privileged containers"
@@ -936,7 +936,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 + temp_message
             )
 
-            self.event.evidence = "{}: {}".format(self.__class__.__name__, message)
+            self.event.evidence = "{}".format(message)
 
 
 @handler.subscribe(ExposedRunHandler)
