@@ -580,7 +580,6 @@ class FootholdViaSecureKubeletPort(ActiveHunter):
             if temp_message:
                 message = (
                     "The following containers have been successfully breached."
-                    + "This can result in an attacker being able to set foothold into the cluster."
                     + temp_message
                 )
 
