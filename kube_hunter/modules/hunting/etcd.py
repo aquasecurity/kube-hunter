@@ -121,7 +121,9 @@ class EtcdRemoteAccess(Hunter):
         logger.debug(f"{self.event.host} Passive hunter is attempting to read etcd keys remotely")
         try:
             r = requests.get(
-                f"{self.event.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys", verify=False, timeout=config.network_timeout,
+                f"{self.event.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys",
+                verify=False,
+                timeout=config.network_timeout,
             )
             self.keys_evidence = r.content if r.status_code == 200 and r.content != "" else False
             return self.keys_evidence
