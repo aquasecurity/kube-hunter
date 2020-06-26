@@ -81,6 +81,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
     def __init__(self, event):
         self.event = event
         self.write_evidence = ""
+        self.event.protocol = "https"
 
     def db_keys_write_access(self):
         config = get_config()
@@ -88,7 +89,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
         data = {"value": "remotely written data"}
         try:
             r = requests.post(
-                f"{self.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys/message",
+                f"{self.event.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys/message",
                 data=data,
                 timeout=config.network_timeout,
             )
@@ -113,14 +114,16 @@ class EtcdRemoteAccess(Hunter):
         self.event = event
         self.version_evidence = ""
         self.keys_evidence = ""
-        self.protocol = "https"
+        self.event.protocol = "https"
 
     def db_keys_disclosure(self):
         config = get_config()
         logger.debug(f"{self.event.host} Passive hunter is attempting to read etcd keys remotely")
         try:
             r = requests.get(
-                f"{self.protocol}://{self.eventhost}:{ETCD_PORT}/v2/keys", verify=False, timeout=config.network_timeout,
+                f"{self.event.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys",
+                verify=False,
+                timeout=config.network_timeout,
             )
             self.keys_evidence = r.content if r.status_code == 200 and r.content != "" else False
             return self.keys_evidence

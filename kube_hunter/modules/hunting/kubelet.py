@@ -262,7 +262,7 @@ class SecureKubeletPortHunter(Hunter):
         """ all methods will return the handler name if successful """
 
         def __init__(self, path, pod, session=None):
-            self.path = path
+            self.path = path + ("/" if not path.endswith("/") else "")
             self.session = session if session else requests.Session()
             self.pod = pod
 
@@ -367,7 +367,7 @@ class SecureKubeletPortHunter(Hunter):
             # self.session.cert = self.event.client_cert
         # copy session to event
         self.event.session = self.session
-        self.path = "https://{self.event.host}:10250"
+        self.path = f"https://{self.event.host}:10250"
         self.kubehunter_pod = {
             "name": "kube-hunter",
             "namespace": "default",
@@ -443,7 +443,7 @@ class SecureKubeletPortHunter(Hunter):
                 pod_data = next(filter(is_kubesystem_pod, pods_data), None)
 
             if pod_data:
-                container_data = next(pod_data["spec"]["containers"], None)
+                container_data = pod_data["spec"]["containers"][0]
                 if container_data:
                     return {
                         "name": pod_data["metadata"]["name"],
@@ -956,12 +956,12 @@ class ProveRunHandler(ActiveHunter):
     def execute(self):
         config = get_config()
         r = self.event.session.get(
-            self.base_path + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
+            f"{self.base_path}/" + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
         )
         if "items" in r.text:
             pods_data = r.json()["items"]
             for pod_data in pods_data:
-                container_data = next(pod_data["spec"]["containers"])
+                container_data = pod_data["spec"]["containers"][0]
                 if container_data:
                     output = self.run(
                         "uname -a",
@@ -995,7 +995,7 @@ class ProveContainerLogsHandler(ActiveHunter):
         if "items" in pods_raw:
             pods_data = json.loads(pods_raw)["items"]
             for pod_data in pods_data:
-                container_data = next(pod_data["spec"]["containers"])
+                container_data = pod_data["spec"]["containers"][0]
                 if container_data:
                     container_name = container_data["name"]
                     output = requests.get(
