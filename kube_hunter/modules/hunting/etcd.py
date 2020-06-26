@@ -81,6 +81,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
     def __init__(self, event):
         self.event = event
         self.write_evidence = ""
+        self.event.protocol = "https"
 
     def db_keys_write_access(self):
         config = get_config()
@@ -88,7 +89,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
         data = {"value": "remotely written data"}
         try:
             r = requests.post(
-                f"https://{self.event.host}:{ETCD_PORT}/v2/keys/message", data=data, timeout=config.network_timeout,
+                f"{self.event.protocol}://{self.event.host}:{ETCD_PORT}/v2/keys/message", data=data, timeout=config.network_timeout,
             )
             self.write_evidence = r.content if r.status_code == 200 and r.content else False
             return self.write_evidence

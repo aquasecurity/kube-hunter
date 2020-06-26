@@ -244,7 +244,7 @@ class SecureKubeletPortHunter(Hunter):
         """ all methods will return the handler name if successful """
 
         def __init__(self, path, pod, session=None):
-            self.path = path + "/" if not path.endswith("/") else ""
+            self.path = path + ("/" if not path.endswith("/") else "")
             self.session = session if session else requests.Session()
             self.pod = pod
 
