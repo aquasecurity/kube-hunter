@@ -70,7 +70,7 @@ class DnsSpoofHunter(ActiveHunter):
     def execute(self):
         config = get_config()
         logger.debug("Attempting to get kube-dns pod ip")
-        self_ip = sr1(IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.netork_timeout)[IP].dst
+        self_ip = sr1(IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout)[IP].dst
         cbr0_ip, cbr0_mac = self.get_cbr0_ip_mac()
 
         kubedns = self.get_kube_dns_ip_mac()
