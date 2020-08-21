@@ -135,7 +135,7 @@ class EtcdRemoteAccess(Hunter):
         logger.debug(f"Trying to check etcd version remotely at {self.event.host}")
         try:
             r = requests.get(
-                f"{self.protocol}://{self.event.host}:{ETCD_PORT}/version",
+                f"{self.event.protocol}://{self.event.host}:{ETCD_PORT}/version",
                 verify=False,
                 timeout=config.network_timeout,
             )
