@@ -157,10 +157,10 @@ class EtcdRemoteAccess(Hunter):
 
     def execute(self):
         if self.insecure_access():  # make a decision between http and https protocol
-            self.protocol = "http"
+            self.event.protocol = "http"
         if self.version_disclosure():
             self.publish_event(EtcdRemoteVersionDisclosureEvent(self.version_evidence))
-            if self.protocol == "http":
+            if self.event.protocol == "http":
                 self.publish_event(EtcdAccessEnabledWithoutAuthEvent(self.version_evidence))
             if self.db_keys_disclosure():
                 self.publish_event(EtcdRemoteReadAccessEvent(self.keys_evidence))
