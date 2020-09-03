@@ -42,7 +42,7 @@ class CertificateDiscovery(Hunter):
         self.examine_certificate(cert)
 
     def examine_certificate(self, cert):
-        c = cert.strip(ssl.PEM_HEADER).strip(ssl.PEM_FOOTER)
+        c = cert.strip(ssl.PEM_HEADER).strip("\n").strip(ssl.PEM_FOOTER).strip("\n")
         certdata = base64.b64decode(c)
         emails = re.findall(email_pattern, certdata)
         for email in emails:
