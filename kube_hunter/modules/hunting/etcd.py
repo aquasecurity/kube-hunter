@@ -26,7 +26,11 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
 
     def __init__(self, write_res):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Etcd Remote Write Access Event", category=RemoteCodeExec, vid="KHV031",
+            self,
+            KubernetesCluster,
+            name="Etcd Remote Write Access Event",
+            category=RemoteCodeExec,
+            vid="KHV031",
         )
         self.evidence = write_res
 
@@ -36,7 +40,11 @@ class EtcdRemoteReadAccessEvent(Vulnerability, Event):
 
     def __init__(self, keys):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Etcd Remote Read Access Event", category=AccessRisk, vid="KHV032",
+            self,
+            KubernetesCluster,
+            name="Etcd Remote Read Access Event",
+            category=AccessRisk,
+            vid="KHV032",
         )
         self.evidence = keys
 
@@ -149,7 +157,9 @@ class EtcdRemoteAccess(Hunter):
         logger.debug(f"Trying to access etcd insecurely at {self.event.host}")
         try:
             r = requests.get(
-                f"http://{self.event.host}:{ETCD_PORT}/version", verify=False, timeout=config.network_timeout,
+                f"http://{self.event.host}:{ETCD_PORT}/version",
+                verify=False,
+                timeout=config.network_timeout,
             )
             return r.content if r.status_code == 200 and r.content else False
         except requests.exceptions.ConnectionError:

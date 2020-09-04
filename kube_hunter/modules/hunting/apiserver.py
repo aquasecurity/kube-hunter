@@ -29,7 +29,11 @@ class ServerApiAccess(Vulnerability, Event):
             name = "Unauthenticated access to API"
             category = UnauthenticatedAccess
         Vulnerability.__init__(
-            self, KubernetesCluster, name=name, category=category, vid="KHV005",
+            self,
+            KubernetesCluster,
+            name=name,
+            category=category,
+            vid="KHV005",
         )
         self.evidence = evidence
 
@@ -42,7 +46,11 @@ class ServerApiHTTPAccess(Vulnerability, Event):
         name = "Insecure (HTTP) access to API"
         category = UnauthenticatedAccess
         Vulnerability.__init__(
-            self, KubernetesCluster, name=name, category=category, vid="KHV006",
+            self,
+            KubernetesCluster,
+            name=name,
+            category=category,
+            vid="KHV006",
         )
         self.evidence = evidence
 
@@ -54,7 +62,11 @@ class ApiInfoDisclosure(Vulnerability, Event):
         else:
             name += " as anonymous user"
         Vulnerability.__init__(
-            self, KubernetesCluster, name=name, category=InformationDisclosure, vid="KHV007",
+            self,
+            KubernetesCluster,
+            name=name,
+            category=InformationDisclosure,
+            vid="KHV007",
         )
         self.evidence = evidence
 
@@ -89,12 +101,14 @@ class ListClusterRoles(ApiInfoDisclosure):
 
 class CreateANamespace(Vulnerability, Event):
 
-    """ Creating a namespace might give an attacker an area with default (exploitable) permissions to run pods in.
-    """
+    """Creating a namespace might give an attacker an area with default (exploitable) permissions to run pods in."""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Created a namespace", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Created a namespace",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -105,14 +119,17 @@ class DeleteANamespace(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Delete a namespace", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Delete a namespace",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
 
 class CreateARole(Vulnerability, Event):
-    """ Creating a role might give an attacker the option to harm the normal behavior of newly created pods
-     within the specified namespaces.
+    """Creating a role might give an attacker the option to harm the normal behavior of newly created pods
+    within the specified namespaces.
     """
 
     def __init__(self, evidence):
@@ -121,37 +138,46 @@ class CreateARole(Vulnerability, Event):
 
 
 class CreateAClusterRole(Vulnerability, Event):
-    """ Creating a cluster role might give an attacker the option to harm the normal behavior of newly created pods
-     across the whole cluster
+    """Creating a cluster role might give an attacker the option to harm the normal behavior of newly created pods
+    across the whole cluster
     """
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Created a cluster role", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Created a cluster role",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
 
 class PatchARole(Vulnerability, Event):
-    """ Patching a role might give an attacker the option to create new pods with custom roles within the
+    """Patching a role might give an attacker the option to create new pods with custom roles within the
     specific role's namespace scope
     """
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Patched a role", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Patched a role",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
 
 class PatchAClusterRole(Vulnerability, Event):
-    """ Patching a cluster role might give an attacker the option to create new pods with custom roles within the whole
+    """Patching a cluster role might give an attacker the option to create new pods with custom roles within the whole
     cluster scope.
     """
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Patched a cluster role", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Patched a cluster role",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -161,7 +187,10 @@ class DeleteARole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Deleted a role", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Deleted a role",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -171,7 +200,10 @@ class DeleteAClusterRole(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Deleted a cluster role", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Deleted a cluster role",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -181,7 +213,10 @@ class CreateAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Created A Pod", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Created A Pod",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -191,7 +226,10 @@ class CreateAPrivilegedPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Created A PRIVILEGED Pod", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Created A PRIVILEGED Pod",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -201,7 +239,10 @@ class PatchAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Patched A Pod", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Patched A Pod",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -211,7 +252,10 @@ class DeleteAPod(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Deleted A Pod", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="Deleted A Pod",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
@@ -225,7 +269,7 @@ class ApiServerPassiveHunterFinished(Event):
 # If we have a service account token we'll also trigger AccessApiServerWithToken below
 @handler.subscribe(ApiServer)
 class AccessApiServer(Hunter):
-    """ API Server Hunter
+    """API Server Hunter
     Checks if API server is accessible
     """
 
@@ -268,7 +312,10 @@ class AccessApiServer(Hunter):
         try:
             if not namespace:
                 r = requests.get(
-                    f"{self.path}/api/v1/pods", headers=self.headers, verify=False, timeout=config.network_timeout,
+                    f"{self.path}/api/v1/pods",
+                    headers=self.headers,
+                    verify=False,
+                    timeout=config.network_timeout,
                 )
             else:
                 r = requests.get(
@@ -319,7 +366,7 @@ class AccessApiServer(Hunter):
 
 @handler.subscribe(ApiServer, predicate=lambda x: x.auth_token)
 class AccessApiServerWithToken(AccessApiServer):
-    """ API Server Hunter
+    """API Server Hunter
     Accessing the API server using the service account token obtained from a compromised pod
     """
 
@@ -411,7 +458,8 @@ class AccessApiServerActive(ActiveHunter):
     def patch_a_pod(self, namespace, pod_name):
         data = [{"op": "add", "path": "/hello", "value": ["world"]}]
         return self.patch_item(
-            path=f"{self.path}/api/v1/namespaces/{namespace}/pods/{pod_name}", data=json.dumps(data),
+            path=f"{self.path}/api/v1/namespaces/{namespace}/pods/{pod_name}",
+            data=json.dumps(data),
         )
 
     def create_namespace(self):
@@ -438,7 +486,8 @@ class AccessApiServerActive(ActiveHunter):
             "rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["get", "watch", "list"]}],
         }
         return self.create_item(
-            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles", data=json.dumps(role),
+            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/namespaces/{namespace}/roles",
+            data=json.dumps(role),
         )
 
     def create_a_cluster_role(self):
@@ -450,7 +499,8 @@ class AccessApiServerActive(ActiveHunter):
             "rules": [{"apiGroups": [""], "resources": ["pods"], "verbs": ["get", "watch", "list"]}],
         }
         return self.create_item(
-            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles", data=json.dumps(cluster_role),
+            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles",
+            data=json.dumps(cluster_role),
         )
 
     def delete_a_role(self, namespace, name):
@@ -477,7 +527,8 @@ class AccessApiServerActive(ActiveHunter):
     def patch_a_cluster_role(self, cluster_role):
         data = [{"op": "add", "path": "/hello", "value": ["world"]}]
         return self.patch_item(
-            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{cluster_role}", data=json.dumps(data),
+            path=f"{self.path}/apis/rbac.authorization.k8s.io/v1/clusterroles/{cluster_role}",
+            data=json.dumps(data),
         )
 
     def execute(self):

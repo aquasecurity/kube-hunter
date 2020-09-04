@@ -18,7 +18,11 @@ class PossibleDnsSpoofing(Vulnerability, Event):
 
     def __init__(self, kubedns_pod_ip):
         Vulnerability.__init__(
-            self, KubernetesCluster, "Possible DNS Spoof", category=IdentityTheft, vid="KHV030",
+            self,
+            KubernetesCluster,
+            "Possible DNS Spoof",
+            category=IdentityTheft,
+            vid="KHV030",
         )
         self.kubedns_pod_ip = kubedns_pod_ip
         self.evidence = "kube-dns at: {}".format(self.kubedns_pod_ip)
@@ -61,7 +65,9 @@ class DnsSpoofHunter(ActiveHunter):
         self_ip = dns_info_res[IP].dst
 
         arp_responses, _ = srp(
-            Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"), timeout=config.network_timeout, verbose=0,
+            Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"),
+            timeout=config.network_timeout,
+            verbose=0,
         )
         for _, response in arp_responses:
             if response[Ether].src == kubedns_pod_mac:

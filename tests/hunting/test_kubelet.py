@@ -73,8 +73,8 @@ def create_test_event_type_one():
 
 
 def create_test_event_type_two():
-    exposed_existing_privileged_containers_via_secure_kubelet_port_event = ExposedExistingPrivilegedContainersViaSecureKubeletPort(
-        exposed_privileged_containers
+    exposed_existing_privileged_containers_via_secure_kubelet_port_event = (
+        ExposedExistingPrivilegedContainersViaSecureKubeletPort(exposed_privileged_containers)
     )
     exposed_existing_privileged_containers_via_secure_kubelet_port_event.host = "localhost"
     exposed_existing_privileged_containers_via_secure_kubelet_port_event.session = requests.Session()
