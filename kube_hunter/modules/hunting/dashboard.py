@@ -16,7 +16,11 @@ class DashboardExposed(Vulnerability, Event):
 
     def __init__(self, nodes):
         Vulnerability.__init__(
-            self, KubernetesCluster, "Dashboard Exposed", category=RemoteCodeExec, vid="KHV029",
+            self,
+            KubernetesCluster,
+            "Dashboard Exposed",
+            category=RemoteCodeExec,
+            vid="KHV029",
         )
         self.evidence = "nodes: {}".format(" ".join(nodes)) if nodes else None
 

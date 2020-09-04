@@ -17,7 +17,10 @@ class CapNetRawEnabled(Event, Vulnerability):
 
     def __init__(self):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="CAP_NET_RAW Enabled", category=AccessRisk,
+            self,
+            KubernetesCluster,
+            name="CAP_NET_RAW Enabled",
+            category=AccessRisk,
         )
 
 

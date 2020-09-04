@@ -33,7 +33,7 @@ class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
 
 class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
     """Node not patched for CVE-2019-1002100. Depending on your RBAC settings,
-     a crafted json-patch could cause a Denial of Service."""
+    a crafted json-patch could cause a Denial of Service."""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -52,7 +52,11 @@ class PingFloodHttp2Implementation(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Possible Ping Flood Attack", category=DenialOfService, vid="KHV024",
+            self,
+            KubernetesCluster,
+            name="Possible Ping Flood Attack",
+            category=DenialOfService,
+            vid="KHV024",
         )
         self.evidence = evidence
 
@@ -63,7 +67,11 @@ class ResetFloodHttp2Implementation(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, KubernetesCluster, name="Possible Reset Flood Attack", category=DenialOfService, vid="KHV025",
+            self,
+            KubernetesCluster,
+            name="Possible Reset Flood Attack",
+            category=DenialOfService,
+            vid="KHV025",
         )
         self.evidence = evidence
 
@@ -89,7 +97,11 @@ class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
 
     def __init__(self, binary_version):
         Vulnerability.__init__(
-            self, KubectlClient, "Kubectl Vulnerable To CVE-2019-11246", category=RemoteCodeExec, vid="KHV027",
+            self,
+            KubectlClient,
+            "Kubectl Vulnerable To CVE-2019-11246",
+            category=RemoteCodeExec,
+            vid="KHV027",
         )
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)
@@ -101,7 +113,11 @@ class KubectlCpVulnerability(Vulnerability, Event):
 
     def __init__(self, binary_version):
         Vulnerability.__init__(
-            self, KubectlClient, "Kubectl Vulnerable To CVE-2019-1002101", category=RemoteCodeExec, vid="KHV028",
+            self,
+            KubectlClient,
+            "Kubectl Vulnerable To CVE-2019-1002101",
+            category=RemoteCodeExec,
+            vid="KHV028",
         )
         self.binary_version = binary_version
         self.evidence = "kubectl version: {}".format(self.binary_version)

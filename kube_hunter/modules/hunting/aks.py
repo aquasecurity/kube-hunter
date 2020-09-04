@@ -16,7 +16,11 @@ class AzureSpnExposure(Vulnerability, Event):
 
     def __init__(self, container):
         Vulnerability.__init__(
-            self, Azure, "Azure SPN Exposure", category=IdentityTheft, vid="KHV004",
+            self,
+            Azure,
+            "Azure SPN Exposure",
+            category=IdentityTheft,
+            vid="KHV004",
         )
         self.container = container
 

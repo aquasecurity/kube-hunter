@@ -8,7 +8,7 @@ set_config(Config())
 
 
 def test_presetcloud():
-    """ Testing if it doesn't try to run get_cloud if the cloud type is already set.
+    """Testing if it doesn't try to run get_cloud if the cloud type is already set.
     get_cloud(1.2.3.4) will result with an error
     """
     expcted = "AWS"

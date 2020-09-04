@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 @dataclass
 class Config:
-    """ Config is a configuration container.
+    """Config is a configuration container.
     It contains the following fields:
     - active: Enable active hunters
     - cidr: Network subnets to scan

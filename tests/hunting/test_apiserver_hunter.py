@@ -56,7 +56,8 @@ def test_AccessApiServer():
     with requests_mock.Mocker() as m:
         m.get("https://mockKubernetes:443/api", text="{}")
         m.get(
-            "https://mockKubernetes:443/api/v1/namespaces", text='{"items":[{"metadata":{"name":"hello"}}]}',
+            "https://mockKubernetes:443/api/v1/namespaces",
+            text='{"items":[{"metadata":{"name":"hello"}}]}',
         )
         m.get(
             "https://mockKubernetes:443/api/v1/pods",
@@ -64,10 +65,12 @@ def test_AccessApiServer():
                             {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}',
         )
         m.get(
-            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/roles", status_code=403,
+            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/roles",
+            status_code=403,
         )
         m.get(
-            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles", text='{"items":[]}',
+            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles",
+            text='{"items":[]}',
         )
         m.get(
             "https://mockkubernetes:443/version",
@@ -91,7 +94,8 @@ def test_AccessApiServer():
         # TODO check that these responses reflect what Kubernetes does
         m.get("https://mocktoken:443/api", text="{}")
         m.get(
-            "https://mocktoken:443/api/v1/namespaces", text='{"items":[{"metadata":{"name":"hello"}}]}',
+            "https://mocktoken:443/api/v1/namespaces",
+            text='{"items":[{"metadata":{"name":"hello"}}]}',
         )
         m.get(
             "https://mocktoken:443/api/v1/pods",
@@ -99,7 +103,8 @@ def test_AccessApiServer():
                             {"metadata":{"name":"podB", "namespace":"namespaceB"}}]}',
         )
         m.get(
-            "https://mocktoken:443/apis/rbac.authorization.k8s.io/v1/roles", status_code=403,
+            "https://mocktoken:443/apis/rbac.authorization.k8s.io/v1/roles",
+            status_code=403,
         )
         m.get(
             "https://mocktoken:443/apis/rbac.authorization.k8s.io/v1/clusterroles",
@@ -228,10 +233,12 @@ def test_AccessApiServerActive():
         )
         m.post("https://mockKubernetes:443/api/v1/clusterroles", text="{}")
         m.post(
-            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles", text="{}",
+            "https://mockkubernetes:443/apis/rbac.authorization.k8s.io/v1/clusterroles",
+            text="{}",
         )
         m.post(
-            "https://mockkubernetes:443/api/v1/namespaces/hello-namespace/pods", text="{}",
+            "https://mockkubernetes:443/api/v1/namespaces/hello-namespace/pods",
+            text="{}",
         )
         m.post(
             "https://mockkubernetes:443" "/apis/rbac.authorization.k8s.io/v1/namespaces/hello-namespace/roles",
