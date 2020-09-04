@@ -46,7 +46,11 @@ class AzureMetadataApi(Vulnerability, Event):
 
     def __init__(self, cidr):
         Vulnerability.__init__(
-            self, Azure, "Azure Metadata Exposure", category=InformationDisclosure, vid="KHV003",
+            self,
+            Azure,
+            "Azure Metadata Exposure",
+            category=InformationDisclosure,
+            vid="KHV003",
         )
         self.cidr = cidr
         self.evidence = "cidr: {}".format(cidr)
@@ -140,7 +144,9 @@ class FromPodHostDiscovery(Discovery):
     def traceroute_discovery(self):
         config = get_config()
         node_internal_ip = srp1(
-            Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout,
+            Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(),
+            verbose=0,
+            timeout=config.network_timeout,
         )[IP].src
         return [[node_internal_ip, "24"]]
 

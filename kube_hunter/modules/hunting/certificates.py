@@ -16,7 +16,11 @@ class CertificateEmail(Vulnerability, Event):
 
     def __init__(self, email):
         Vulnerability.__init__(
-            self, KubernetesCluster, "Certificate Includes Email Address", category=InformationDisclosure, vid="KHV021",
+            self,
+            KubernetesCluster,
+            "Certificate Includes Email Address",
+            category=InformationDisclosure,
+            vid="KHV021",
         )
         self.email = email
         self.evidence = "email: {}".format(self.email)

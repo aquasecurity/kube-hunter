@@ -25,7 +25,11 @@ class WriteMountToVarLog(Vulnerability, Event):
 
     def __init__(self, pods):
         Vulnerability.__init__(
-            self, KubernetesCluster, "Pod With Mount To /var/log", category=PrivilegeEscalation, vid="KHV047",
+            self,
+            KubernetesCluster,
+            "Pod With Mount To /var/log",
+            category=PrivilegeEscalation,
+            vid="KHV047",
         )
         self.pods = pods
         self.evidence = "pods: {}".format(", ".join((pod["metadata"]["name"] for pod in self.pods)))
@@ -37,7 +41,10 @@ class DirectoryTraversalWithKubelet(Vulnerability, Event):
 
     def __init__(self, output):
         Vulnerability.__init__(
-            self, KubernetesCluster, "Root Traversal Read On The Kubelet", category=PrivilegeEscalation,
+            self,
+            KubernetesCluster,
+            "Root Traversal Read On The Kubelet",
+            category=PrivilegeEscalation,
         )
         self.output = output
         self.evidence = "output: {}".format(self.output)
@@ -82,7 +89,10 @@ class ProveVarLogMount(ActiveHunter):
 
     def run(self, command, container):
         run_url = KubeletHandlers.RUN.value.format(
-            podNamespace=container["namespace"], podID=container["pod"], containerName=container["name"], cmd=command,
+            podNamespace=container["namespace"],
+            podID=container["pod"],
+            containerName=container["name"],
+            cmd=command,
         )
         return self.event.session.post(f"{self.base_path}/{run_url}", verify=False).text
 
@@ -91,7 +101,9 @@ class ProveVarLogMount(ActiveHunter):
         config = get_config()
         logger.debug("accessing /pods manually on ProveVarLogMount")
         pods = self.event.session.get(
-            f"{self.base_path}/" + KubeletHandlers.PODS.value, verify=False, timeout=config.network_timeout,
+            f"{self.base_path}/" + KubeletHandlers.PODS.value,
+            verify=False,
+            timeout=config.network_timeout,
         ).json()["items"]
         for pod in pods:
             volume = VarLogMountHunter(ExposedPodsHandler(pods=pods)).has_write_mount_to(pod, "/var/log")
@@ -117,7 +129,9 @@ class ProveVarLogMount(ActiveHunter):
             path=re.sub(r"^/var/log", "", host_path) + symlink_name
         )
         content = self.event.session.get(
-            f"{self.base_path}/{path_in_logs_endpoint}", verify=False, timeout=config.network_timeout,
+            f"{self.base_path}/{path_in_logs_endpoint}",
+            verify=False,
+            timeout=config.network_timeout,
         ).text
         # removing symlink
         self.run(f"rm {mount_path}/{symlink_name}", container=container)
@@ -134,7 +148,10 @@ class ProveVarLogMount(ActiveHunter):
                 }
                 try:
                     output = self.traverse_read(
-                        "/etc/shadow", container=cont, mount_path=mount_path, host_path=volume["hostPath"]["path"],
+                        "/etc/shadow",
+                        container=cont,
+                        mount_path=mount_path,
+                        host_path=volume["hostPath"]["path"],
                     )
                     self.publish_event(DirectoryTraversalWithKubelet(output=output))
                 except Exception:

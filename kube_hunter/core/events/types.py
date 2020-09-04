@@ -144,7 +144,8 @@ class NewHostEvent(Event):
             logger.debug("Checking whether the cluster is deployed on azure's cloud")
             # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
             result = requests.get(
-                f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}", timeout=config.network_timeout,
+                f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}",
+                timeout=config.network_timeout,
             ).json()
             return result["cloud"] or "NoCloud"
         except requests.ConnectionError:
@@ -194,7 +195,11 @@ class K8sVersionDisclosure(Vulnerability, Event):
 
     def __init__(self, version, from_endpoint, extra_info=""):
         Vulnerability.__init__(
-            self, KubernetesCluster, "K8s Version Disclosure", category=InformationDisclosure, vid="KHV002",
+            self,
+            KubernetesCluster,
+            "K8s Version Disclosure",
+            category=InformationDisclosure,
+            vid="KHV002",
         )
         self.version = version
         self.from_endpoint = from_endpoint

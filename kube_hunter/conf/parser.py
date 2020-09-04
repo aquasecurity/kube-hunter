@@ -9,7 +9,9 @@ def parser_add_arguments(parser):
     Contains initialization for all default arguments
     """
     parser.add_argument(
-        "--list", action="store_true", help="Displays all tests in kubehunter (add --active flag to see active tests)",
+        "--list",
+        action="store_true",
+        help="Displays all tests in kubehunter (add --active flag to see active tests)",
     )
 
     parser.add_argument("--interface", action="store_true", help="Set hunting on all network interfaces")
@@ -19,7 +21,9 @@ def parser_add_arguments(parser):
     parser.add_argument("--quick", action="store_true", help="Prefer quick scan (subnet 24)")
 
     parser.add_argument(
-        "--include-patched-versions", action="store_true", help="Don't skip patched versions when scanning",
+        "--include-patched-versions",
+        action="store_true",
+        help="Don't skip patched versions when scanning",
     )
 
     parser.add_argument(
@@ -29,11 +33,17 @@ def parser_add_arguments(parser):
     )
 
     parser.add_argument(
-        "--mapping", action="store_true", help="Outputs only a mapping of the cluster's nodes",
+        "--mapping",
+        action="store_true",
+        help="Outputs only a mapping of the cluster's nodes",
     )
 
     parser.add_argument(
-        "--remote", nargs="+", metavar="HOST", default=list(), help="One or more remote ip/dns to hunt",
+        "--remote",
+        nargs="+",
+        metavar="HOST",
+        default=list(),
+        help="One or more remote ip/dns to hunt",
     )
 
     parser.add_argument("--active", action="store_true", help="Enables active hunting")
@@ -47,7 +57,10 @@ def parser_add_arguments(parser):
     )
 
     parser.add_argument(
-        "--report", type=str, default="plain", help="Set report type, options are: plain, yaml, json",
+        "--report",
+        type=str,
+        default="plain",
+        help="Set report type, options are: plain, yaml, json",
     )
 
     parser.add_argument(
