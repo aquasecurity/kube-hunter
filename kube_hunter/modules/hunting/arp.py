@@ -17,7 +17,11 @@ class PossibleArpSpoofing(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self, KubernetesCluster, "Possible Arp Spoof", category=IdentityTheft, vid="KHV020",
+            self,
+            KubernetesCluster,
+            "Possible Arp Spoof",
+            category=IdentityTheft,
+            vid="KHV020",
         )
 
 
@@ -55,7 +59,9 @@ class ArpSpoofHunter(ActiveHunter):
         config = get_config()
         self_ip = sr1(IP(dst="1.1.1.1", ttl=1) / ICMP(), verbose=0, timeout=config.network_timeout)[IP].dst
         arp_responses, _ = srp(
-            Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"), timeout=config.network_timeout, verbose=0,
+            Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(op=1, pdst=f"{self_ip}/24"),
+            timeout=config.network_timeout,
+            verbose=0,
         )
 
         # arp enabled on cluster and more than one pod on node

@@ -23,7 +23,11 @@ class KubeProxyExposed(Vulnerability, Event):
 
     def __init__(self):
         Vulnerability.__init__(
-            self, KubernetesCluster, "Proxy Exposed", category=InformationDisclosure, vid="KHV049",
+            self,
+            KubernetesCluster,
+            "Proxy Exposed",
+            category=InformationDisclosure,
+            vid="KHV049",
         )
 
 
@@ -89,7 +93,9 @@ class ProveProxyExposed(ActiveHunter):
     def execute(self):
         config = get_config()
         version_metadata = requests.get(
-            f"http://{self.event.host}:{self.event.port}/version", verify=False, timeout=config.network_timeout,
+            f"http://{self.event.host}:{self.event.port}/version",
+            verify=False,
+            timeout=config.network_timeout,
         ).json()
         if "buildDate" in version_metadata:
             self.event.evidence = "build date: {}".format(version_metadata["buildDate"])
@@ -107,11 +113,15 @@ class K8sVersionDisclosureProve(ActiveHunter):
     def execute(self):
         config = get_config()
         version_metadata = requests.get(
-            f"http://{self.event.host}:{self.event.port}/version", verify=False, timeout=config.network_timeout,
+            f"http://{self.event.host}:{self.event.port}/version",
+            verify=False,
+            timeout=config.network_timeout,
         ).json()
         if "gitVersion" in version_metadata:
             self.publish_event(
                 K8sVersionDisclosure(
-                    version=version_metadata["gitVersion"], from_endpoint="/version", extra_info="on kube-proxy",
+                    version=version_metadata["gitVersion"],
+                    from_endpoint="/version",
+                    extra_info="on kube-proxy",
                 )
             )

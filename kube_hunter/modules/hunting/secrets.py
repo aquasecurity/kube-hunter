@@ -28,7 +28,10 @@ class SecretsAccess(Vulnerability, Event):
 
     def __init__(self, evidence):
         Vulnerability.__init__(
-            self, component=KubernetesCluster, name="Access to pod's secrets", category=AccessRisk,
+            self,
+            component=KubernetesCluster,
+            name="Access to pod's secrets",
+            category=AccessRisk,
         )
         self.evidence = evidence
 
