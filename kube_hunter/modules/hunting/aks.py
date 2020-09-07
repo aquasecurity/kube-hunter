@@ -46,16 +46,16 @@ class AzureSpnHunter(Hunter):
             logger.debug("failed getting pod info")
         else:
             pods_data = r.json().get("items", [])
-            suspecious_volume_names = []
+            suspicious_volume_names = []
             for pod_data in pods_data:
-                for volume in pod_data["spec"]["volumes"]:
-                    if volume["hostPath"]:
+                for volume in pod_data["spec"].get("volumes", []):
+                    if volume.get("hostPath"):
                         path = volume["hostPath"]["path"]
                         if "/etc/kubernetes/azure.json".startswith(path):
-                            suspecious_volume_names.append(volume["name"])
+                            suspicious_volume_names.append(volume["name"])
                 for container in pod_data["spec"]["containers"]:
-                    for mount in container["volumeMounts"]:
-                        if mount["name"] in suspecious_volume_names:
+                    for mount in container.get("volumeMounts", []):
+                        if mount["name"] in suspicious_volume_names:
                             return {
                                 "name": container["name"],
                                 "pod": pod_data["metadata"]["name"],
