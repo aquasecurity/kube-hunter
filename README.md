@@ -10,7 +10,7 @@
 
 kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster that you don't own!**
 
-**Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you to see and share the results online. You can also run the Python code yourself as described below.
+**Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a website at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you to see and share the results online. You can also run the Python code yourself as described below.
 
 **Explore vulnerabilities**: The kube-hunter knowledge base includes articles about discoverable vulnerabilities and issues. When kube-hunter reports an issue, it will show its VID (Vulnerability ID) so you can look it up in the KB at https://aquasecurity.github.io/kube-hunter/
 
