@@ -174,5 +174,8 @@ The example `job.yaml` file defines a Job that will run kube-hunter in a pod, us
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
 
+## Contribution 
+To read the contribution guidelines, <a href="https://github.com/aquasecurity/kube-hunter/blob/master/CONTRIBUTING.md"> Click here </a>
+
 ## License
 This repository is available under the [Apache License 2.0](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE).
