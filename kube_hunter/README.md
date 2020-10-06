@@ -1,3 +1,5 @@
+<img src="https://raw.githubusercontent.com/aquasecurity/kube-hunter/master/kube-hunter.png" height=180>
+
 # Guidelines for developing kube-hunter  
 ---  
 This document is intended for developers, if you are not a developer, please refer back to the [Deployment README](/README.md)    
