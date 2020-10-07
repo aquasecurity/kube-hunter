@@ -18,7 +18,7 @@ kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 
 [![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
 
-Table of Contents
+Table of Contents :bookmark_tabs:
 =================
 
 * [Hunting](#hunting)
@@ -35,9 +35,9 @@ Table of Contents
    * [Container](#container)
    * [Pod](#pod)
          
-## Hunting
+## Hunting :dart:
 
-### Where should I run kube-hunter?
+### Where should I run kube-hunter? :hearts:
 
 There are three different ways to run kube-hunter, each providing a different approach to detecting weaknesses in your cluster:
 
@@ -47,28 +47,28 @@ You can run kube-hunter directly on a machine in the cluster, and select the opt
 
 You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example).
 
-### Scanning options
+### Scanning options :clipboard:
 
 First check for these **[pre-requisites](#prerequisites)**.
 
 By default, kube-hunter will open an interactive session, in which you will be able to select one of the following scan options. You can also specify the scan option manually from the command line. These are your options:
 
-1. **Remote scanning**
+1. **Remote scanning** :paperclip:
 
 To specify remote machines for hunting, select option 1 or use the `--remote` option. Example:
 `kube-hunter --remote some.node.com`
 
-2. **Interface scanning**
+2. **Interface scanning** :paperclip:
 
 To specify interface scanning, you can use the `--interface` option (this will scan all of the machine's network interfaces). Example:
 `kube-hunter --interface`
 
-3. **Network scanning**
+3. **Network scanning** :paperclip:
 
 To specify a specific CIDR to scan, use the `--cidr` option. Example:
 `kube-hunter --cidr 192.168.0.0/24`
 
-### Active Hunting
+### Active Hunting  :dart:
 
 Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, to explore for further vulnerabilities.
 The main difference between normal and active hunting is that a normal hunt will never change the state of the cluster, while active hunting can potentially do state-changing operations on the cluster, **which could be harmful**.
@@ -76,19 +76,19 @@ The main difference between normal and active hunting is that a normal hunt will
 By default, kube-hunter does not do active hunting. To active hunt a cluster, use the `--active` flag. Example:
 `kube-hunter --remote some.domain.com --active`
 
-### List of tests
+### List of tests :bookmark_tabs:
 You can see the list of tests with the `--list` option: Example:
 `kube-hunter --list`
 
 To see active hunting tests as well as passive:
 `kube-hunter --list --active`
 
-### Nodes Mapping 
+### Nodes Mapping  :school_satchel:
 To see only a mapping of your nodes network, run with `--mapping` option. Example:
 `kube-hunter --cidr 192.168.0.0/24 --mapping`
 This will output all the Kubernetes nodes kube-hunter has found.
 
-### Output
+### Output :mortar_board:
 To control logging, you can specify a log level, using the `--log` option. Example:
 `kube-hunter --active --log WARNING`
 Available log levels are:
@@ -97,7 +97,7 @@ Available log levels are:
 * INFO (default)
 * WARNING
 
-### Dispatching
+### Dispatching :computer:
 By default, the report will be dispatched to `stdout`, but you can specify different methods by using the `--dispatch` option. Example:
 `kube-hunter --report json --dispatch http`
 Available dispatch methods are:
@@ -107,20 +107,20 @@ Available dispatch methods are:
     * KUBEHUNTER_HTTP_DISPATCH_URL (defaults to: https://localhost)
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
-## Deployment
+## Deployment :pushpin:
 There are three methods for deploying kube-hunter:
 
-### On Machine
+### On Machine :pushpin:
 
 You can run kube-hunter directly on your machine.
 
-#### Prerequisites
+#### Prerequisites :pushpin:
 
 You will need the following installed:
 * python 3.x
 * pip
 
-##### Install with pip
+##### Install with pip :pushpin:
 
 Install:
 ~~~
@@ -132,7 +132,7 @@ Run:
 kube-hunter
 ~~~
 
-##### Run from source
+##### Run from source :inbox_tray:
 Clone the repository:
 ~~~
 git clone https://github.com/aquasecurity/kube-hunter.git
@@ -151,7 +151,7 @@ python3 kube_hunter
 
 _If you want to use pyinstaller/py2exe you need to first run the install_imports.py script._
 
-### Container
+### Container :orange_book:
 Aqua Security maintains a containerized version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note, that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
 
 The Dockerfile in this repository allows you to build a containerized version without the reporting plugin.
@@ -165,7 +165,7 @@ By default, kube-hunter runs in interactive mode. You can also specify the scann
 
 `docker run --rm aquasec/kube-hunter --cidr 192.168.0.0/24`
 
-### Pod
+### Pod :name_badge:
 This option lets you discover what running a malicious container can do/discover on your cluster. This gives a perspective on what an attacker could do if they were able to compromise a pod, perhaps through a software vulnerability. This may reveal significantly more vulnerabilities.
 
 The example `job.yaml` file defines a Job that will run kube-hunter in a pod, using default Kubernetes pod access settings. (You may wish to modify this definition, for example to run as a non-root user, or to run in a different namespace.)
@@ -174,5 +174,5 @@ The example `job.yaml` file defines a Job that will run kube-hunter in a pod, us
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
 
-## License
+## License :newspaper:
 This repository is available under the [Apache License 2.0](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE).
