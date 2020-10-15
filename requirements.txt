@@ -1,1 +1,12 @@
--e .
+urllib3==1.25.10
+requests==2.24.0
+packaging==20.4
+dataclasses==0.7
+netaddr==0.8.0
+netifaces==0.10.9
+pluggy==0.13.1
+prettytable==1.0.1
+pytest==6.1.1
+requests_mock==1.8.0
+ruamel.base==1.0.0
+scapy==2.4.4
