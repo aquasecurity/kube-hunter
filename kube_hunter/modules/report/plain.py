@@ -9,7 +9,7 @@ from kube_hunter.modules.report.collector import (
     vulnerabilities_lock,
 )
 
-EVIDENCE_PREVIEW = 40
+EVIDENCE_PREVIEW = 100
 MAX_TABLE_WIDTH = 20
 KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/_kb"
 
