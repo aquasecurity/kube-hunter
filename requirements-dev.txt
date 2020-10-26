@@ -13,3 +13,4 @@ staticx
 black
 pre-commit
 flake8-bugbear
+prettytable == 0.7.2
