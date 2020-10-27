@@ -14,8 +14,6 @@ kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 
 **Explore vulnerabilities**: The kube-hunter knowledge base includes articles about discoverable vulnerabilities and issues. When kube-hunter reports an issue, it will show its VID (Vulnerability ID) so you can look it up in the KB at https://aquasecurity.github.io/kube-hunter/
 
-**Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your First kube-hunter Module](https://github.com/aquasecurity/kube-hunter/blob/master/CONTRIBUTING.md).
-
 [![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
 
 Table of Contents
@@ -34,6 +32,10 @@ Table of Contents
       * [Prerequisites](#prerequisites)
    * [Container](#container)
    * [Pod](#pod)
+ * [Contributing](#contributing)
+    * [Bugs](#bugs)
+    * [Features](#features)
+    * [Pull Requests](#pull-requests)
          
 ## Hunting
 
@@ -173,6 +175,36 @@ The example `job.yaml` file defines a Job that will run kube-hunter in a pod, us
 * Run the job with `kubectl create -f ./job.yaml`
 * Find the pod name with `kubectl describe job kube-hunter`
 * View the test results with `kubectl logs <pod name>`
+## Contributing
+
+We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your    First kube-hunter Module](https://github.com/aquasecurity/kube-hunter/blob/master/CONTRIBUTING.md).
+
+### Bugs
+
+If you think you have found a bug please follow the instructions below.
+
+- Please spend a small amount of time giving due diligence to the issue tracker. Your issue might be a duplicate.
+- Open a new issue if a duplicate doesn't already exist.
+- Remember users might be searching for your issue in the future, so please give it a meaningful title to help others.
+
+### Features
+
+We also use the GitHub issue tracker to track feature requests. If you have an idea to make kube-bench even more awesome follow the steps below.
+
+- Open a new issue.
+- Remember users might be searching for your issue in the future, so please give it a meaningful title to helps others.
+- Clearly define the use case, using concrete examples.
+- If you would like to include a technical design for your feature please feel free to do so.
+
+### Pull Requests
+
+We welcome pull requests!
+
+- Your PR is more likely to be accepted if it focuses on just one change.
+- Please include a comment with the results before and after your change.
+- Your PR is more likely to be accepted if it includes tests. (We have not historically been very strict about tests, but we would like to improve this!).
+- You're welcome to submit a draft PR if you would like early feedback on an idea or an approach.
+- Happy coding!
 
 ## License
 This repository is available under the [Apache License 2.0](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE).
