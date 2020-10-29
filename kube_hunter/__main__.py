@@ -72,13 +72,13 @@ def list_hunters():
     print("\nPassive Hunters:\n----------------")
     for hunter, docs in handler.passive_hunters.items():
         name, doc = hunter.parse_docs(docs)
-        print("* {}\n  {}\n".format(name, doc))
+        print(f"* {name}\n  {doc}\n")
 
     if config.active:
         print("\n\nActive Hunters:\n---------------")
         for hunter, docs in handler.active_hunters.items():
             name, doc = hunter.parse_docs(docs)
-            print("* {}\n  {}\n".format(name, doc))
+            print(f"* {name}\n  {doc}\n")
 
 
 hunt_started_lock = threading.Lock()

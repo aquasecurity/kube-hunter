@@ -25,7 +25,7 @@ class PossibleDnsSpoofing(Vulnerability, Event):
             vid="KHV030",
         )
         self.kubedns_pod_ip = kubedns_pod_ip
-        self.evidence = "kube-dns at: {}".format(self.kubedns_pod_ip)
+        self.evidence = f"kube-dns at: {self.kubedns_pod_ip}"
 
 
 # Only triggered with RunningAsPod base event

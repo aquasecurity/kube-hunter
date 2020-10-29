@@ -32,7 +32,7 @@ class WriteMountToVarLog(Vulnerability, Event):
             vid="KHV047",
         )
         self.pods = pods
-        self.evidence = "pods: {}".format(", ".join((pod["metadata"]["name"] for pod in self.pods)))
+        self.evidence = "pods: {}".format(", ".join(pod["metadata"]["name"] for pod in self.pods))
 
 
 class DirectoryTraversalWithKubelet(Vulnerability, Event):
@@ -47,7 +47,7 @@ class DirectoryTraversalWithKubelet(Vulnerability, Event):
             category=PrivilegeEscalation,
         )
         self.output = output
-        self.evidence = "output: {}".format(self.output)
+        self.evidence = f"output: {self.output}"
 
 
 @handler.subscribe(ExposedPodsHandler)
