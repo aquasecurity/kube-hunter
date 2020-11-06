@@ -2,6 +2,23 @@
 ---
 # Welcome to kube-hunter documentation
 
+# Table of Content
+-[Documentation for vulnerabilities]
+-[Getting started]
+   -[Where should I run kube-hunter?]
+   -[Scanning options]
+   -[Active Hunting]
+   -[List of tests]
+   -[Nodes Mapping]
+   -[Output]
+   -[Dispatching]
+-[Deployment]
+   -[On Machine]
+      -[Prerequisites]
+   -[Container]
+   -[Pod]
+      
+      
 ## Documentation for vulnerabilities
 
 For information about a specific vulnerability reported by kube-hunter, enter its 'VID' (e.g. KHV004) in the search box to the left, to get to the vulnerability article.
