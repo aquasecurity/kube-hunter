@@ -13,6 +13,7 @@ class Config:
     - interface: Interface scanning mode
     - list_hunters: Print a list of existing hunters
     - log_level: Log level
+    - log_file: Log File path
     - mapping: Report only found components
     - network_timeout: Timeout for network operations
     - pod: From pod scanning mode
@@ -27,6 +28,7 @@ class Config:
     dispatcher: Optional[Any] = None
     include_patched_versions: bool = False
     interface: bool = False
+    log_file: Optional[str] = None
     mapping: bool = False
     network_timeout: float = 5.0
     pod: bool = False
