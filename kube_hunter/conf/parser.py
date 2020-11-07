@@ -57,6 +57,13 @@ def parser_add_arguments(parser):
     )
 
     parser.add_argument(
+        "--log-file",
+        type=str,
+        default=None,
+        help="Path to a log file to output all logs to",
+    )
+
+    parser.add_argument(
         "--report",
         type=str,
         default="plain",
