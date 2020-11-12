@@ -18,6 +18,7 @@ config = Config(
     cidr=args.cidr,
     include_patched_versions=args.include_patched_versions,
     interface=args.interface,
+    log_file=args.log_file,
     mapping=args.mapping,
     network_timeout=args.network_timeout,
     pod=args.pod,
@@ -25,7 +26,7 @@ config = Config(
     remote=args.remote,
     statistics=args.statistics,
 )
-setup_logger(args.log)
+setup_logger(args.log, args.log_file)
 set_config(config)
 
 # Running all other registered plugins before execution
