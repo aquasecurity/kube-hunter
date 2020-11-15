@@ -63,6 +63,6 @@ class BaseReporter:
         if statistics:
             report["hunter_statistics"] = self.get_hunter_statistics()
 
-        report["kburl"] = "https://aquasecurity.github.io/kube-hunter/kb/{vid}"
+        report["kburl"] = "https://avd.aquasec.com/kube-hunter/{vid}"
 
         return report
