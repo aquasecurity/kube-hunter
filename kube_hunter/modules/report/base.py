@@ -34,12 +34,13 @@ class BaseReporter:
             return [
                 {
                     "location": vuln.location(),
-                    "vid": FULL_KB_LINK.format(vid=vuln.get_vid().lower()),
+                    "vid": vuln.get_vid(),
                     "category": vuln.category.name,
                     "severity": vuln.get_severity(),
                     "vulnerability": vuln.get_name(),
                     "description": vuln.explain(),
                     "evidence": str(vuln.evidence),
+                    "avd_reference": FULL_KB_LINK.format(vid=vuln.get_vid().lower()),
                     "hunter": vuln.hunter.get_name(),
                 }
                 for vuln in vulnerabilities
