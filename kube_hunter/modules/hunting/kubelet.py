@@ -39,6 +39,7 @@ class ExposedPodsHandler(Vulnerability, Event):
             component=Kubelet,
             name="Exposed Pods",
             category=InformationDisclosure,
+            vid="KHV052"
         )
         self.pods = pods
         self.evidence = f"count: {len(self.pods)}"
