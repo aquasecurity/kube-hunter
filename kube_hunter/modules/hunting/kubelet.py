@@ -1147,8 +1147,8 @@ class ProveSystemLogs(ActiveHunter):
             timeout=config.network_timeout,
         )
 
-        #TODO: add more methods for proving system logs
-        if audit_logs.status_code == requests.status_codes.codes.OK:    
+        # TODO: add more methods for proving system logs
+        if audit_logs.status_code == requests.status_codes.codes.OK:
             logger.debug(f"Audit log of host {self.event.host}: {audit_logs.text[:10]}")
             # iterating over proctitles and converting them into readable strings
             proctitles = []
