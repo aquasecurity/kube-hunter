@@ -10,6 +10,7 @@ from kube_hunter.modules.report.collector import (
 BASE_KB_LINK = "https://avd.aquasec.com/"
 FULL_KB_LINK = "https://avd.aquasec.com/kube-hunter/{vid}/"
 
+
 class BaseReporter:
     def get_nodes(self):
         nodes = list()
