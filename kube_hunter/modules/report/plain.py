@@ -60,7 +60,7 @@ class PlainReporter(BaseReporter):
             if service.event_id not in id_memory:
                 nodes_table.add_row(["Node/Master", service.host])
                 id_memory.add(service.event_id)
-        nodes_ret = "\nNodes\n{}\n".format(nodes_table)
+        nodes_ret = f"\nNodes\n{nodes_table}\n"
         services_lock.release()
         return nodes_ret
 

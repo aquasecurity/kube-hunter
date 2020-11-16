@@ -23,7 +23,7 @@ class CertificateEmail(Vulnerability, Event):
             vid="KHV021",
         )
         self.email = email
-        self.evidence = "email: {}".format(self.email)
+        self.evidence = f"email: {self.email}"
 
 
 @handler.subscribe(Service)
