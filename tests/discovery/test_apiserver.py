@@ -123,7 +123,7 @@ def test_InsecureApiServer():
 
 # We should only generate an ApiServer event for a response that looks like it came from a Kubernetes node
 @handler.subscribe(ApiServer)
-class testApiServer(object):
+class testApiServer:
     def __init__(self, event):
         print("Event")
         assert event.host == "mockKubernetes"
