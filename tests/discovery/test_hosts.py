@@ -90,7 +90,7 @@ class TestDiscoveryUtils:
     def test_generate_hosts_valid_ignore():
         remove = IPAddress("192.168.1.8")
         scan = "192.168.1.0/24"
-        expected = set(ip for ip in IPNetwork(scan) if ip != remove)
+        expected = {ip for ip in IPNetwork(scan) if ip != remove}
 
         actual = set(HostDiscoveryHelpers.generate_hosts([scan, f"!{str(remove)}"]))
 
