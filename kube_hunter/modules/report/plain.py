@@ -1,6 +1,6 @@
 from prettytable import ALL, PrettyTable
 
-from kube_hunter.modules.report.base import BaseReporter
+from kube_hunter.modules.report.base import BaseReporter, BASE_KB_LINK
 from kube_hunter.modules.report.collector import (
     services,
     vulnerabilities,
@@ -11,7 +11,6 @@ from kube_hunter.modules.report.collector import (
 
 EVIDENCE_PREVIEW = 100
 MAX_TABLE_WIDTH = 20
-KB_LINK = "https://github.com/aquasecurity/kube-hunter/tree/master/docs/_kb"
 
 
 class PlainReporter(BaseReporter):
@@ -114,7 +113,7 @@ class PlainReporter(BaseReporter):
         return (
             "\nVulnerabilities\n"
             "For further information about a vulnerability, search its ID in: \n"
-            f"{KB_LINK}\n{vuln_table}\n"
+            f"{BASE_KB_LINK}\n{vuln_table}\n"
         )
 
     def hunters_table(self):
