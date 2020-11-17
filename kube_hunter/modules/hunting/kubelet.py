@@ -35,10 +35,7 @@ class ExposedPodsHandler(Vulnerability, Event):
 
     def __init__(self, pods):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Pods",
-            category=InformationDisclosure,
+            self, component=Kubelet, name="Exposed Pods", category=InformationDisclosure, vid="KHV052"
         )
         self.pods = pods
         self.evidence = f"count: {len(self.pods)}"
