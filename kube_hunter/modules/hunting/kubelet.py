@@ -1136,11 +1136,16 @@ class ProveSystemLogs(ActiveHunter):
             f"{self.base_url}/" + KubeletHandlers.LOGS.value.format(path="audit/audit.log"),
             verify=False,
             timeout=config.network_timeout,
-        ).text
-        logger.debug(f"Audit log of host {self.event.host}: {audit_logs[:10]}")
-        # iterating over proctitles and converting them into readable strings
-        proctitles = []
-        for proctitle in re.findall(r"proctitle=(\w+)", audit_logs):
-            proctitles.append(bytes.fromhex(proctitle).decode("utf-8").replace("\x00", " "))
-        self.event.proctitles = proctitles
-        self.event.evidence = f"audit log: {proctitles}"
+        )
+
+        # TODO: add more methods for proving system logs
+        if audit_logs.status_code == requests.status_codes.codes.OK:
+            logger.debug(f"Audit log of host {self.event.host}: {audit_logs.text[:10]}")
+            # iterating over proctitles and converting them into readable strings
+            proctitles = []
+            for proctitle in re.findall(r"proctitle=(\w+)", audit_logs.text):
+                proctitles.append(bytes.fromhex(proctitle).decode("utf-8").replace("\x00", " "))
+            self.event.proctitles = proctitles
+            self.event.evidence = f"audit log: {proctitles}"
+        else:
+            self.event.evidence = "Could not parse system logs"
