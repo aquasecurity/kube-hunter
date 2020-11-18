@@ -343,7 +343,7 @@ class AccessApiServer(Hunter):
             else:
                 self.publish_event(ServerApiAccess(api, self.with_token))
 
-        namespaces = self.get_items("{path}/api/v1/namespaces".format(path=self.path))
+        namespaces = self.get_items(f"{self.path}/api/v1/namespaces")
         if namespaces:
             self.publish_event(ListNamespaces(namespaces, self.with_token))
 
@@ -371,7 +371,7 @@ class AccessApiServerWithToken(AccessApiServer):
     """
 
     def __init__(self, event):
-        super(AccessApiServerWithToken, self).__init__(event)
+        super().__init__(event)
         assert self.event.auth_token
         self.headers = {"Authorization": f"Bearer {self.event.auth_token}"}
         self.category = InformationDisclosure

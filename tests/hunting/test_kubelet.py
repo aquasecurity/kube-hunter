@@ -270,7 +270,7 @@ def test_proveanonymousauth_connectivity_issues():
 
 
 @handler.subscribe(ExposedExistingPrivilegedContainersViaSecureKubeletPort)
-class ExposedPrivilegedContainersViaAnonymousAuthEnabledInSecureKubeletPortEventCounter(object):
+class ExposedPrivilegedContainersViaAnonymousAuthEnabledInSecureKubeletPortEventCounter:
     def __init__(self, event):
         global counter
         counter += 1
@@ -371,9 +371,9 @@ def test_attack_exposed_existing_privileged_container_success():
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
         file_name = "kube-hunter-mock" + str(uuid.uuid1())
-        file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
+        file_name_with_path = f"{directory_created}/etc/cron.daily/{file_name}"
 
-        session_mock.post(run_url + urllib.parse.quote("touch {}".format(file_name_with_path), safe=""), text="")
+        session_mock.post(run_url + urllib.parse.quote(f"touch {file_name_with_path}", safe=""), text="")
         session_mock.post(
             run_url + urllib.parse.quote("chmod {} {}".format("755", file_name_with_path), safe=""), text=""
         )
@@ -395,12 +395,12 @@ def test_attack_exposed_existing_privileged_container_failure_when_touch():
     with requests_mock.Mocker(session=class_being_tested.event.session) as session_mock:
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
         file_name = "kube-hunter-mock" + str(uuid.uuid1())
-        file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
+        file_name_with_path = f"{directory_created}/etc/cron.daily/{file_name}"
 
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         session_mock.post(
-            run_url + urllib.parse.quote("touch {}".format(file_name_with_path), safe=""),
+            run_url + urllib.parse.quote(f"touch {file_name_with_path}", safe=""),
             text="Operation not permitted",
         )
 
@@ -420,11 +420,11 @@ def test_attack_exposed_existing_privileged_container_failure_when_chmod():
     with requests_mock.Mocker(session=class_being_tested.event.session) as session_mock:
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
         file_name = "kube-hunter-mock" + str(uuid.uuid1())
-        file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
+        file_name_with_path = f"{directory_created}/etc/cron.daily/{file_name}"
 
         url = "https://localhost:10250/"
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
-        session_mock.post(run_url + urllib.parse.quote("touch {}".format(file_name_with_path), safe=""), text="")
+        session_mock.post(run_url + urllib.parse.quote(f"touch {file_name_with_path}", safe=""), text="")
         session_mock.post(
             run_url + urllib.parse.quote("chmod {} {}".format("755", file_name_with_path), safe=""),
             text="Permission denied",
@@ -547,12 +547,12 @@ def test_process_exposed_existing_privileged_container_success():
 
         session_mock.post(run_url + urllib.parse.quote("cat /proc/cmdline", safe=""), text=cat_proc_cmdline)
         session_mock.post(run_url + urllib.parse.quote("findfs LABEL=Mock", safe=""), text="/dev/mock_fs")
-        session_mock.post(run_url + urllib.parse.quote("mkdir {}".format(directory_created), safe=""), text="")
+        session_mock.post(run_url + urllib.parse.quote(f"mkdir {directory_created}", safe=""), text="")
         session_mock.post(
             run_url + urllib.parse.quote("mount {} {}".format("/dev/mock_fs", directory_created), safe=""), text=""
         )
         session_mock.post(
-            run_url + urllib.parse.quote("cat {}/etc/hostname".format(directory_created), safe=""), text="mockhostname"
+            run_url + urllib.parse.quote(f"cat {directory_created}/etc/hostname", safe=""), text="mockhostname"
         )
 
         return_value = class_being_tested.process_exposed_existing_privileged_container(
@@ -619,9 +619,7 @@ def test_process_exposed_existing_privileged_container_failure_when_mkdir():
 
         session_mock.post(run_url + urllib.parse.quote("cat /proc/cmdline", safe=""), text=cat_proc_cmdline)
         session_mock.post(run_url + urllib.parse.quote("findfs LABEL=Mock", safe=""), text="/dev/mock_fs")
-        session_mock.post(
-            run_url + urllib.parse.quote("mkdir {}".format(directory_created), safe=""), text="Permission denied"
-        )
+        session_mock.post(run_url + urllib.parse.quote(f"mkdir {directory_created}", safe=""), text="Permission denied")
 
         return_value = class_being_tested.process_exposed_existing_privileged_container(
             url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu",
@@ -644,7 +642,7 @@ def test_process_exposed_existing_privileged_container_failure_when_mount():
 
         session_mock.post(run_url + urllib.parse.quote("cat /proc/cmdline", safe=""), text=cat_proc_cmdline)
         session_mock.post(run_url + urllib.parse.quote("findfs LABEL=Mock", safe=""), text="/dev/mock_fs")
-        session_mock.post(run_url + urllib.parse.quote("mkdir {}".format(directory_created), safe=""), text="")
+        session_mock.post(run_url + urllib.parse.quote(f"mkdir {directory_created}", safe=""), text="")
         session_mock.post(
             run_url + urllib.parse.quote("mount {} {}".format("/dev/mock_fs", directory_created), safe=""),
             text="Permission denied",
@@ -671,12 +669,12 @@ def test_process_exposed_existing_privileged_container_failure_when_cat_hostname
 
         session_mock.post(run_url + urllib.parse.quote("cat /proc/cmdline", safe=""), text=cat_proc_cmdline)
         session_mock.post(run_url + urllib.parse.quote("findfs LABEL=Mock", safe=""), text="/dev/mock_fs")
-        session_mock.post(run_url + urllib.parse.quote("mkdir {}".format(directory_created), safe=""), text="")
+        session_mock.post(run_url + urllib.parse.quote(f"mkdir {directory_created}", safe=""), text="")
         session_mock.post(
             run_url + urllib.parse.quote("mount {} {}".format("/dev/mock_fs", directory_created), safe=""), text=""
         )
         session_mock.post(
-            run_url + urllib.parse.quote("cat {}/etc/hostname".format(directory_created), safe=""),
+            run_url + urllib.parse.quote(f"cat {directory_created}/etc/hostname", safe=""),
             text="Permission denied",
         )
 
@@ -699,18 +697,18 @@ def test_maliciousintentviasecurekubeletport_success():
         run_url = url + "run/kube-hunter-privileged/kube-hunter-privileged-deployment-86dc79f945-sjjps/ubuntu?cmd="
         directory_created = "/kube-hunter-mock_" + str(uuid.uuid1())
         file_name = "kube-hunter-mock" + str(uuid.uuid1())
-        file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
+        file_name_with_path = f"{directory_created}/etc/cron.daily/{file_name}"
 
         session_mock.post(run_url + urllib.parse.quote("cat /proc/cmdline", safe=""), text=cat_proc_cmdline)
         session_mock.post(run_url + urllib.parse.quote("findfs LABEL=Mock", safe=""), text="/dev/mock_fs")
-        session_mock.post(run_url + urllib.parse.quote("mkdir {}".format(directory_created), safe=""), text="")
+        session_mock.post(run_url + urllib.parse.quote(f"mkdir {directory_created}", safe=""), text="")
         session_mock.post(
             run_url + urllib.parse.quote("mount {} {}".format("/dev/mock_fs", directory_created), safe=""), text=""
         )
         session_mock.post(
-            run_url + urllib.parse.quote("cat {}/etc/hostname".format(directory_created), safe=""), text="mockhostname"
+            run_url + urllib.parse.quote(f"cat {directory_created}/etc/hostname", safe=""), text="mockhostname"
         )
-        session_mock.post(run_url + urllib.parse.quote("touch {}".format(file_name_with_path), safe=""), text="")
+        session_mock.post(run_url + urllib.parse.quote(f"touch {file_name_with_path}", safe=""), text="")
         session_mock.post(
             run_url + urllib.parse.quote("chmod {} {}".format("755", file_name_with_path), safe=""), text=""
         )

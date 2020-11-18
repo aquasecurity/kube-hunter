@@ -122,7 +122,7 @@ def test_AccessApiServer():
 
 
 @handler.subscribe(ListNamespaces)
-class test_ListNamespaces(object):
+class test_ListNamespaces:
     def __init__(self, event):
         print("ListNamespaces")
         assert event.evidence == ["hello"]
@@ -135,7 +135,7 @@ class test_ListNamespaces(object):
 
 
 @handler.subscribe(ListPodsAndNamespaces)
-class test_ListPodsAndNamespaces(object):
+class test_ListPodsAndNamespaces:
     def __init__(self, event):
         print("ListPodsAndNamespaces")
         assert len(event.evidence) == 2
@@ -158,7 +158,7 @@ class test_ListPodsAndNamespaces(object):
 
 # Should never see this because the API call in the test returns 403 status code
 @handler.subscribe(ListRoles)
-class test_ListRoles(object):
+class test_ListRoles:
     def __init__(self, event):
         print("ListRoles")
         assert 0
@@ -169,7 +169,7 @@ class test_ListRoles(object):
 # Should only see this when we have a token because the API call returns an empty list of items
 # in the test where we have no token
 @handler.subscribe(ListClusterRoles)
-class test_ListClusterRoles(object):
+class test_ListClusterRoles:
     def __init__(self, event):
         print("ListClusterRoles")
         assert event.auth_token == "so-secret"
@@ -178,7 +178,7 @@ class test_ListClusterRoles(object):
 
 
 @handler.subscribe(ServerApiAccess)
-class test_ServerApiAccess(object):
+class test_ServerApiAccess:
     def __init__(self, event):
         print("ServerApiAccess")
         if event.category == UnauthenticatedAccess:
@@ -191,7 +191,7 @@ class test_ServerApiAccess(object):
 
 
 @handler.subscribe(ApiServerPassiveHunterFinished)
-class test_PassiveHunterFinished(object):
+class test_PassiveHunterFinished:
     def __init__(self, event):
         print("PassiveHunterFinished")
         assert event.namespaces == ["hello"]
@@ -276,12 +276,12 @@ def test_AccessApiServerActive():
 
 
 @handler.subscribe(CreateANamespace)
-class test_CreateANamespace(object):
+class test_CreateANamespace:
     def __init__(self, event):
         assert "abcde" in event.evidence
 
 
 @handler.subscribe(DeleteANamespace)
-class test_DeleteANamespace(object):
+class test_DeleteANamespace:
     def __init__(self, event):
         assert "2019-02-26" in event.evidence
