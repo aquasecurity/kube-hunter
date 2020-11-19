@@ -375,8 +375,9 @@ class SecureKubeletPortHunter(Hunter):
                 container_name="test",
                 cmd="",
             )
-            # if we get a Method Not Allowed, we know we passed Authentication and Authorization.
-            return self.session.get(run_url, verify=False, timeout=config.network_timeout).status_code == 405
+            # if we get this message, we know we passed Authentication and Authorization, and that the endpoint is enabled.
+            status_code = self.session.post(run_url, verify=False, timeout=config.network_timeout).status_code
+            return status_code == requests.codes.NOT_FOUND
 
         # returns list of currently running pods
         def test_running_pods(self):
