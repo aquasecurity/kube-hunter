@@ -357,13 +357,6 @@ class SecureKubeletPortHunter(Hunter):
                 pod_id=self.pod["name"],
                 port=80,
             )
-            self.session.get(
-                pf_url,
-                headers=headers,
-                verify=False,
-                stream=True,
-                timeout=config.network_timeout,
-            ).status_code == 200
             # TODO: what to return?
 
         # executes one command and returns output
