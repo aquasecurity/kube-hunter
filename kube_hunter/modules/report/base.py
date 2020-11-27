@@ -7,6 +7,9 @@ from kube_hunter.modules.report.collector import (
     vulnerabilities_lock,
 )
 
+BASE_KB_LINK = "https://avd.aquasec.com/"
+FULL_KB_LINK = "https://avd.aquasec.com/kube-hunter/{vid}/"
+
 
 class BaseReporter:
     def get_nodes(self):
@@ -38,6 +41,7 @@ class BaseReporter:
                     "vulnerability": vuln.get_name(),
                     "description": vuln.explain(),
                     "evidence": str(vuln.evidence),
+                    "avd_reference": FULL_KB_LINK.format(vid=vuln.get_vid().lower()),
                     "hunter": vuln.hunter.get_name(),
                 }
                 for vuln in vulnerabilities
@@ -62,7 +66,5 @@ class BaseReporter:
 
         if statistics:
             report["hunter_statistics"] = self.get_hunter_statistics()
-
-        report["kburl"] = "https://aquasecurity.github.io/kube-hunter/kb/{vid}"
 
         return report

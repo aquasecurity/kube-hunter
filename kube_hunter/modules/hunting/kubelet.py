@@ -35,10 +35,7 @@ class ExposedPodsHandler(Vulnerability, Event):
 
     def __init__(self, pods):
         Vulnerability.__init__(
-            self,
-            component=Kubelet,
-            name="Exposed Pods",
-            category=InformationDisclosure,
+            self, component=Kubelet, name="Exposed Pods", category=InformationDisclosure, vid="KHV052"
         )
         self.pods = pods
         self.evidence = f"count: {len(self.pods)}"
@@ -84,7 +81,7 @@ class ExposedRunningPodsHandler(Vulnerability, Event):
             vid="KHV038",
         )
         self.count = count
-        self.evidence = "{} running pods".format(self.count)
+        self.evidence = f"{self.count} running pods"
 
 
 class ExposedExecHandler(Vulnerability, Event):
@@ -378,8 +375,9 @@ class SecureKubeletPortHunter(Hunter):
                 container_name="test",
                 cmd="",
             )
-            # if we get a Method Not Allowed, we know we passed Authentication and Authorization.
-            return self.session.get(run_url, verify=False, timeout=config.network_timeout).status_code == 405
+            # if we get this message, we know we passed Authentication and Authorization, and that the endpoint is enabled.
+            status_code = self.session.post(run_url, verify=False, timeout=config.network_timeout).status_code
+            return status_code == requests.codes.NOT_FOUND
 
         # returns list of currently running pods
         def test_running_pods(self):
@@ -532,7 +530,7 @@ class ProveAnonymousAuth(ActiveHunter):
 
     def __init__(self, event):
         self.event = event
-        self.base_url = "https://{host}:10250/".format(host=self.event.host)
+        self.base_url = f"https://{self.event.host}:10250/"
 
     def get_request(self, url, verify=False):
         config = get_config()
@@ -571,7 +569,7 @@ class ProveAnonymousAuth(ActiveHunter):
         return ProveAnonymousAuth.has_no_error(result) and ProveAnonymousAuth.has_no_exception(result)
 
     def cat_command(self, run_request_url, full_file_path):
-        return self.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
+        return self.post_request(run_request_url, {"cmd": f"cat {full_file_path}"})
 
     def process_container(self, run_request_url):
         service_account_token = self.cat_command(run_request_url, "/var/run/secrets/kubernetes.io/serviceaccount/token")
@@ -608,7 +606,7 @@ class ProveAnonymousAuth(ActiveHunter):
                 for container_data in pod_data["spec"]["containers"]:
                     container_name = container_data["name"]
 
-                    run_request_url = self.base_url + "run/{}/{}/{}".format(pod_namespace, pod_id, container_name)
+                    run_request_url = self.base_url + f"run/{pod_namespace}/{pod_id}/{container_name}"
 
                     extracted_data = self.process_container(run_request_url)
 
@@ -617,11 +615,11 @@ class ProveAnonymousAuth(ActiveHunter):
                         environment_variables = extracted_data["environment_variables"]
 
                         temp_message += (
-                            "\n\nPod namespace: {}".format(pod_namespace)
-                            + "\n\nPod ID: {}".format(pod_id)
-                            + "\n\nContainer name: {}".format(container_name)
-                            + "\n\nService account token: {}".format(service_account_token)
-                            + "\nEnvironment variables: {}".format(environment_variables)
+                            f"\n\nPod namespace: {pod_namespace}"
+                            + f"\n\nPod ID: {pod_id}"
+                            + f"\n\nContainer name: {container_name}"
+                            + f"\n\nService account token: {service_account_token}"
+                            + f"\nEnvironment variables: {environment_variables}"
                         )
 
                         first_check = container_data.get("securityContext", {}).get("privileged")
@@ -646,7 +644,7 @@ class ProveAnonymousAuth(ActiveHunter):
             if temp_message:
                 message = "The following containers have been successfully breached." + temp_message
 
-                self.event.evidence = "{}".format(message)
+                self.event.evidence = f"{message}"
 
             if exposed_existing_privileged_containers:
                 self.publish_event(
@@ -666,7 +664,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
     def __init__(self, event, seconds_to_wait_for_os_command=1):
         self.event = event
-        self.base_url = "https://{host}:10250/".format(host=self.event.host)
+        self.base_url = f"https://{self.event.host}:10250/"
         self.seconds_to_wait_for_os_command = seconds_to_wait_for_os_command
         self.number_of_rm_attempts = 5
         self.number_of_rmdir_attempts = 5
@@ -685,7 +683,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             return "Exception: " + str(ex)
 
     def cat_command(self, run_request_url, full_file_path):
-        return self.post_request(run_request_url, {"cmd": "cat {}".format(full_file_path)})
+        return self.post_request(run_request_url, {"cmd": f"cat {full_file_path}"})
 
     def clean_attacked_exposed_existing_privileged_container(
         self,
@@ -701,7 +699,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
         self.rm_command(
             run_request_url,
-            "{}/etc/cron.daily/{}".format(directory_created, file_created),
+            f"{directory_created}/etc/cron.daily/{file_created}",
             number_of_rm_attempts,
             seconds_to_wait_for_os_command,
         )
@@ -729,9 +727,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
     def rm_command(self, run_request_url, file_to_remove, number_of_rm_attempts, seconds_to_wait_for_os_command):
         if self.check_file_exists(run_request_url, file_to_remove):
             for _ in range(number_of_rm_attempts):
-                command_execution_outcome = self.post_request(
-                    run_request_url, {"cmd": "rm -f {}".format(file_to_remove)}
-                )
+                command_execution_outcome = self.post_request(run_request_url, {"cmd": f"rm -f {file_to_remove}"})
 
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
@@ -758,10 +754,10 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         return False
 
     def chmod_command(self, run_request_url, permissions, file):
-        return self.post_request(run_request_url, {"cmd": "chmod {} {}".format(permissions, file)})
+        return self.post_request(run_request_url, {"cmd": f"chmod {permissions} {file}"})
 
     def touch_command(self, run_request_url, file_to_create):
-        return self.post_request(run_request_url, {"cmd": "touch {}".format(file_to_create)})
+        return self.post_request(run_request_url, {"cmd": f"touch {file_to_create}"})
 
     def attack_exposed_existing_privileged_container(
         self, run_request_url, directory_created, number_of_rm_attempts, seconds_to_wait_for_os_command, file_name=None
@@ -769,7 +765,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         if file_name is None:
             file_name = "kube-hunter" + str(uuid.uuid1())
 
-        file_name_with_path = "{}/etc/cron.daily/{}".format(directory_created, file_name)
+        file_name_with_path = f"{directory_created}/etc/cron.daily/{file_name}"
 
         file_created = self.touch_command(run_request_url, file_name_with_path)
 
@@ -797,9 +793,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
     ):
         if self.check_directory_exists(run_request_url, directory_to_remove):
             for _ in range(number_of_rmdir_attempts):
-                command_execution_outcome = self.post_request(
-                    run_request_url, {"cmd": "rmdir {}".format(directory_to_remove)}
-                )
+                command_execution_outcome = self.post_request(run_request_url, {"cmd": f"rmdir {directory_to_remove}"})
 
                 if seconds_to_wait_for_os_command:
                     time.sleep(seconds_to_wait_for_os_command)
@@ -826,7 +820,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
         return False
 
     def ls_command(self, run_request_url, file_or_directory):
-        return self.post_request(run_request_url, {"cmd": "ls {}".format(file_or_directory)})
+        return self.post_request(run_request_url, {"cmd": f"ls {file_or_directory}"})
 
     def umount_command(
         self,
@@ -844,7 +838,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             for _ in range(number_of_umount_attempts):
                 # Ref: http://man7.org/linux/man-pages/man2/umount.2.html
                 command_execution_outcome = self.post_request(
-                    run_request_url, {"cmd": "umount {} {}".format(file_system_or_partition, directory)}
+                    run_request_url, {"cmd": f"umount {file_system_or_partition} {directory}"}
                 )
 
                 if seconds_to_wait_for_os_command:
@@ -875,16 +869,16 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
 
     def mount_command(self, run_request_url, file_system_or_partition, directory):
         # Ref: http://man7.org/linux/man-pages/man1/mkdir.1.html
-        return self.post_request(run_request_url, {"cmd": "mount {} {}".format(file_system_or_partition, directory)})
+        return self.post_request(run_request_url, {"cmd": f"mount {file_system_or_partition} {directory}"})
 
     def mkdir_command(self, run_request_url, directory_to_create):
         # Ref: http://man7.org/linux/man-pages/man1/mkdir.1.html
-        return self.post_request(run_request_url, {"cmd": "mkdir {}".format(directory_to_create)})
+        return self.post_request(run_request_url, {"cmd": f"mkdir {directory_to_create}"})
 
     def findfs_command(self, run_request_url, file_system_or_partition_type, file_system_or_partition):
         # Ref: http://man7.org/linux/man-pages/man8/findfs.8.html
         return self.post_request(
-            run_request_url, {"cmd": "findfs {}{}".format(file_system_or_partition_type, file_system_or_partition)}
+            run_request_url, {"cmd": f"findfs {file_system_or_partition_type}{file_system_or_partition}"}
         )
 
     def get_root_values(self, command_line):
@@ -943,9 +937,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                             )
 
                             if ProveAnonymousAuth.has_no_error_nor_exception(mounted_file_system_or_partition):
-                                host_name = self.cat_command(
-                                    run_request_url, "{}/etc/hostname".format(directory_created)
-                                )
+                                host_name = self.cat_command(run_request_url, f"{directory_created}/etc/hostname")
 
                                 if ProveAnonymousAuth.has_no_error_nor_exception(host_name):
                                     return {
@@ -979,7 +971,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
             pod_id = exposed_existing_privileged_containers["pod_id"]
             container_name = exposed_existing_privileged_containers["container_name"]
 
-            run_request_url = self.base_url + "run/{}/{}/{}".format(pod_namespace, pod_id, container_name)
+            run_request_url = self.base_url + f"run/{pod_namespace}/{pod_id}/{container_name}"
 
             is_exposed_existing_privileged_container_privileged = self.process_exposed_existing_privileged_container(
                 run_request_url,
@@ -1029,7 +1021,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 + temp_message
             )
 
-            self.event.evidence = "{}".format(message)
+            self.event.evidence = f"{message}"
         else:
             message = (
                 "The following exposed existing privileged containers"
@@ -1038,7 +1030,7 @@ class MaliciousIntentViaSecureKubeletPort(ActiveHunter):
                 + temp_message
             )
 
-            self.event.evidence = "{}".format(message)
+            self.event.evidence = f"{message}"
 
 
 @handler.subscribe(ExposedRunHandler)
@@ -1145,11 +1137,16 @@ class ProveSystemLogs(ActiveHunter):
             f"{self.base_url}/" + KubeletHandlers.LOGS.value.format(path="audit/audit.log"),
             verify=False,
             timeout=config.network_timeout,
-        ).text
-        logger.debug(f"Audit log of host {self.event.host}: {audit_logs[:10]}")
-        # iterating over proctitles and converting them into readable strings
-        proctitles = []
-        for proctitle in re.findall(r"proctitle=(\w+)", audit_logs):
-            proctitles.append(bytes.fromhex(proctitle).decode("utf-8").replace("\x00", " "))
-        self.event.proctitles = proctitles
-        self.event.evidence = f"audit log: {proctitles}"
+        )
+
+        # TODO: add more methods for proving system logs
+        if audit_logs.status_code == requests.status_codes.codes.OK:
+            logger.debug(f"Audit log of host {self.event.host}: {audit_logs.text[:10]}")
+            # iterating over proctitles and converting them into readable strings
+            proctitles = []
+            for proctitle in re.findall(r"proctitle=(\w+)", audit_logs.text):
+                proctitles.append(bytes.fromhex(proctitle).decode("utf-8").replace("\x00", " "))
+            self.event.proctitles = proctitles
+            self.event.evidence = f"audit log: {proctitles}"
+        else:
+            self.event.evidence = "Could not parse system logs"
