@@ -104,7 +104,7 @@ class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
             vid="KHV027",
         )
         self.binary_version = binary_version
-        self.evidence = "kubectl version: {}".format(self.binary_version)
+        self.evidence = f"kubectl version: {self.binary_version}"
 
 
 class KubectlCpVulnerability(Vulnerability, Event):
@@ -120,7 +120,7 @@ class KubectlCpVulnerability(Vulnerability, Event):
             vid="KHV028",
         )
         self.binary_version = binary_version
-        self.evidence = "kubectl version: {}".format(self.binary_version)
+        self.evidence = f"kubectl version: {self.binary_version}"
 
 
 class CveUtils:

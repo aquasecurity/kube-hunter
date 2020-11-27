@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 # Inherits Queue object, handles events asynchronously
 class EventQueue(Queue):
     def __init__(self, num_worker=10):
-        super(EventQueue, self).__init__()
+        super().__init__()
         self.passive_hunters = dict()
         self.active_hunters = dict()
         self.all_hunters = dict()
