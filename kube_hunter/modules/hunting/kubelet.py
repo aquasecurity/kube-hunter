@@ -344,27 +344,23 @@ class SecureKubeletPortHunter(Hunter):
 
         # need further investigation on websockets protocol for further implementation
         def test_port_forward(self):
-            config = get_config()
-            headers = {
-                "Upgrade": "websocket",
-                "Connection": "Upgrade",
-                "Sec-Websocket-Key": "s",
-                "Sec-Websocket-Version": "13",
-                "Sec-Websocket-Protocol": "SPDY",
-            }
-            pf_url = self.path + KubeletHandlers.PORTFORWARD.value.format(
-                pod_namespace=self.pod["namespace"],
-                pod_id=self.pod["name"],
-                port=80,
-            )
-            self.session.get(
-                pf_url,
-                headers=headers,
-                verify=False,
-                stream=True,
-                timeout=config.network_timeout,
-            ).status_code == 200
+            pass
             # TODO: what to return?
+            # Example starting code:
+            #
+            # config = get_config()
+            # headers = {
+            #     "Upgrade": "websocket",
+            #     "Connection": "Upgrade",
+            #     "Sec-Websocket-Key": "s",
+            #     "Sec-Websocket-Version": "13",
+            #     "Sec-Websocket-Protocol": "SPDY",
+            # }
+            # pf_url = self.path + KubeletHandlers.PORTFORWARD.value.format(
+            #     pod_namespace=self.pod["namespace"],
+            #     pod_id=self.pod["name"],
+            #     port=80,
+            # )
 
         # executes one command and returns output
         def test_run_container(self):
