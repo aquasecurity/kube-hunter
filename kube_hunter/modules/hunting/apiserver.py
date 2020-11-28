@@ -56,16 +56,19 @@ class ServerApiHTTPAccess(Vulnerability, Event):
 
 
 class ApiInfoDisclosure(Vulnerability, Event):
+    """Information Disclosure depending upon RBAC permissions and Kube-Cluster Setup"""
+
     def __init__(self, evidence, using_token, name):
+        category = InformationDisclosure
         if using_token:
-            name += " using service account token"
+            name += " using default service account token"
         else:
             name += " as anonymous user"
         Vulnerability.__init__(
             self,
             KubernetesCluster,
             name=name,
-            category=InformationDisclosure,
+            category=category,
             vid="KHV007",
         )
         self.evidence = evidence
