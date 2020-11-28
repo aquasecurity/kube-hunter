@@ -37,6 +37,6 @@ rceJuGsnJEQ=
 
 
 @handler.subscribe(CertificateEmail)
-class test_CertificateEmail(object):
+class test_CertificateEmail:
     def __init__(self, event):
         assert event.email == b"build@nodejs.org0"

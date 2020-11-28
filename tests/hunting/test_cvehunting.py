@@ -41,7 +41,7 @@ def test_K8sCveHunter():
 
 
 @handler.subscribe(ServerApiVersionEndPointAccessPE)
-class test_CVE_2018_1002105(object):
+class test_CVE_2018_1002105:
     def __init__(self, event):
         global cve_counter
         cve_counter += 1
