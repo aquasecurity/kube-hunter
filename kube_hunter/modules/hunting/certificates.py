@@ -8,11 +8,13 @@ from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, Service
 
 logger = logging.getLogger(__name__)
-email_pattern = re.compile(rb"([a-z0-9]+@[a-z0-9]+\.[a-z0-9]+)")
+email_pattern = re.compile(rb"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
 
 
 class CertificateEmail(Vulnerability, Event):
-    """Certificate includes an email address"""
+    """The Kubernetes API Server advertises a public certificate for TLS.
+    This certificate includes an email address, that may provide additional information for an attacker on your
+    organization, or be abused for further email based attacks."""
 
     def __init__(self, email):
         Vulnerability.__init__(
