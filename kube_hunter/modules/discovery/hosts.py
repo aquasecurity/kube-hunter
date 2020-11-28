@@ -37,7 +37,7 @@ class RunningAsPodEvent(Event):
         try:
             with open(f"/var/run/secrets/kubernetes.io/serviceaccount/{file}") as f:
                 return f.read()
-        except IOError:
+        except OSError:
             pass
 
 
@@ -53,7 +53,7 @@ class AzureMetadataApi(Vulnerability, Event):
             vid="KHV003",
         )
         self.cidr = cidr
-        self.evidence = "cidr: {}".format(cidr)
+        self.evidence = f"cidr: {cidr}"
 
 
 class HostScanEvent(Event):
