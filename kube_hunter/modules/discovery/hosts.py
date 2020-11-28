@@ -6,7 +6,6 @@ import requests
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces, gateways
-from scapy.all import ICMP, IP, Ether, srp1
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
@@ -143,7 +142,7 @@ class FromPodHostDiscovery(Discovery):
     # for pod scanning
     def gateway_discovery(self):
         """ Retrieving default gateway of pod, which is usually also a contact point with the host """
-        return [[gateways()["default"][netifaces.AF_INET][0], "24"]]
+        return [[gateways()["default"][AF_INET][0], "24"]]
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
