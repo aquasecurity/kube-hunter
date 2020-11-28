@@ -57,8 +57,9 @@ class ServerApiHTTPAccess(Vulnerability, Event):
 
 class ApiInfoDisclosure(Vulnerability, Event):
     """Information Disclosure depending upon RBAC permissions and Kube-Cluster Setup"""
+
     def __init__(self, evidence, using_token, name):
-        category=InformationDisclosure
+        category = InformationDisclosure
         if using_token:
             name += " using default service account token"
         else:
