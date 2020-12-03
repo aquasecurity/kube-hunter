@@ -42,7 +42,7 @@ class PyInstallerCommand(Command):
         command = [
             "pyinstaller",
             "--additional-hooks-dir",
-            "pyinstaller_hooks"
+            "pyinstaller_hooks",
             "--clean",
             "--onefile",
             "--name",
