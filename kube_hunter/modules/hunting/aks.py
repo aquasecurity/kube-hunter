@@ -83,7 +83,7 @@ class ProveAzureSpnExposure(ActiveHunter):
         Uses SecureKubeletPortHunter to test the /run handler
         TODO: when multiple event subscription is implemented, use this here to make sure /run is accessible
         """
-        debug_handlers = kubelet.SecureKubeletPortHunter.DebugHandlers(path=self.base_url, session=self.event.session)
+        debug_handlers = SecureKubeletPortHunter.DebugHandlers(path=self.base_url, session=self.event.session)
         return debug_handlers.test_run_container()
 
     def run(self, command, container):
