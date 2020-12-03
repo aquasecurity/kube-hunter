@@ -41,6 +41,8 @@ class PyInstallerCommand(Command):
         cfg.read("setup.cfg")
         command = [
             "pyinstaller",
+            "--additional-hooks-dir",
+            "pyinstaller_hooks"
             "--clean",
             "--onefile",
             "--name",
