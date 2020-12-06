@@ -39,16 +39,6 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-      
-      # Beacause we can't easily parse the github.ref using github actions syntax, we extract it with an extra step
-      # Example:
-      # before - refs.tags.v0.3.1
-      # after - v0.3.1
-      - name: Parse Release Tag
-      - id: parse_release
-        run: |
-          release_tag=$(echo "refs.tags.v0.3.1" | sed -e "s/^refs.tags.//")
-          echo "::set-output name=release_tag::$release_tag"
 
       - name: Upload Release Asset
         id: upload-release-asset 
@@ -58,5 +48,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./dist/kube-hunter
-          asset_name: kube-hunter-linux-x86_64-${{ steps.parse_release.outputs.release_tag }}
+          asset_name: kube-hunter-linux-x86_64-${{ github.ref }}
           asset_content_type: application/octet-stream
