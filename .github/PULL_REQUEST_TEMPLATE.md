@@ -7,7 +7,7 @@
 Please include a summary of the change and which issue is fixed. Also include relevant motivation and context. List any dependencies that are required for this change.
 
 ## Contribution Guidelines
-Please Read through the [Contribution Guidelines](https://github.com/aquasecurity/kube-hunter/blob/master/CONTRIBUTING.md).
+Please Read through the [Contribution Guidelines](https://github.com/aquasecurity/kube-hunter/blob/main/CONTRIBUTING.md).
 
 ## Fixed Issues
 
