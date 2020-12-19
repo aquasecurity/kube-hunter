@@ -1,12 +1,18 @@
 ![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/main/kube-hunter.png)
 
+[![GitHub Release][release-img]][release]
+![Downloads][download]
+![Docker Pulls][docker-pull]
 [![Build Status](https://github.com/aquasecurity/kube-hunter/workflows/Test/badge.svg)](https://github.com/aquasecurity/kube-hunter/actions)
 [![codecov](https://codecov.io/gh/aquasecurity/kube-hunter/branch/main/graph/badge.svg)](https://codecov.io/gh/aquasecurity/kube-hunter)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/aquasecurity/kube-hunter)](https://github.com/aquasecurity/kube-hunter/blob/main/LICENSE)
 [![Docker image](https://images.microbadger.com/badges/image/aquasec/kube-hunter.svg)](https://microbadger.com/images/aquasec/kube-hunter "Get your own image badge on microbadger.com")
 
-
+[download]: https://img.shields.io/github/downloads/aquasecurity/kube-hunter/total?logo=github
+[release-img]: https://img.shields.io/github/release/aquasecurity/kube-hunter.svg?logo=github
+[release]: https://github.com/aquasecurity/kube-hunter/releases
+[docker-pull]: https://img.shields.io/docker/pulls/aquasec/kube-hunter?logo=docker&label=docker%20pulls%20%2F%20kube-hunter
 
 kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster that you don't own!**
 
