@@ -32,7 +32,7 @@ jobs:
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v1
         with:
-          images: krol/kube-hunter
+          images: aquasec/kube-hunter
           tag-semver: |
             {{version}}
       - name: Build and push

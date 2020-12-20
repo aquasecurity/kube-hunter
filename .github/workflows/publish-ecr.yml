@@ -29,8 +29,8 @@ jobs:
       - name: Publish to ECR
         env:
           IMAGE_TAG: ${{steps.vars.outputs.tag}}
-          REP_NAME: krol/kube-hunter
-          ALIAS: v4f3f9r2
+          REP_NAME: kube-hunter
+          ALIAS: aquasecurity
         run: |
           aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/$ALIAS
           docker build -t $REP_NAME:$IMAGE_TAG .
