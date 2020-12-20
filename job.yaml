@@ -1,3 +1,4 @@
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -6,9 +7,9 @@ spec:
   template:
     spec:
       containers:
-      - name: kube-hunter
-        image: aquasec/kube-hunter 
-        command: ["kube-hunter"]
-        args: ["--pod"]
+        - name: kube-hunter
+          image: aquasec/kube-hunter
+          command: ["kube-hunter"]
+          args: ["--pod"]
       restartPolicy: Never
   backoffLimit: 4
