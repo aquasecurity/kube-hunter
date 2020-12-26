@@ -1,3 +1,4 @@
+---
 title: kube-hunter
 description: Kube-hunter hunts for security weaknesses in Kubernetes clusters
 logo: https://raw.githubusercontent.com/aquasecurity/kube-hunter/main/kube-hunter.png
@@ -10,7 +11,7 @@ collections:
 defaults:
   -
     scope:
-      path: "" # an empty string here means all files in the project
+      path: ""  # an empty string here means all files in the project
     values:
       layout: "default"
 
