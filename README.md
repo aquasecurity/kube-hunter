@@ -1,6 +1,6 @@
 ![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/master/kube-hunter.png)
 
-[![Build Status](https://travis-ci.org/aquasecurity/kube-hunter.svg?branch=master)](https://travis-ci.org/aquasecurity/kube-hunter)
+[![Build Status](https://github.com/aquasecurity/kube-hunter/workflows/Test/badge.svg)](https://github.com/aquasecurity/kube-hunter/actions)
 [![codecov](https://codecov.io/gh/aquasecurity/kube-hunter/branch/master/graph/badge.svg)](https://codecov.io/gh/aquasecurity/kube-hunter)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![License](https://img.shields.io/github/license/aquasecurity/kube-hunter)](https://github.com/aquasecurity/kube-hunter/blob/master/LICENSE)

@@ -5,8 +5,7 @@ import requests
 
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
-from netifaces import AF_INET, ifaddresses, interfaces
-from scapy.all import ICMP, IP, Ether, srp1
+from netifaces import AF_INET, ifaddresses, interfaces, gateways
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
@@ -109,7 +108,7 @@ class FromPodHostDiscovery(Discovery):
             if self.is_azure_pod():
                 subnets, cloud = self.azure_metadata_discovery()
             else:
-                subnets = self.traceroute_discovery()
+                subnets = self.gateway_discovery()
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -141,14 +140,9 @@ class FromPodHostDiscovery(Discovery):
             return False
 
     # for pod scanning
-    def traceroute_discovery(self):
-        config = get_config()
-        node_internal_ip = srp1(
-            Ether() / IP(dst="1.1.1.1", ttl=1) / ICMP(),
-            verbose=0,
-            timeout=config.network_timeout,
-        )[IP].src
-        return [[node_internal_ip, "24"]]
+    def gateway_discovery(self):
+        """ Retrieving default gateway of pod, which is usually also a contact point with the host """
+        return [[gateways()["default"][AF_INET][0], "24"]]
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
