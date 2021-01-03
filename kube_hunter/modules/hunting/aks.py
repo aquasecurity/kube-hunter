@@ -27,7 +27,7 @@ class AzureSpnExposure(Vulnerability, Event):
         self.evidence = evidence
 
 
-@handler.subscribe(ExposedPodsHandler, predicate=lambda x: x.cloud == "Azure")
+@handler.subscribe(ExposedPodsHandler, predicate=lambda x: x.cloud_type == "Azure")
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
