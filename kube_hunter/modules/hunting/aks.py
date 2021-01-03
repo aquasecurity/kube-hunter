@@ -39,7 +39,6 @@ class AzureSpnHunter(Hunter):
 
     # getting a container that has access to the azure.json file
     def get_key_container(self):
-        config = get_config()
         logger.debug("Trying to find container with access to azure.json file")
 
         # pods are saved in the previous event object
