@@ -115,9 +115,9 @@ Available dispatch methods are:
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
 ## Deployment
-There are three methods for deploying kube-hunter:
+There are three [3] methods for deploying kube-hunter:
 
-### On Machine
+### [1] On Machine
 
 You can run kube-hunter directly on your machine.
 
@@ -158,7 +158,7 @@ python3 kube_hunter
 
 _If you want to use pyinstaller/py2exe you need to first run the install_imports.py script._
 
-### Container
+### [2] Container
 Aqua Security maintains a containerized version of kube-hunter at `aquasec/kube-hunter`. This container includes this source code, plus an additional (closed source) reporting plugin for uploading results into a report that can be viewed at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com). Please note, that running the `aquasec/kube-hunter` container and uploading reports data are subject to additional [terms and conditions](https://kube-hunter.aquasec.com/eula.html).
 
 The Dockerfile in this repository allows you to build a containerized version without the reporting plugin.
@@ -172,7 +172,7 @@ By default, kube-hunter runs in interactive mode. You can also specify the scann
 
 `docker run --rm aquasec/kube-hunter --cidr 192.168.0.0/24`
 
-### Pod
+### [3] Pod
 This option lets you discover what running a malicious container can do/discover on your cluster. This gives a perspective on what an attacker could do if they were able to compromise a pod, perhaps through a software vulnerability. This may reveal significantly more vulnerabilities.
 
 The example `job.yaml` file defines a Job that will run kube-hunter in a pod, using default Kubernetes pod access settings. (You may wish to modify this definition, for example to run as a non-root user, or to run in a different namespace.)
