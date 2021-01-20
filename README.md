@@ -75,6 +75,10 @@ To specify interface scanning, you can use the `--interface` option (this will s
 To specify a specific CIDR to scan, use the `--cidr` option. Example:
 `kube-hunter --cidr 192.168.0.0/24`
 
+4. **Quick scanning**
+
+To limit subnet scanning to a `/24` CIDR, use the `--quick` option. This option only applies when running as a Pod in Azure.
+
 ### Active Hunting
 
 Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, to explore for further vulnerabilities.
