@@ -35,6 +35,7 @@ Table of Contents
    * [Nodes Mapping](#nodes-mapping)
    * [Output](#output)
    * [Dispatching](#dispatching)
+   * [Advanced Usage](#advanced-usage)
 * [Deployment](#deployment)
    * [On Machine](#on-machine)
       * [Prerequisites](#prerequisites)
@@ -113,6 +114,11 @@ Available dispatch methods are:
 * http (to configure, set the following environment variables:) 
     * KUBEHUNTER_HTTP_DISPATCH_URL (defaults to: https://localhost)
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
+
+### Advanced Usage 
+#### Azure Quick Scanning 
+When running **as a Pod in an Azure environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
+To hardlimit subnet scanning to a `/24` CIDR, use the `--quick` option. 
 
 ## Deployment
 There are three methods for deploying kube-hunter:
