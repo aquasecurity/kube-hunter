@@ -50,6 +50,12 @@ class Kubelet(KubernetesCluster):
     name = "Kubelet"
 
 
+class AWS(KubernetesCluster):
+    """AWS Cluster"""
+
+    name = "AWS"
+
+
 class Azure(KubernetesCluster):
     """Azure Cluster"""
 

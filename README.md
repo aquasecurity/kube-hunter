@@ -117,7 +117,7 @@ Available dispatch methods are:
 
 ### Advanced Usage 
 #### Azure Quick Scanning 
-When running **as a Pod in an Azure environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
+When running **as a Pod in an Azure or AWS environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
 To hardlimit subnet scanning to a `/24` CIDR, use the `--quick` option. 
 
 ## Deployment
