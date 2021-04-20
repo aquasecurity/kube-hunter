@@ -179,8 +179,8 @@ class EventQueue(Queue):
                             events_container = MultipleEventsContainer(self._get_latest_events_from_multi_hooks(hook))
                             self.put(hook(events_container))
                             logger.debug(
-                                f"Multiple subscription requirements were met for hunter {hook}. events container was published with \
-                                {self.hook_fulfilled_deps[hook].keys()}"
+                                f"Multiple subscription requirements were met for hunter {hook}. events container was \
+                                published with {self.hook_fulfilled_deps[hook].keys()}"
                             )
 
     """
