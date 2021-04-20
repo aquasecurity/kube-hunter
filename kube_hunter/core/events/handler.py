@@ -36,7 +36,8 @@ class EventQueue(Queue):
         # Structure: key: Hunter Class, value: set(RequiredEventClass1, RequiredEventClass2)
         self.hook_dependencies = defaultdict(set)
 
-        # To keep track of fulfilled dependencies. we need to have a structure which saves historical instanciated events mapped to a registered hunter.
+        # To keep track of fulfilled dependencies. we need to have a structure which saves historical instanciated
+        # events mapped to a registered hunter.
         # We used a 2 dimensional dictionary in order to fulfill two demands:
         #   * correctly count published required events
         #   * save historical events fired, easily sorted by their type
@@ -178,7 +179,8 @@ class EventQueue(Queue):
                             events_container = MultipleEventsContainer(self._get_latest_events_from_multi_hooks(hook))
                             self.put(hook(events_container))
                             logger.debug(
-                                f"Multiple subscription requirements were met for hunter {hook}. events container was published with {self.hook_fulfilled_deps[hook].keys()}"
+                                f"Multiple subscription requirements were met for hunter {hook}. events container was published with \
+                                {self.hook_fulfilled_deps[hook].keys()}"
                             )
 
     """

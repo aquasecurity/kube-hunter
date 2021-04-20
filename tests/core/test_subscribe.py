@@ -56,7 +56,7 @@ class SmartHunter(Hunter):
         different_event = events.get_by_class(DifferentRegularEvent)
         if first_run:
             first_run = False
-            assert different_event.new_value == None
+            assert not different_event.new_value
         else:
             assert different_event.new_value
 
