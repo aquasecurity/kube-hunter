@@ -62,6 +62,20 @@ class Event:
         return history
 
 
+class MultipleEventsContainer(Event):
+    """
+    This is the class of the object an hunter will get if he was registered to multiple events.
+    """
+
+    def __init__(self, events):
+        self.events = events
+
+    def get_by_class(self, event_class):
+        for event in self.events:
+            if event.__class__ == event_class:
+                return event
+
+
 class Service:
     def __init__(self, name, path="", secure=True):
         self.name = name
