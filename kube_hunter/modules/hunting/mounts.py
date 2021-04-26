@@ -76,16 +76,17 @@ class VarLogMountHunter(Hunter):
         if pe_pods:
             self.publish_event(WriteMountToVarLog(pods=pe_pods))
 
-
-@handler.subscribe(ExposedRunHandler)
+@handler.subscribe_many([ExposedRunHandler, WriteMountToVarLog])
 class ProveVarLogMount(ActiveHunter):
     """Prove /var/log Mount Hunter
     Tries to read /etc/shadow on the host by running commands inside a pod with host mount to /var/log
     """
 
     def __init__(self, event):
-        self.event = event
-        self.base_path = f"https://{self.event.host}:{self.event.port}"
+        self.write_mount_event = self.event.get_by_class(WriteMountToVarLog)
+        self.event = self.write_mount_event
+
+        self.base_path = f"https://{self.write_mount_event.host}:{self.write_mount_event.port}"
 
     def run(self, command, container):
         run_url = KubeletHandlers.RUN.value.format(
@@ -95,20 +96,6 @@ class ProveVarLogMount(ActiveHunter):
             cmd=command,
         )
         return self.event.session.post(f"{self.base_path}/{run_url}", verify=False).text
-
-    # TODO: replace with multiple subscription to WriteMountToVarLog as well
-    def get_varlog_mounters(self):
-        config = get_config()
-        logger.debug("accessing /pods manually on ProveVarLogMount")
-        pods = self.event.session.get(
-            f"{self.base_path}/" + KubeletHandlers.PODS.value,
-            verify=False,
-            timeout=config.network_timeout,
-        ).json()["items"]
-        for pod in pods:
-            volume = VarLogMountHunter(ExposedPodsHandler(pods=pods)).has_write_mount_to(pod, "/var/log")
-            if volume:
-                yield pod, volume
 
     def mount_path_from_mountname(self, pod, mount_name):
         """returns container name, and container mount path correlated to mount_name"""
@@ -138,7 +125,7 @@ class ProveVarLogMount(ActiveHunter):
         return content
 
     def execute(self):
-        for pod, volume in self.get_varlog_mounters():
+        for pod, volume in self.write_mount_event.pe_pods():
             for container, mount_path in self.mount_path_from_mountname(pod, volume["name"]):
                 logger.debug("Correlated container to mount_name")
                 cont = {
