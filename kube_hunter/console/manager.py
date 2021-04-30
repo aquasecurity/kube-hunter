@@ -18,27 +18,6 @@ class KubeHunterMainConsole(cmd.Cmd):
     intro = f'{kube_hunter_logo}\n\nWelcome to kube-hunter Immeresed Console. Type help or ? to list commands.\n'
     prompt = environment.get_prompt()
 
-    # ----- basic commands -----
-    def do_updatecloud(self, arg):
-        environment.current_cloud.name = arg
-
-    def do_updatecontainer(self, arg):
-        environment.is_inside_container = True
-        environment.current_container.name = arg
-
-    def do_updatecontainerpod(self, arg):
-        container = Container()
-        container.name = arg
-        environment.current_pod.containers.append(container)
-
-    def do_updatepod(self, arg):
-        environment.is_inside_pod = True
-        namespace, name = arg.split('/')
-        environment.current_pod.name = name
-        environment.current_pod.namespace = namespace
-
-
-
     def do_discover(self, arg):
         'Depends on your environment, lets you discover nearby Services/Pods/Clusters'
         pass
