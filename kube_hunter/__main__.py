@@ -8,6 +8,8 @@ from kube_hunter.conf import Config, set_config
 from kube_hunter.conf.parser import parse_args
 from kube_hunter.conf.logging import setup_logger
 
+from kube_hunter.console.manager import start_console
+
 from kube_hunter.plugins import initialize_plugin_manager
 
 pm = initialize_plugin_manager()
@@ -90,11 +92,15 @@ def main():
     global hunt_started
     scan_options = [config.pod, config.cidr, config.remote, config.interface]
     try:
-        if args.list:
+        if args.console:
+            start_console()
+            return
+
+        elif args.list:
             list_hunters()
             return
 
-        if not any(scan_options):
+        elif not any(scan_options):
             if not interactive_set_config():
                 return
 
