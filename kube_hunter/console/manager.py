@@ -1,7 +1,8 @@
 import cmd
 
 from kube_hunter.console.env import environment
-from kube_hunter.console.models import Container
+from kube_hunter.console.discover import DiscoverSubConsole
+
 def start_console():
     KubeHunterMainConsole().cmdloop()
 
@@ -20,11 +21,28 @@ class KubeHunterMainConsole(cmd.Cmd):
 
     def do_discover(self, arg):
         'Depends on your environment, lets you discover nearby Services/Pods/Clusters'
-        pass
-    # ----- basic commands -----
-    def do_exit(self, arg):
-        'Depends on your environment, lets you discover nearby Services/Pods/Clusters'
-        return True
+        discover_cmd = DiscoverSubConsole()
+        discover_cmd.cmdloop()
+
+    def do_hunt(self, arg):
+        'Depends on your environment, lets you hunt nearby Services/Pods/Clusters'
+        discover_cmd = DiscoverSubConsole()
+        discover_cmd.cmdloop()
+
+    def do_show(self, arg):
+
 
     def postcmd(self, stop, line):
         self.prompt = environment.get_prompt()
+
+    def do_help(self, arg):
+        if not arg:
+
+
+    def do_exit(self, arg):
+        'exists shell'
+        return True
+
+    # binds EOF to exit the shell as well
+    do_EOF = do_exit
+

@@ -21,13 +21,13 @@ class ImmersedEnvironment:
     current_auth = models.AuthStore()
     current_container = models.Container()
 
-    def get_prompt(self):
+    def get_prompt(self, sub_console=""):
         """
         Parses current env state to picture a short description of where we are right now
         General format is `(cloud) -> (run_unit) kube-hunter $`
         """
         arrow = "->"
-        prompt_prefix = " kube-hunter $ "
+        prompt_prefix = f" kube-hunter{' [' + sub_console + ']' if sub_console else ''} $ "
 
         # add colores unly
         cloud = f"({Fore.BLUE}{self.current_cloud}{Style.RESET_ALL})"
