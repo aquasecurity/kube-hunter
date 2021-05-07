@@ -14,8 +14,9 @@ def test_client_yields_ips():
     response.items[1].status.addresses = [MagicMock()]
     response.items[1].status.addresses[0].address = "127.0.0.3"
 
-    with patch('kubernetes.config.load_incluster_config') as mock:
+    with patch('kubernetes.config.load_incluster_config') as m:
         output = list(list_all_k8s_cluster_nodes(client=client))
+        m.assert_called_once()
 
     assert output == ["127.0.0.1", "127.0.0.2", "127.0.0.3"]
 
