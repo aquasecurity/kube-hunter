@@ -36,6 +36,7 @@ class Config:
     remote: Optional[str] = None
     reporter: Optional[Any] = None
     statistics: bool = False
+    k8s_auto_discover_nodes: bool = False
 
 
 _config: Optional[Config] = None

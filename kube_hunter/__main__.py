@@ -25,6 +25,7 @@ config = Config(
     quick=args.quick,
     remote=args.remote,
     statistics=args.statistics,
+    k8s_auto_discover_nodes=args.k8s_auto_discover_nodes,
 )
 setup_logger(args.log, args.log_file)
 set_config(config)

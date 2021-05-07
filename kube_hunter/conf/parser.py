@@ -46,6 +46,8 @@ def parser_add_arguments(parser):
         help="One or more remote ip/dns to hunt",
     )
 
+    parser.add_argument("--k8s-auto-discover-nodes", action="store_true", help="Enables automatic detection of all nodes in a Kubernetes cluster")
+
     parser.add_argument("--active", action="store_true", help="Enables active hunting")
 
     parser.add_argument(
