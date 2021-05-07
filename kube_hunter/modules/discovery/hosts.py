@@ -8,6 +8,7 @@ from netaddr import IPNetwork, IPAddress, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces, gateways
 
 from kube_hunter.conf import get_config
+from kube_hunter.conf.k8s import list_all_k8s_cluster_nodes
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
 from kube_hunter.core.types import Discovery, InformationDisclosure, AWS, Azure
@@ -297,6 +298,9 @@ class HostDiscovery(Discovery):
             self.scan_interfaces()
         elif len(config.remote) > 0:
             for host in config.remote:
+                self.publish_event(NewHostEvent(host=host))
+        elif config.k8s_auto_discover_nodes:
+            for host in list_all_k8s_cluster_nodes(config.kubeconfig):
                 self.publish_event(NewHostEvent(host=host))
 
     # for normal scanning

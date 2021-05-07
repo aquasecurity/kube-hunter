@@ -48,6 +48,14 @@ def parser_add_arguments(parser):
 
     parser.add_argument("--k8s-auto-discover-nodes", action="store_true", help="Enables automatic detection of all nodes in a Kubernetes cluster")
 
+    parser.add_argument(
+        "--kubeconfig",
+        type=str,
+        metavar="KUBECONFIG",
+        default=None,
+        help="Specify the kubeconfig file to use for Kubernetes nodes auto discovery",
+    )
+
     parser.add_argument("--active", action="store_true", help="Enables active hunting")
 
     parser.add_argument(

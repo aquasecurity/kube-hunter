@@ -37,6 +37,7 @@ class Config:
     reporter: Optional[Any] = None
     statistics: bool = False
     k8s_auto_discover_nodes: bool = False
+    kubeconfig: Optional[str] = None
 
 
 _config: Optional[Config] = None

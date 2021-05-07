@@ -26,6 +26,7 @@ config = Config(
     remote=args.remote,
     statistics=args.statistics,
     k8s_auto_discover_nodes=args.k8s_auto_discover_nodes,
+    kubeconfig=args.kubeconfig,
 )
 setup_logger(args.log, args.log_file)
 set_config(config)
@@ -89,7 +90,7 @@ hunt_started = False
 
 def main():
     global hunt_started
-    scan_options = [config.pod, config.cidr, config.remote, config.interface]
+    scan_options = [config.pod, config.cidr, config.remote, config.interface, config.k8s_auto_discover_nodes]
     try:
         if args.list:
             list_hunters()
