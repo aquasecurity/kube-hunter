@@ -205,7 +205,7 @@ class ReportDispatched(Event):
 
 
 class K8sVersionDisclosure(Vulnerability, Event):
-    """The kubernetes version could be obtained from the {} endpoint """
+    """The kubernetes version could be obtained from the {} endpoint"""
 
     def __init__(self, version, from_endpoint, extra_info=""):
         Vulnerability.__init__(

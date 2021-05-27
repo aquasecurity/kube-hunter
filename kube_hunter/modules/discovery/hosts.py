@@ -200,7 +200,7 @@ class FromPodHostDiscovery(Discovery):
 
     # for pod scanning
     def gateway_discovery(self):
-        """ Retrieving default gateway of pod, which is usually also a contact point with the host """
+        """Retrieving default gateway of pod, which is usually also a contact point with the host"""
         return [[gateways()["default"][AF_INET][0], "24"]]
 
     # querying AWS's interface metadata api v1 | works only from a pod
