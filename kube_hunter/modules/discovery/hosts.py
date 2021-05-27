@@ -223,7 +223,7 @@ class FromPodHostDiscovery(Discovery):
 
         self.publish_event(AWSMetadataApi(cidr=cidr))
 
-        return cidr, "AWS"
+        return [(address, subnet)], "AWS"
 
     # querying AWS's interface metadata api v2 | works only from a pod
     def aws_metadata_v2_discovery(self):
@@ -252,7 +252,7 @@ class FromPodHostDiscovery(Discovery):
 
         self.publish_event(AWSMetadataApi(cidr=cidr))
 
-        return cidr, "AWS"
+        return [(address, subnet)], "AWS"
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
