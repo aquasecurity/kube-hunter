@@ -200,7 +200,7 @@ class FromPodHostDiscovery(Discovery):
 
     # for pod scanning
     def gateway_discovery(self):
-        """ Retrieving default gateway of pod, which is usually also a contact point with the host """
+        """Retrieving default gateway of pod, which is usually also a contact point with the host"""
         return [[gateways()["default"][AF_INET][0], "24"]]
 
     # querying AWS's interface metadata api v1 | works only from a pod
@@ -223,7 +223,7 @@ class FromPodHostDiscovery(Discovery):
 
         self.publish_event(AWSMetadataApi(cidr=cidr))
 
-        return cidr, "AWS"
+        return [(address, subnet)], "AWS"
 
     # querying AWS's interface metadata api v2 | works only from a pod
     def aws_metadata_v2_discovery(self):
@@ -252,7 +252,7 @@ class FromPodHostDiscovery(Discovery):
 
         self.publish_event(AWSMetadataApi(cidr=cidr))
 
-        return cidr, "AWS"
+        return [(address, subnet)], "AWS"
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):

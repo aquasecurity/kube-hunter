@@ -75,28 +75,28 @@ class ApiInfoDisclosure(Vulnerability, Event):
 
 
 class ListPodsAndNamespaces(ApiInfoDisclosure):
-    """ Accessing pods might give an attacker valuable information"""
+    """Accessing pods might give an attacker valuable information"""
 
     def __init__(self, evidence, using_token):
         ApiInfoDisclosure.__init__(self, evidence, using_token, "Listing pods")
 
 
 class ListNamespaces(ApiInfoDisclosure):
-    """ Accessing namespaces might give an attacker valuable information """
+    """Accessing namespaces might give an attacker valuable information"""
 
     def __init__(self, evidence, using_token):
         ApiInfoDisclosure.__init__(self, evidence, using_token, "Listing namespaces")
 
 
 class ListRoles(ApiInfoDisclosure):
-    """ Accessing roles might give an attacker valuable information """
+    """Accessing roles might give an attacker valuable information"""
 
     def __init__(self, evidence, using_token):
         ApiInfoDisclosure.__init__(self, evidence, using_token, "Listing roles")
 
 
 class ListClusterRoles(ApiInfoDisclosure):
-    """ Accessing cluster roles might give an attacker valuable information """
+    """Accessing cluster roles might give an attacker valuable information"""
 
     def __init__(self, evidence, using_token):
         ApiInfoDisclosure.__init__(self, evidence, using_token, "Listing cluster roles")
@@ -118,7 +118,7 @@ class CreateANamespace(Vulnerability, Event):
 
 class DeleteANamespace(Vulnerability, Event):
 
-    """ Deleting a namespace might give an attacker the option to affect application behavior """
+    """Deleting a namespace might give an attacker the option to affect application behavior"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -186,7 +186,7 @@ class PatchAClusterRole(Vulnerability, Event):
 
 
 class DeleteARole(Vulnerability, Event):
-    """ Deleting a role might allow an attacker to affect access to resources in the namespace"""
+    """Deleting a role might allow an attacker to affect access to resources in the namespace"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -199,7 +199,7 @@ class DeleteARole(Vulnerability, Event):
 
 
 class DeleteAClusterRole(Vulnerability, Event):
-    """ Deleting a cluster role might allow an attacker to affect access to resources in the cluster"""
+    """Deleting a cluster role might allow an attacker to affect access to resources in the cluster"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -212,7 +212,7 @@ class DeleteAClusterRole(Vulnerability, Event):
 
 
 class CreateAPod(Vulnerability, Event):
-    """ Creating a new pod allows an attacker to run custom code"""
+    """Creating a new pod allows an attacker to run custom code"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -225,7 +225,7 @@ class CreateAPod(Vulnerability, Event):
 
 
 class CreateAPrivilegedPod(Vulnerability, Event):
-    """ Creating a new PRIVILEGED pod would gain an attacker FULL CONTROL over the cluster"""
+    """Creating a new PRIVILEGED pod would gain an attacker FULL CONTROL over the cluster"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -238,7 +238,7 @@ class CreateAPrivilegedPod(Vulnerability, Event):
 
 
 class PatchAPod(Vulnerability, Event):
-    """ Patching a pod allows an attacker to compromise and control it """
+    """Patching a pod allows an attacker to compromise and control it"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -251,7 +251,7 @@ class PatchAPod(Vulnerability, Event):
 
 
 class DeleteAPod(Vulnerability, Event):
-    """ Deleting a pod allows an attacker to disturb applications on the cluster """
+    """Deleting a pod allows an attacker to disturb applications on the cluster"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(

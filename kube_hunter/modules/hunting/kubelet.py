@@ -303,7 +303,7 @@ class SecureKubeletPortHunter(Hunter):
     """
 
     class DebugHandlers:
-        """ all methods will return the handler name if successful """
+        """all methods will return the handler name if successful"""
 
         def __init__(self, path, pod, session=None):
             self.path = path + ("/" if not path.endswith("/") else "")
