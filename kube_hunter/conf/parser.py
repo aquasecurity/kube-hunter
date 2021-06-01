@@ -46,14 +46,23 @@ def parser_add_arguments(parser):
         help="One or more remote ip/dns to hunt",
     )
 
-    parser.add_argument("--k8s-auto-discover-nodes", action="store_true", help="Enables automatic detection of all nodes in a Kubernetes cluster")
+    parser.add_argument(
+        "--k8s-auto-discover-nodes",
+        action="store_true",
+        help="Enables automatic detection of all nodes in a Kubernetes cluster "
+        "by quering the Kubernetes API server. "
+        "It supports both in-cluster config (when running as a pod), "
+        "and a specific kubectl config file (use --kubeconfig to set this). "
+        "By default, when this flag is set, it will use in-cluster config."
+    )
 
     parser.add_argument(
         "--kubeconfig",
         type=str,
         metavar="KUBECONFIG",
         default=None,
-        help="Specify the kubeconfig file to use for Kubernetes nodes auto discovery",
+        help="Specify the kubeconfig file to use for Kubernetes nodes auto discovery "
+        " (to be used in conjuction with the --k8s-auto-discover-nodes flag."
     )
 
     parser.add_argument("--active", action="store_true", help="Enables active hunting")
