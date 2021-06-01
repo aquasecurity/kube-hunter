@@ -80,6 +80,8 @@ To specify a specific CIDR to scan, use the `--cidr` option. Example:
 
 Set `--k8s-auto-discover-nodes` flag to query Kubernetes for all nodes in the cluster, and then attempt to scan them all. By default, it will use [in-cluster config](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) to connect to the Kubernetes API. If you'd like to use an explicit kubeconfig file, set `--kubeconfig /location/of/kubeconfig/file`.
 
+Also note, that this is always done when using `--pod` mode.
+
 ### Active Hunting
 
 Active hunting is an option in which kube-hunter will exploit vulnerabilities it finds, to explore for further vulnerabilities.
