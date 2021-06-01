@@ -53,7 +53,8 @@ def parser_add_arguments(parser):
         "by quering the Kubernetes API server. "
         "It supports both in-cluster config (when running as a pod), "
         "and a specific kubectl config file (use --kubeconfig to set this). "
-        "By default, when this flag is set, it will use in-cluster config."
+        "By default, when this flag is set, it will use in-cluster config. "
+        "NOTE: this is automatically switched on in --pod mode."
     )
 
     parser.add_argument(

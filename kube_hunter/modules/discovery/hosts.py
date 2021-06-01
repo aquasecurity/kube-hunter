@@ -115,6 +115,9 @@ class FromPodHostDiscovery(Discovery):
 
     def execute(self):
         config = get_config()
+        # Attempt to read all hosts from the Kubernetes API
+        for host in list_all_k8s_cluster_nodes(config.kubeconfig):
+            self.publish_event(NewHostEvent(host=host))
         # Scan any hosts that the user specified
         if config.remote or config.cidr:
             self.publish_event(HostScanEvent())
