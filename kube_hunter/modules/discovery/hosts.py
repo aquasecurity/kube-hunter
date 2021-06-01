@@ -8,7 +8,7 @@ from netaddr import IPNetwork, IPAddress, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces, gateways
 
 from kube_hunter.conf import get_config
-from kube_hunter.conf.k8s import list_all_k8s_cluster_nodes
+from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
 from kube_hunter.core.types import Discovery, InformationDisclosure, AWS, Azure

@@ -1,6 +1,10 @@
+from kube_hunter.conf import Config, set_config
 
-from kube_hunter.conf.k8s import list_all_k8s_cluster_nodes
+set_config(Config())
+
+from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
 from unittest.mock import MagicMock, patch
+
 
 
 def test_client_yields_ips():
