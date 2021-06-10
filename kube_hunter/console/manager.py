@@ -30,14 +30,14 @@ class KubeHunterMainConsole(cmd.Cmd):
         discover_cmd.cmdloop()
 
     def do_show(self, arg):
-
+        pass
 
     def postcmd(self, stop, line):
         self.prompt = environment.get_prompt()
 
-    def do_help(self, arg):
-        if not arg:
-
+    # def do_help(self, arg):
+    #     if not arg:
+    #         pass
 
     def do_exit(self, arg):
         'exists shell'

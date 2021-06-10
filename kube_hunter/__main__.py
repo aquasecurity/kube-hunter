@@ -8,8 +8,6 @@ from kube_hunter.conf import Config, set_config
 from kube_hunter.conf.parser import parse_args
 from kube_hunter.conf.logging import setup_logger
 
-from kube_hunter.console.manager import start_console
-
 from kube_hunter.plugins import initialize_plugin_manager
 
 pm = initialize_plugin_manager()
@@ -34,6 +32,7 @@ set_config(config)
 # Running all other registered plugins before execution
 pm.hook.load_plugin(args=args)
 
+from kube_hunter.console.manager import start_console
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import HuntFinished, HuntStarted
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
