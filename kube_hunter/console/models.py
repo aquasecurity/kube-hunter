@@ -1,3 +1,5 @@
+import socket
+
 """ Models for console """
 
 """ Basic Models """
@@ -17,6 +19,14 @@ class Pod:
 
     def __str__(self):
         return f"{self.namespace}/{self.name}"
+
+    def incluster_update(self, pod_event):
+        """
+        uses pod_event and other techniques to get full data on the incluster pod env data
+        """
+        self.namespace = pod_event.namespace
+        # hostname will almost always will be the pod's name 
+        self.name = socket.gethostname()
 
 
 """ Cloud Models """
