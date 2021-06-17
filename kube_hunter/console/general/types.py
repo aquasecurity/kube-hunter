@@ -27,6 +27,9 @@ class Cloud:
     def __init__(self, name):
         self.name = name
 
+    def __str__(self):
+        return self.name 
+
 class UnknownCloud(Cloud):
     def __init__(self):
         super(UnknownCloud, self).__init__("Unknown Cloud")
