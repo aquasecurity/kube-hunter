@@ -11,13 +11,13 @@ class EnvSubConsole(cmd2.Cmd):
     def __init__(self, env):
         super(EnvSubConsole, self).__init__()
         self.env = env
-        self.prompt = self.env.get_prompt(sub_command="env")
+        self.prompt = self.env.get_prompt(sub_console="env")
 
     def do_auth(self, arg):
         AuthSubConsole(self.env).cmdloop() 
 
     def postcmd(self, stop, line):
-        self.prompt = self.env.get_prompt(sub_command="env")
+        self.prompt = self.env.get_prompt(sub_console="env")
         if stop:
             return True
     
