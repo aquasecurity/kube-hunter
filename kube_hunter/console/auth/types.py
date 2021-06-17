@@ -15,7 +15,7 @@ class Auth:
         self.iss = token_data.get("iss")
         self.namespace = token_data.get("kubernetes.io/serviceaccount/namespace")
         self.name = token_data.get("kubernetes.io/serviceaccount/secret.name")
-        self.name = token_data.get("kubernetes.io/serviceaccount/service-account.name")
+        self.service_account_name = token_data.get("kubernetes.io/serviceaccount/service-account.name")
         self.uid = token_data.get("kubernetes.io/serviceaccount/service-account.uid")
         self.sub = token_data.get("sub")
 
@@ -52,7 +52,7 @@ class AuthStore:
         return False
 
     def get_current_auth(self):
-        auths[selected_auth]
+        return self.auths[self.selected_auth]
 
     def get_auth(self, index):
         return self.auths[index]

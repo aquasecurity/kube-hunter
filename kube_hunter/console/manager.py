@@ -1,3 +1,4 @@
+from kube_hunter.console.discover.discover import HuntSubConsole
 from kube_hunter.console.general import BaseKubeHunterCmd
 from kube_hunter.console.env import EnvSubConsole, ImmersedEnvironment
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
@@ -23,7 +24,11 @@ class KubeHunterMainConsole(BaseKubeHunterCmd):
         """
         self.intro = f'{kube_hunter_logo}\n\nWelcome to kube-hunter Immeresed Console. Type help or ? to list commands.\n'
         self.env = env
-        
+    
+    def do_hunt(self, arg):
+        'hunt using specified environment'
+        HuntSubConsole(self.env).cmdloop()        
+
     def do_env(self, arg):
         'Show your environment data collected so far'
         EnvSubConsole(self.env).cmdloop()
