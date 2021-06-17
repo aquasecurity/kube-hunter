@@ -1,3 +1,8 @@
+import json
+import base64
+
+from prettytable import PrettyTable, ALL
+
 """ Auth models"""
 class Auth:
     def parse_token(self, token):
