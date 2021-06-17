@@ -38,6 +38,12 @@ class AuthStore:
             if not self.selected_auth:
                 self.selected_auth = 0
     
+    def get_auths_count(self):
+        return len(self.auths)
+
+    def delete_auth(self, index):
+        return self.auths.pop(index) 
+
     def is_exists(self, check_auth):
         """ Checks for uniques auth in auth_store """
         for auth in self.auths:

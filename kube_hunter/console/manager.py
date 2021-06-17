@@ -2,6 +2,13 @@ from kube_hunter.console.general import BaseKubeHunterCmd
 from kube_hunter.console.env import EnvSubConsole, ImmersedEnvironment
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
 
+from colorama import (
+    Back,
+    Fore,
+    Style,
+)
+from cmd2 import ansi
+
 class KubeHunterMainConsole(BaseKubeHunterCmd):
     def __init__(self, env):
         super(KubeHunterMainConsole, self).__init__()
@@ -30,11 +37,15 @@ class KubeHunterMainConsole(BaseKubeHunterCmd):
 
     def do_whereami(self, arg):
         """Try to determine you are based on local files and mounts"""
+        self.pfeedback("Trying to find out where you are...")
         pod_event = RunningAsPodEvent()
         if pod_event.auth_token:
+            self.pfeedback(ansi.style("Found running inside a kubernetes pod", fg="green"))
             self.env.current_auth.new_auth(pod_event.auth_token)
+            self.pfeedback(ansi.style("Loaded a new auth entry: (hint: env/auth/show)", fg="green"))
             self.env.current_pod.incluster_update(pod_event)
             self.env.is_inside_pod = True
+            self.pfeedback("Updated environment with locally found data")
 
 
 def start_console():
