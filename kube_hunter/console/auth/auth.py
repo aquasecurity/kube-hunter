@@ -1,10 +1,10 @@
-import cmd2
+from kube_hunter.console.general import BaseKubeHunterCmd
 
-class AuthSubConsole(cmd2.Cmd):
+class AuthSubConsole(BaseKubeHunterCmd):
     def __init__(self, env):
         super(AuthSubConsole, self).__init__()
         self.env = env
-        self.prompt = self.env.get_prompt(sub_console="env/auth")
+        self.sub_console_name = "env/auth"
 
     def do_set(self, auth_index):
         """Manages the auth database, Usage: 
@@ -25,14 +25,3 @@ class AuthSubConsole(cmd2.Cmd):
             print(self.env.current_auth.get_auth(auth_index).raw_token)
         else:
             print(self.env.current_auth.get_table())
-    
-    def do_exit(self, arg):
-        return True
-
-    def postcmd(self, stop, line):
-        self.prompt = self.env.get_prompt(sub_console="env/auth")
-        if stop:
-            return True
-
-    def emptyline(self):
-         pass

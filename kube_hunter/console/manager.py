@@ -1,11 +1,12 @@
 import cmd2
 import logging
 
+from kube_hunter.console.general import BaseKubeHunterCmd
 from kube_hunter.console.env import EnvSubConsole, ImmersedEnvironment
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
 
-class KubeHunterMainConsole(cmd2.Cmd):
-    def __init__(self, env=None):
+class KubeHunterMainConsole(BaseKubeHunterCmd):
+    def __init__(self, env):
         super(KubeHunterMainConsole, self).__init__()
         kube_hunter_logo = r"""
     __              __                     __                     __                  
@@ -18,8 +19,7 @@ class KubeHunterMainConsole(cmd2.Cmd):
         """
         self.intro = f'{kube_hunter_logo}\n\nWelcome to kube-hunter Immeresed Console. Type help or ? to list commands.\n'
         self.env = env
-        self.prompt = self.env.get_prompt()
-
+        
     def do_env(self, arg):
         'Show your environment data collected so far'
         EnvSubConsole(self.env).cmdloop()
@@ -35,21 +35,6 @@ class KubeHunterMainConsole(cmd2.Cmd):
             self.env.current_auth.new_auth(pod_event.auth_token)
             self.env.current_pod.incluster_update(pod_event)
             self.env.is_inside_pod = True
-
-    def postcmd(self, stop, line):
-        self.prompt = self.env.get_prompt()
-        if stop:
-            return True
-    
-    def do_exit(self, arg):
-        'exists shell'
-        return True
-    
-    def emptyline(self):
-         pass
-    
-    # binds EOF to exit the shell as well
-    do_EOF = do_exit
 
 
 def start_console():
