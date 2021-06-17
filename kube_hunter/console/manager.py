@@ -25,6 +25,9 @@ class KubeHunterMainConsole(BaseKubeHunterCmd):
         EnvSubConsole(self.env).cmdloop()
         
     def do_interactive(self, arg):
+        """Start interactive ipython session"""
+        environment = self.env
+        self.poutput("\n\tStarted an interactive python session. use `environment` to manage the populated environment object")
         import ipdb
         ipdb.set_trace()
 
