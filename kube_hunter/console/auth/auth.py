@@ -49,3 +49,14 @@ class AuthSubConsole(BaseKubeHunterCmd):
                 self.perror("Index too large")
         else:
             self.poutput(self.env.current_auth.get_table())
+
+    select_parser = argparse.ArgumentParser()
+    select_parser.add_argument("index", type=int, help="index of auth entry to set for environment")
+    @with_argparser(select_parser)
+    def do_select(self, opts):
+        """Sets the auth entry for the environment"""
+        if opts.index is not None:
+            if self.env.current_auth.get_auths_count() > opts.index:
+                self.env.current_auth.set_select_auth(opts.index)
+            else:
+                self.perror("Index too large")

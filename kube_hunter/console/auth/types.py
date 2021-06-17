@@ -57,6 +57,9 @@ class AuthStore:
     def get_auth(self, index):
         return self.auths[index]
 
+    def set_select_auth(self, index):
+        self.selected_auth = index
+        
     def get_table(self):
         auth_table = PrettyTable(["index", "Name", "Selected"], hrules=ALL)
         auth_table.align = "l"

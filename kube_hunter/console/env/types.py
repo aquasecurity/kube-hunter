@@ -37,7 +37,12 @@ class ImmersedEnvironment:
         container = f"(container: {Fore.CYAN}{self.current_container}{Style.RESET_ALL})"
         container_in_pod = f"({Fore.MAGENTA}{self.current_pod}/{{}}{Style.RESET_ALL})"
 
-        env_description = cloud
+        env_description = ""
+        if self.current_auth.get_auths_count():
+            auth =  self.current_auth.get_current_auth()
+            env_description += f"  {Fore.LIGHTRED_EX}[Impersonating {auth.sub}]{Style.RESET_ALL}\n"
+
+        env_description += cloud
         if self.is_inside_pod:
             if len(self.current_pod.containers):
                 env_description += f" {arrow} {container_in_pod.format(self.current_pod.containers[0])}"
