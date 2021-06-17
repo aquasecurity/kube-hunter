@@ -1,6 +1,3 @@
-import cmd2
-import logging
-
 from kube_hunter.console.general import BaseKubeHunterCmd
 from kube_hunter.console.env import EnvSubConsole, ImmersedEnvironment
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
