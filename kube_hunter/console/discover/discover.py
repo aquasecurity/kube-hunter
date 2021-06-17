@@ -63,3 +63,5 @@ class HuntSubConsole(BaseKubeHunterCmd):
         self.progress_bar()
         self.pfeedback(ansi.style(f"Finished hunting. found {0} services and {0} vulnerabilities", fg="green"))
         handler.join()
+        handler.publish_event(HuntFinished())
+        handler.free()
