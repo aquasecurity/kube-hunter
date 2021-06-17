@@ -6,6 +6,7 @@ from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
 
 class KubeHunterMainConsole(cmd2.Cmd):
     def __init__(self, env=None):
+        super(KubeHunterMainConsole, self).__init__()
         kube_hunter_logo = r"""
     __              __                     __                     __                  
     /\ \            /\ \                   /\ \                   /\ \__               

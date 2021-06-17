@@ -9,6 +9,7 @@ class EnvSubConsole(cmd2.Cmd):
     Includes: Auth database..
     """
     def __init__(self, env):
+        super(EnvSubConsole, self).__init__()
         self.env = env
         self.prompt = self.env.get_prompt(sub_command="env")
 
