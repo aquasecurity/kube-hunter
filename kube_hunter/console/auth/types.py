@@ -1,49 +1,3 @@
-import json
-import socket
-import base64
-
-from prettytable import ALL, PrettyTable
-
-""" Models for console """
-
-""" Basic Models """
-class Container:
-    """ Basic model for Container objects """
-    name = ""
-
-    def __str__(self):
-        return self.name
-
-class Pod:
-    """ Basic model for Pod objects """
-    ip_address = ""
-    name = ""
-    namespace = ""
-    containers = []
-
-    def __str__(self):
-        return f"{self.namespace}/{self.name}"
-
-    def incluster_update(self, pod_event):
-        """
-        uses pod_event and other techniques to get full data on the incluster pod env data
-        """
-        self.namespace = pod_event.namespace
-        # hostname will almost always will be the pod's name 
-        self.name = socket.gethostname()
-
-
-""" Cloud Models """
-class Cloud:
-    name = None
-
-    def __repr__(self):
-        return self.name
-
-class UnknownCloud(Cloud):
-    name = "Unknown Cloud"
-
-
 """ Auth models"""
 class Auth:
     def parse_token(self, token):
@@ -92,7 +46,7 @@ class AuthStore:
     def get_auth(self, index):
         return self.auths[index]
 
-    def __repr__(self):
+    def get_table(self):
         auth_table = PrettyTable(["index", "Name", "Selected"], hrules=ALL)
         auth_table.align = "l"
         auth_table.padding_width = 1
@@ -106,8 +60,3 @@ class AuthStore:
             auth_table.add_row([i, auth.sub, selected_mark])
         
         return auth_table
-        
-
-                
-
-        
