@@ -26,6 +26,7 @@ config = Config(
     remote=args.remote,
     statistics=args.statistics,
     k8s_auto_discover_nodes=args.k8s_auto_discover_nodes,
+    service_account_token=args.service_account_token,
     kubeconfig=args.kubeconfig,
 )
 setup_logger(args.log, args.log_file)

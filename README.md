@@ -27,21 +27,27 @@ kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 Table of Contents
 =================
 
-* [Hunting](#hunting)
-   * [Where should I run kube-hunter?](#where-should-i-run-kube-hunter)
-   * [Scanning options](#scanning-options)
-   * [Active Hunting](#active-hunting)
-   * [List of tests](#list-of-tests)
-   * [Nodes Mapping](#nodes-mapping)
-   * [Output](#output)
-   * [Dispatching](#dispatching)
-   * [Advanced Usage](#advanced-usage)
-* [Deployment](#deployment)
-   * [On Machine](#on-machine)
-      * [Prerequisites](#prerequisites)
-   * [Container](#container)
-   * [Pod](#pod)
-* [Contribution](#contribution)
+- [Table of Contents](#table-of-contents)
+  - [Hunting](#hunting)
+    - [Where should I run kube-hunter?](#where-should-i-run-kube-hunter)
+    - [Scanning options](#scanning-options)
+    - [Authentication](#authentication)
+    - [Active Hunting](#active-hunting)
+    - [List of tests](#list-of-tests)
+    - [Nodes Mapping](#nodes-mapping)
+    - [Output](#output)
+    - [Dispatching](#dispatching)
+    - [Advanced Usage](#advanced-usage)
+      - [Azure Quick Scanning](#azure-quick-scanning)
+  - [Deployment](#deployment)
+    - [On Machine](#on-machine)
+      - [Prerequisites](#prerequisites)
+        - [Install with pip](#install-with-pip)
+        - [Run from source](#run-from-source)
+    - [Container](#container)
+    - [Pod](#pod)
+  - [Contribution](#contribution)
+  - [License](#license)
          
 ## Hunting
 
@@ -53,7 +59,7 @@ Run kube-hunter on any machine (including your laptop), select Remote scanning a
 
 You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
 
-You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example).
+You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example). (_`--pod` flag_)
 
 ### Scanning options
 
@@ -81,6 +87,20 @@ To specify a specific CIDR to scan, use the `--cidr` option. Example:
 Set `--k8s-auto-discover-nodes` flag to query Kubernetes for all nodes in the cluster, and then attempt to scan them all. By default, it will use [in-cluster config](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) to connect to the Kubernetes API. If you'd like to use an explicit kubeconfig file, set `--kubeconfig /location/of/kubeconfig/file`.
 
 Also note, that this is always done when using `--pod` mode.
+
+### Authentication
+In order to mimic an attacker in it's early stages, kube-hunter requires no authentication for the hunt. 
+
+* **Impersonate** - You can provide kube-hunter with a specific service account token to use when hunting by manually passing the JWT Bearer token of the service-account secret with the `--service-account-token` flag. 
+
+   Example:
+   ```bash
+   $ kube-hunter --active --service-account-token eyJhbGciOiJSUzI1Ni...
+   ```
+
+* When runing with `--pod` flag, kube-hunter uses the service account token [mounted inside the pod](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/) to authenticate to services it finds during the hunt.
+  * if specified, `--service-account-token` flag takes priority when running as a pod
+
 
 ### Active Hunting
 
