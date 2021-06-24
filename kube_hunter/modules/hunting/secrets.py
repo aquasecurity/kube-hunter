@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceAccountTokenAccess(Vulnerability, Event):
-    """ Accessing the pod service account token gives an attacker the option to use the server API """
+    """Accessing the pod service account token gives an attacker the option to use the server API"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(
@@ -24,7 +24,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
 
 
 class SecretsAccess(Vulnerability, Event):
-    """ Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
+    """Accessing the pod's secrets within a compromised pod might disclose valuable data to a potential attacker"""
 
     def __init__(self, evidence):
         Vulnerability.__init__(

@@ -8,6 +8,7 @@ from netaddr import IPNetwork, IPAddress, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces, gateways
 
 from kube_hunter.conf import get_config
+from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
 from kube_hunter.core.types import Discovery, InformationDisclosure, AWS, Azure
@@ -114,6 +115,9 @@ class FromPodHostDiscovery(Discovery):
 
     def execute(self):
         config = get_config()
+        # Attempt to read all hosts from the Kubernetes API
+        for host in list_all_k8s_cluster_nodes(config.kubeconfig):
+            self.publish_event(NewHostEvent(host=host))
         # Scan any hosts that the user specified
         if config.remote or config.cidr:
             self.publish_event(HostScanEvent())
@@ -200,7 +204,7 @@ class FromPodHostDiscovery(Discovery):
 
     # for pod scanning
     def gateway_discovery(self):
-        """ Retrieving default gateway of pod, which is usually also a contact point with the host """
+        """Retrieving default gateway of pod, which is usually also a contact point with the host"""
         return [[gateways()["default"][AF_INET][0], "24"]]
 
     # querying AWS's interface metadata api v1 | works only from a pod
@@ -223,7 +227,7 @@ class FromPodHostDiscovery(Discovery):
 
         self.publish_event(AWSMetadataApi(cidr=cidr))
 
-        return cidr, "AWS"
+        return [(address, subnet)], "AWS"
 
     # querying AWS's interface metadata api v2 | works only from a pod
     def aws_metadata_v2_discovery(self):
@@ -252,7 +256,7 @@ class FromPodHostDiscovery(Discovery):
 
         self.publish_event(AWSMetadataApi(cidr=cidr))
 
-        return cidr, "AWS"
+        return [(address, subnet)], "AWS"
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
@@ -297,6 +301,9 @@ class HostDiscovery(Discovery):
             self.scan_interfaces()
         elif len(config.remote) > 0:
             for host in config.remote:
+                self.publish_event(NewHostEvent(host=host))
+        elif config.k8s_auto_discover_nodes:
+            for host in list_all_k8s_cluster_nodes(config.kubeconfig):
                 self.publish_event(NewHostEvent(host=host))
 
     # for normal scanning
