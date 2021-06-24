@@ -54,7 +54,7 @@ def parser_add_arguments(parser):
         "It supports both in-cluster config (when running as a pod), "
         "and a specific kubectl config file (use --kubeconfig to set this). "
         "By default, when this flag is set, it will use in-cluster config. "
-        "NOTE: this is automatically switched on in --pod mode."
+        "NOTE: this is automatically switched on in --pod mode.",
     )
 
     parser.add_argument(
@@ -63,7 +63,7 @@ def parser_add_arguments(parser):
         metavar="KUBECONFIG",
         default=None,
         help="Specify the kubeconfig file to use for Kubernetes nodes auto discovery "
-        " (to be used in conjuction with the --k8s-auto-discover-nodes flag."
+        " (to be used in conjuction with the --k8s-auto-discover-nodes flag.",
     )
 
     parser.add_argument("--active", action="store_true", help="Enables active hunting")

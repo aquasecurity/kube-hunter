@@ -11,8 +11,8 @@ def list_all_k8s_cluster_nodes(kube_config=None, client=None):
         else:
             logger.info("Attempting to use in cluster Kubernetes config")
             kubernetes.config.load_incluster_config()
-    except kubernetes.config.config_exception.ConfigException:
-        logger.exception("Failed to initiate Kubernetes client")
+    except kubernetes.config.config_exception.ConfigException as ex:
+        logger.exception(f"Failed to initiate Kubernetes client: {ex}")
         return
 
     try:
@@ -23,5 +23,5 @@ def list_all_k8s_cluster_nodes(kube_config=None, client=None):
         for item in ret.items:
             for addr in item.status.addresses:
                 yield addr.address
-    except:
-        logger.exception("Failed to list nodes from Kubernetes")
+    except Exception as ex:
+        logger.exception(f"Failed to list nodes from Kubernetes: {ex}")
