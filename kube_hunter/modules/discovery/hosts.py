@@ -15,15 +15,22 @@ from kube_hunter.core.types import Discovery, InformationDisclosure, AWS, Azure
 
 logger = logging.getLogger(__name__)
 
+from kube_hunter.conf import get_config
 
 class RunningAsPodEvent(Event):
     def __init__(self):
         self.name = "Running from within a pod"
-        self.auth_token = self.get_service_account_file("token")
         self.client_cert = self.get_service_account_file("ca.crt")
         self.namespace = self.get_service_account_file("namespace")
         self.kubeservicehost = os.environ.get("KUBERNETES_SERVICE_HOST", None)
 
+        # if service account token was manually specified, we don't load the token file
+        config = get_config()
+        if config.service_account_token:
+            self.auth_token = config.service_account_token
+        else:
+            self.auth_token = self.get_service_account_file("token")
+        
     # Event's logical location to be used mainly for reports.
     def location(self):
         location = "Local to Pod"
