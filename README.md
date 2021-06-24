@@ -91,7 +91,7 @@ Also note, that this is always done when using `--pod` mode.
 ### Authentication
 In order to mimic an attacker in it's early stages, kube-hunter requires no authentication for the hunt. 
 
-* You can provide kube-hunter with a service account token to use when hunting by passing the JWT Bearer token of the service-account secret with the `--service-account-token` flag.
+* **Impersonate** - You can provide kube-hunter with a specific service account token to use when hunting by manually passing the JWT Bearer token of the service-account secret with the `--service-account-token` flag. 
 
    Example:
    ```bash
@@ -99,7 +99,7 @@ In order to mimic an attacker in it's early stages, kube-hunter requires no auth
    ```
 
 * When runing with `--pod` flag, kube-hunter uses the service account token [mounted inside the pod](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/) to authenticate to services it finds during the hunt.
-  * `--service-account-token` flag takes priority when running as a pod 
+  * if specified, `--service-account-token` flag takes priority when running as a pod
 
 
 ### Active Hunting
