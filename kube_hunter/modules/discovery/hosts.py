@@ -15,7 +15,6 @@ from kube_hunter.core.types import Discovery, InformationDisclosure, AWS, Azure
 
 logger = logging.getLogger(__name__)
 
-from kube_hunter.conf import get_config
 
 class RunningAsPodEvent(Event):
     def __init__(self):
@@ -30,7 +29,7 @@ class RunningAsPodEvent(Event):
             self.auth_token = config.service_account_token
         else:
             self.auth_token = self.get_service_account_file("token")
-        
+
     # Event's logical location to be used mainly for reports.
     def location(self):
         location = "Local to Pod"

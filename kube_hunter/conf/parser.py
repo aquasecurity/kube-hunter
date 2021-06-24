@@ -62,7 +62,7 @@ def parser_add_arguments(parser):
         type=str,
         metavar="JWT_TOKEN",
         help="Manually specify the service account jwt token to use for authenticating in the hunting process "
-        "NOTE: This overrides the loading of the pod's bounded authentication when running in --pod mode"
+        "NOTE: This overrides the loading of the pod's bounded authentication when running in --pod mode",
     )
 
     parser.add_argument(

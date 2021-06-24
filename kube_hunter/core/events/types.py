@@ -84,7 +84,7 @@ class Service:
         self.role = "Node"
 
         # if a service account token was specified, we load it to the Service class
-        # We load it here because generally all kuberentes services could be authenticated with the token 
+        # We load it here because generally all kuberentes services could be authenticated with the token
         config = get_config()
         if config.service_account_token:
             self.auth_token = config.service_account_token
