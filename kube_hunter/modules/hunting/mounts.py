@@ -76,6 +76,7 @@ class VarLogMountHunter(Hunter):
         if pe_pods:
             self.publish_event(WriteMountToVarLog(pods=pe_pods))
 
+
 @handler.subscribe_many([ExposedRunHandler, WriteMountToVarLog])
 class ProveVarLogMount(ActiveHunter):
     """Prove /var/log Mount Hunter

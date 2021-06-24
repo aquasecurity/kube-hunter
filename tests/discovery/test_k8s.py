@@ -6,7 +6,6 @@ from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster
 from unittest.mock import MagicMock, patch
 
 
-
 def test_client_yields_ips():
     client = MagicMock()
     response = MagicMock()
@@ -18,7 +17,7 @@ def test_client_yields_ips():
     response.items[1].status.addresses = [MagicMock()]
     response.items[1].status.addresses[0].address = "127.0.0.3"
 
-    with patch('kubernetes.config.load_incluster_config') as m:
+    with patch("kubernetes.config.load_incluster_config") as m:
         output = list(list_all_k8s_cluster_nodes(client=client))
         m.assert_called_once()
 
@@ -26,6 +25,6 @@ def test_client_yields_ips():
 
 
 def test_client_uses_kubeconfig():
-    with patch('kubernetes.config.load_kube_config') as m:
+    with patch("kubernetes.config.load_kube_config") as m:
         list(list_all_k8s_cluster_nodes(kube_config="/location", client=MagicMock()))
         m.assert_called_once_with(config_file="/location")
