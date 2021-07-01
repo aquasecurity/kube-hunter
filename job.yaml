@@ -12,4 +12,6 @@ spec:
           command: ["kube-hunter"]
           args: ["--pod"]
       restartPolicy: Never
+      securityContext:
+        runAsUser: 1000
   backoffLimit: 4
