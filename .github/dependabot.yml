@@ -10,6 +10,6 @@ updates:
     schedule:
       interval: daily
   - package-ecosystem: 'bundler'
-    directory: '/'
+    directory: /docs
     schedule:
       interval: 'daily'
