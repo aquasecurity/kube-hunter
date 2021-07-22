@@ -3,7 +3,7 @@ import logging
 import base64
 import re
 
-from kube_hunter.core.types import Hunter, KubernetesCluster, DiscoveryCategory
+from kube_hunter.core.types import Hunter, KubernetesCluster, GeneralSensitiveInformationTechnique
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, Service
 
@@ -21,7 +21,7 @@ class CertificateEmail(Vulnerability, Event):
             self,
             KubernetesCluster,
             "Certificate Includes Email Address",
-            category=DiscoveryCategory,
+            category=GeneralSensitiveInformationTechnique,
             vid="KHV021",
         )
         self.email = email

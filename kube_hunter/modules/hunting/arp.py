@@ -5,7 +5,7 @@ from scapy.all import ARP, IP, ICMP, Ether, sr1, srp
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import ActiveHunter, KubernetesCluster, LateralMovementCategory
+from kube_hunter.core.types import ActiveHunter, KubernetesCluster, ARPPoisoningTechnique
 from kube_hunter.modules.hunting.capabilities import CapNetRawEnabled
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class PossibleArpSpoofing(Vulnerability, Event):
             self,
             KubernetesCluster,
             "Possible Arp Spoof",
-            category=LateralMovementCategory,
+            category=ARPPoisoningTechnique,
             vid="KHV020",
         )
 

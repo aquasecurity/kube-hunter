@@ -11,7 +11,7 @@ from kube_hunter.conf import get_config
 from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
-from kube_hunter.core.types import Discovery, DiscoveryCategory, AWS, Azure
+from kube_hunter.core.types import Discovery, AWS, Azure, InstanceMetadataApiTechnique
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ class AWSMetadataApi(Vulnerability, Event):
             self,
             AWS,
             "AWS Metadata Exposure",
-            category=DiscoveryCategory,
+            category=InstanceMetadataApiTechnique,
             vid="KHV053",
         )
         self.cidr = cidr
@@ -70,7 +70,7 @@ class AzureMetadataApi(Vulnerability, Event):
             self,
             Azure,
             "Azure Metadata Exposure",
-            category=DiscoveryCategory,
+            category=InstanceMetadataApiTechnique,
             vid="KHV003",
         )
         self.cidr = cidr

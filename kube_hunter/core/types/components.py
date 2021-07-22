@@ -18,9 +18,11 @@ class Kubelet(KubernetesCluster):
 
 class AWS(KubernetesCluster):
     """AWS Cluster"""
+
     name = "AWS"
 
 
 class Azure(KubernetesCluster):
     """Azure Cluster"""
+
     name = "Azure"

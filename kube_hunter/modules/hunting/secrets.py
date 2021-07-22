@@ -3,7 +3,7 @@ import os
 
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event
-from kube_hunter.core.types import Hunter, KubernetesCluster, AccessRisk
+from kube_hunter.core.types import Hunter, KubernetesCluster, AccessContainerServiceAccountTechnique
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class ServiceAccountTokenAccess(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Read access to pod's service account token",
-            category=AccessRisk,
+            category=AccessContainerServiceAccountTechnique,
             vid="KHV050",
         )
         self.evidence = evidence
@@ -31,7 +31,7 @@ class SecretsAccess(Vulnerability, Event):
             self,
             component=KubernetesCluster,
             name="Access to pod's secrets",
-            category=AccessRisk,
+            category=AccessContainerServiceAccountTechnique,
         )
         self.evidence = evidence
 

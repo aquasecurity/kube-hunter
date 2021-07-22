@@ -16,9 +16,12 @@ from kube_hunter.core.types import (
     ActiveHunter,
     KubernetesCluster,
     Kubelet,
-    DiscoveryCategory,
-    RemoteCodeExec,
-    AccessRisk,
+    ExposedSensitiveInterfacesTechnique,
+    ExecIntoContainerTechnique,
+    GeneralDefenseEvasionTechnique,
+    GeneralSensitiveInformationTechnique,
+    PrivilegedContainerTechnique,
+    AccessKubeletAPITechnique,
 )
 from kube_hunter.modules.discovery.kubelet import (
     ReadOnlyKubeletEvent,
@@ -35,7 +38,7 @@ class ExposedPodsHandler(Vulnerability, Event):
 
     def __init__(self, pods):
         Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Pods", category=DiscoveryCategory, vid="KHV052"
+            self, component=Kubelet, name="Exposed Pods", category=AccessKubeletAPITechnique, vid="KHV052"
         )
         self.pods = pods
         self.evidence = f"count: {len(self.pods)}"
@@ -50,7 +53,7 @@ class AnonymousAuthEnabled(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Anonymous Authentication",
-            category=RemoteCodeExec,
+            category=ExposedSensitiveInterfacesTechnique,
             vid="KHV036",
         )
 
@@ -63,7 +66,7 @@ class ExposedContainerLogsHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Container Logs",
-            category=DiscoveryCategory,
+            category=AccessKubeletAPITechnique,
             vid="KHV037",
         )
 
@@ -77,7 +80,7 @@ class ExposedRunningPodsHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Running Pods",
-            category=DiscoveryCategory,
+            category=AccessKubeletAPITechnique,
             vid="KHV038",
         )
         self.count = count
@@ -92,7 +95,7 @@ class ExposedExecHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Exec On Container",
-            category=RemoteCodeExec,
+            category=ExecIntoContainerTechnique,
             vid="KHV039",
         )
 
@@ -105,7 +108,7 @@ class ExposedRunHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Run Inside Container",
-            category=RemoteCodeExec,
+            category=ExecIntoContainerTechnique,
             vid="KHV040",
         )
 
@@ -118,7 +121,7 @@ class ExposedPortForwardHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Port Forward",
-            category=RemoteCodeExec,
+            category=GeneralDefenseEvasionTechnique,
             vid="KHV041",
         )
 
@@ -132,7 +135,7 @@ class ExposedAttachHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Attaching To Container",
-            category=RemoteCodeExec,
+            category=ExecIntoContainerTechnique,
             vid="KHV042",
         )
 
@@ -146,7 +149,7 @@ class ExposedHealthzHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Cluster Health Disclosure",
-            category=DiscoveryCategory,
+            category=GeneralSensitiveInformationTechnique,
             vid="KHV043",
         )
         self.status = status
@@ -163,7 +166,7 @@ the whole cluster"""
             self,
             component=KubernetesCluster,
             name="Exposed Existing Privileged Container(s) Via Secure Kubelet Port",
-            category=AccessRisk,
+            category=PrivilegedContainerTechnique,
             vid="KHV051",
         )
         self.exposed_existing_privileged_containers = exposed_existing_privileged_containers
@@ -178,7 +181,7 @@ class PrivilegedContainers(Vulnerability, Event):
             self,
             component=KubernetesCluster,
             name="Privileged Container",
-            category=AccessRisk,
+            category=PrivilegedContainerTechnique,
             vid="KHV044",
         )
         self.containers = containers
@@ -193,7 +196,7 @@ class ExposedSystemLogs(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed System Logs",
-            category=DiscoveryCategory,
+            category=AccessKubeletAPITechnique,
             vid="KHV045",
         )
 
@@ -206,7 +209,7 @@ class ExposedKubeletCmdline(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Kubelet Cmdline",
-            category=DiscoveryCategory,
+            category=AccessKubeletAPITechnique,
             vid="KHV046",
         )
         self.cmdline = cmdline

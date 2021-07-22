@@ -1,4 +1,3 @@
-
 class HunterBase:
     publishedVulnerabilities = 0
 
@@ -19,8 +18,9 @@ class HunterBase:
 
     def publish_event(self, event):
         # Import here to avoid circular import from events package.
-        # imports are cached in python so this should not affect runtime 
+        # imports are cached in python so this should not affect runtime
         from ..events import handler  # noqa
+
         handler.publish_event(event, caller=self)
 
 

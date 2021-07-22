@@ -10,8 +10,7 @@ from kube_hunter.core.types import (
     ActiveHunter,
     Hunter,
     KubernetesCluster,
-    DiscoveryCategory,
-    DefenseEvasionCategory
+    ConnectFromProxyServerTechnique,
 )
 from kube_hunter.modules.discovery.dashboard import KubeDashboardEvent
 from kube_hunter.modules.discovery.proxy import KubeProxyEvent
@@ -27,7 +26,7 @@ class KubeProxyExposed(Vulnerability, Event):
             self,
             KubernetesCluster,
             "Proxy Exposed",
-            category=DiscoveryCategory,
+            category=ConnectFromProxyServerTechnique,
             vid="KHV049",
         )
 
@@ -124,6 +123,6 @@ class K8sVersionDisclosureProve(ActiveHunter):
                     version=version_metadata["gitVersion"],
                     from_endpoint="/version",
                     extra_info="on kube-proxy",
-                    category=DefenseEvasionCategory
+                    category=ConnectFromProxyServerTechnique,
                 )
             )

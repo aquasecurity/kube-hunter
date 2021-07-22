@@ -4,7 +4,7 @@ import logging
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import Hunter, AccessRisk, KubernetesCluster
+from kube_hunter.core.types import Hunter, ARPPoisoningTechnique, KubernetesCluster
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class CapNetRawEnabled(Event, Vulnerability):
             self,
             KubernetesCluster,
             name="CAP_NET_RAW Enabled",
-            category=AccessRisk,
+            category=ARPPoisoningTechnique,
         )
 
 

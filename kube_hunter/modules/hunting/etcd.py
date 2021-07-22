@@ -8,10 +8,10 @@ from kube_hunter.core.types import (
     ActiveHunter,
     Hunter,
     KubernetesCluster,
-    DiscoveryCategory,
-    RemoteCodeExec,
-    UnauthenticatedAccess,
-    AccessRisk,
+    GeneralSensitiveInformationTechnique,
+    GeneralPersistenceTechnique,
+    ListK8sSecretsTechnique,
+    ExposedSensitiveInterfacesTechnique,
 )
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class EtcdRemoteWriteAccessEvent(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Etcd Remote Write Access Event",
-            category=RemoteCodeExec,
+            category=GeneralPersistenceTechnique,
             vid="KHV031",
         )
         self.evidence = write_res
@@ -43,7 +43,7 @@ class EtcdRemoteReadAccessEvent(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Etcd Remote Read Access Event",
-            category=AccessRisk,
+            category=ListK8sSecretsTechnique,
             vid="KHV032",
         )
         self.evidence = keys
@@ -58,7 +58,7 @@ class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Etcd Remote version disclosure",
-            category=DiscoveryCategory,
+            category=GeneralSensitiveInformationTechnique,
             vid="KHV033",
         )
         self.evidence = version
@@ -74,7 +74,7 @@ class EtcdAccessEnabledWithoutAuthEvent(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Etcd is accessible using insecure connection (HTTP)",
-            category=UnauthenticatedAccess,
+            category=ExposedSensitiveInterfacesTechnique,
             vid="KHV034",
         )
         self.evidence = version
