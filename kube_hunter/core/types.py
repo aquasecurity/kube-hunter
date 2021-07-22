@@ -62,9 +62,11 @@ class Azure(KubernetesCluster):
     name = "Azure"
 
 
-class InformationDisclosure:
-    name = "Information Disclosure"
+class DiscoveryCategory:
+    name = "Discovery"
 
+class DefenseEvasionCategory:
+    name = "Defense Evasion"
 
 class RemoteCodeExec:
     name = "Remote Code Execution"

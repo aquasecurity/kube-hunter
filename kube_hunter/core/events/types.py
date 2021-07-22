@@ -4,7 +4,7 @@ import requests
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.types import (
-    InformationDisclosure,
+    DiscoveryCategory,
     DenialOfService,
     RemoteCodeExec,
     IdentityTheft,
@@ -102,7 +102,7 @@ class Service:
 class Vulnerability:
     severity = dict(
         {
-            InformationDisclosure: "medium",
+            DiscoveryCategory: "medium",
             DenialOfService: "medium",
             RemoteCodeExec: "high",
             IdentityTheft: "high",
@@ -213,18 +213,21 @@ class ReportDispatched(Event):
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint"""
 
-    def __init__(self, version, from_endpoint, extra_info=""):
+    def __init__(self, version, from_endpoint, extra_info="", category=None):
         Vulnerability.__init__(
             self,
             KubernetesCluster,
             "K8s Version Disclosure",
-            category=InformationDisclosure,
+            category=DiscoveryCategory,
             vid="KHV002",
         )
         self.version = version
         self.from_endpoint = from_endpoint
         self.extra_info = extra_info
         self.evidence = version
+        # depending from where the version came from, we might want to also override the category
+        if category:
+            self.category = category
 
     def explain(self):
         return self.__doc__.format(self.from_endpoint) + self.extra_info
