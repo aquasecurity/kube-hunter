@@ -7,7 +7,7 @@ from kube_hunter.conf import get_config
 from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, SecureKubeletPortHunter
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import Hunter, ActiveHunter, IdentityTheft, Azure
+from kube_hunter.core.types import Hunter, ActiveHunter, PrivilegeEscalationCategory, Azure
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class AzureSpnExposure(Vulnerability, Event):
             self,
             Azure,
             "Azure SPN Exposure",
-            category=IdentityTheft,
+            category=PrivilegeEscalationCategory,
             vid="KHV004",
         )
         self.container = container

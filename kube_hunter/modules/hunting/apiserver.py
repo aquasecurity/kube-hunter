@@ -10,7 +10,7 @@ from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclo
 from kube_hunter.core.types import Hunter, ActiveHunter, KubernetesCluster
 from kube_hunter.core.types import (
     AccessRisk,
-    InformationDisclosure,
+    DiscoveryCategory,
     UnauthenticatedAccess,
 )
 
@@ -24,7 +24,7 @@ class ServerApiAccess(Vulnerability, Event):
     def __init__(self, evidence, using_token):
         if using_token:
             name = "Access to API using service account token"
-            category = InformationDisclosure
+            category = DiscoveryCategory
         else:
             name = "Unauthenticated access to API"
             category = UnauthenticatedAccess
@@ -59,7 +59,7 @@ class ApiInfoDisclosure(Vulnerability, Event):
     """Information Disclosure depending upon RBAC permissions and Kube-Cluster Setup"""
 
     def __init__(self, evidence, using_token, name):
-        category = InformationDisclosure
+        category = DiscoveryCategory
         if using_token:
             name += " using default service account token"
         else:
@@ -377,7 +377,7 @@ class AccessApiServerWithToken(AccessApiServer):
         super().__init__(event)
         assert self.event.auth_token
         self.headers = {"Authorization": f"Bearer {self.event.auth_token}"}
-        self.category = InformationDisclosure
+        self.category = DiscoveryCategory
         self.with_token = True
 
 

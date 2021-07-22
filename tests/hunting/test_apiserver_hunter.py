@@ -21,7 +21,7 @@ from kube_hunter.modules.hunting.apiserver import (
 from kube_hunter.modules.hunting.apiserver import ApiServerPassiveHunterFinished
 from kube_hunter.modules.hunting.apiserver import CreateANamespace, DeleteANamespace
 from kube_hunter.modules.discovery.apiserver import ApiServer
-from kube_hunter.core.types import UnauthenticatedAccess, InformationDisclosure
+from kube_hunter.core.types import UnauthenticatedAccess, DiscoveryCategory
 from kube_hunter.core.events import handler
 
 counter = 0
@@ -184,7 +184,7 @@ class test_ServerApiAccess:
         if event.category == UnauthenticatedAccess:
             assert event.auth_token is None
         else:
-            assert event.category == InformationDisclosure
+            assert event.category == DiscoveryCategory
             assert event.auth_token == "so-secret"
         global counter
         counter += 1

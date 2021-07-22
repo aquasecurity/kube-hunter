@@ -6,7 +6,7 @@ from scapy.all import IP, ICMP, UDP, DNS, DNSQR, ARP, Ether, sr1, srp1, srp
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import ActiveHunter, KubernetesCluster, IdentityTheft
+from kube_hunter.core.types import ActiveHunter, KubernetesCluster, LateralMovementCategory
 from kube_hunter.modules.hunting.arp import PossibleArpSpoofing
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class PossibleDnsSpoofing(Vulnerability, Event):
             self,
             KubernetesCluster,
             "Possible DNS Spoof",
-            category=IdentityTheft,
+            category=LateralMovementCategory,
             vid="KHV030",
         )
         self.kubedns_pod_ip = kubedns_pod_ip

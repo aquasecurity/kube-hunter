@@ -8,7 +8,7 @@ from kube_hunter.core.types import (
     ActiveHunter,
     Hunter,
     KubernetesCluster,
-    InformationDisclosure,
+    DiscoveryCategory,
     RemoteCodeExec,
     UnauthenticatedAccess,
     AccessRisk,
@@ -58,7 +58,7 @@ class EtcdRemoteVersionDisclosureEvent(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Etcd Remote version disclosure",
-            category=InformationDisclosure,
+            category=DiscoveryCategory,
             vid="KHV033",
         )
         self.evidence = version

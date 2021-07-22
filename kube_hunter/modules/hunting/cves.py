@@ -8,7 +8,7 @@ from kube_hunter.core.types import (
     Hunter,
     KubernetesCluster,
     RemoteCodeExec,
-    PrivilegeEscalation,
+    PrivilegeEscalationCategory,
     DenialOfService,
     KubectlClient,
 )
@@ -25,7 +25,7 @@ class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Critical Privilege Escalation CVE",
-            category=PrivilegeEscalation,
+            category=PrivilegeEscalationCategory,
             vid="KHV022",
         )
         self.evidence = evidence
@@ -85,7 +85,7 @@ class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Arbitrary Access To Cluster Scoped Resources",
-            category=PrivilegeEscalation,
+            category=PrivilegeEscalationCategory,
             vid="KHV026",
         )
         self.evidence = evidence

@@ -16,7 +16,7 @@ from kube_hunter.core.types import (
     ActiveHunter,
     KubernetesCluster,
     Kubelet,
-    InformationDisclosure,
+    DiscoveryCategory,
     RemoteCodeExec,
     AccessRisk,
 )
@@ -35,7 +35,7 @@ class ExposedPodsHandler(Vulnerability, Event):
 
     def __init__(self, pods):
         Vulnerability.__init__(
-            self, component=Kubelet, name="Exposed Pods", category=InformationDisclosure, vid="KHV052"
+            self, component=Kubelet, name="Exposed Pods", category=DiscoveryCategory, vid="KHV052"
         )
         self.pods = pods
         self.evidence = f"count: {len(self.pods)}"
@@ -63,7 +63,7 @@ class ExposedContainerLogsHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Container Logs",
-            category=InformationDisclosure,
+            category=DiscoveryCategory,
             vid="KHV037",
         )
 
@@ -77,7 +77,7 @@ class ExposedRunningPodsHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Running Pods",
-            category=InformationDisclosure,
+            category=DiscoveryCategory,
             vid="KHV038",
         )
         self.count = count
@@ -146,7 +146,7 @@ class ExposedHealthzHandler(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Cluster Health Disclosure",
-            category=InformationDisclosure,
+            category=DiscoveryCategory,
             vid="KHV043",
         )
         self.status = status
@@ -193,7 +193,7 @@ class ExposedSystemLogs(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed System Logs",
-            category=InformationDisclosure,
+            category=DiscoveryCategory,
             vid="KHV045",
         )
 
@@ -206,7 +206,7 @@ class ExposedKubeletCmdline(Vulnerability, Event):
             self,
             component=Kubelet,
             name="Exposed Kubelet Cmdline",
-            category=InformationDisclosure,
+            category=DiscoveryCategory,
             vid="KHV046",
         )
         self.cmdline = cmdline
