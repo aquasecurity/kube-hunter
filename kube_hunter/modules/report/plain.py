@@ -83,7 +83,8 @@ class PlainReporter(BaseReporter):
         column_names = [
             "ID",
             "Location",
-            "Category",
+            "MITRE Category",
+            "Technique",
             "Vulnerability",
             "Description",
             "Evidence",
