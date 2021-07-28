@@ -50,6 +50,6 @@ jobs:
           make test
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v2.0.2
+        uses: codecov/codecov-action@v2
         with:
           name: ${{ matrix.os }} Python ${{ matrix.python-version }}
