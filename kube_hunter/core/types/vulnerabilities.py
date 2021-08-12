@@ -12,11 +12,26 @@ CVE Category
 
 
 class MITRECategory:
-    pass
+    @classmethod
+    def get_name(cls):
+        """ 
+        Returns the full name of MITRE technique: <MITRE CATEGORY> // <MITRE TECHNIQUE>
+        Should only be used on a direct technique class at the end of the MITRE inheritance chain.
+
+        Example inheritance: 
+        MITRECategory -> InitialAccessCategory -> ExposedSensitiveInterfacesTechnique
+        """
+        inheritance_chain = cls.__mro__
+        if len(inheritance_chain) >= 4:        
+            # -3 == index of mitreCategory class. (object class is first)
+            mitre_category_class = inheritance_chain[-3]
+        return f"{mitre_category_class.name} // {cls.name}"
 
 
 class CVECategory:
-    pass
+    @classmethod
+    def get_name(cls):
+        return cls.name
 
 
 """
@@ -168,3 +183,12 @@ class CVEPrivilegeEscalationCategory(CVECategory):
 
 class CVEDenialOfServiceTechnique(CVECategory):
     name = "Denial Of Service (CVE)"
+
+
+""" Helper Functions """
+
+def is_mitre_technique(technique):
+    return MITRECategory in technique.__mro__
+
+def is_cve_technique(technique):
+    return CVECategory in technique.__mro__

@@ -9,9 +9,10 @@ from kube_hunter.modules.report.collector import (
     vulnerabilities_lock,
 )
 
+from kube_hunter.core.types.vulnerabilities import is_mitre_technique, is_cve_technique
+
 EVIDENCE_PREVIEW = 100
 MAX_TABLE_WIDTH = 20
-
 
 class PlainReporter(BaseReporter):
     def get_report(self, *, statistics=None, mapping=None, **kwargs):
@@ -83,8 +84,7 @@ class PlainReporter(BaseReporter):
         column_names = [
             "ID",
             "Location",
-            "MITRE Category",
-            "Technique",
+            "MITRE Technique",
             "Vulnerability",
             "Description",
             "Evidence",
@@ -92,7 +92,7 @@ class PlainReporter(BaseReporter):
         vuln_table = PrettyTable(column_names, hrules=ALL)
         vuln_table.align = "l"
         vuln_table.max_width = MAX_TABLE_WIDTH
-        vuln_table.sortby = "Category"
+        vuln_table.sortby = "MITRE Technique"
         vuln_table.reversesort = True
         vuln_table.padding_width = 1
         vuln_table.header_style = "upper"
@@ -102,15 +102,17 @@ class PlainReporter(BaseReporter):
                 evidence = str(vuln.evidence)
                 if len(evidence) > EVIDENCE_PREVIEW:
                     evidence = evidence[:EVIDENCE_PREVIEW] + "..."
-                row = [
-                    vuln.get_vid(),
-                    vuln.location(),
-                    vuln.category.name,
-                    vuln.get_name(),
-                    vuln.explain(),
-                    evidence,
-                ]
-                vuln_table.add_row(row)
+
+                if is_mitre_technique(vuln.category):
+                    row = [
+                        vuln.get_vid(),
+                        vuln.location(),
+                        vuln.category.get_name(),
+                        vuln.get_name(),
+                        vuln.explain(),
+                        evidence,
+                    ]
+                    vuln_table.add_row(row)
         return (
             "\nVulnerabilities\n"
             "For further information about a vulnerability, search its ID in: \n"
