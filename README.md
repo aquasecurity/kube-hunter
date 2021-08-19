@@ -141,7 +141,7 @@ Available dispatch methods are:
     * KUBEHUNTER_HTTP_DISPATCH_URL (defaults to: https://localhost)
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
-### Advanced Usage 
+### Advanced Usage  
 #### Azure Quick Scanning 
 When running **as a Pod in an Azure or AWS environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
 To hardlimit subnet scanning to a `/24` CIDR, use the `--quick` option. 

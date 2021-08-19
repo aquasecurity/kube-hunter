@@ -12,6 +12,7 @@ from kube_hunter.modules.report.collector import (
 EVIDENCE_PREVIEW = 100
 MAX_TABLE_WIDTH = 20
 
+
 class PlainReporter(BaseReporter):
     def get_report(self, *, statistics=None, mapping=None, **kwargs):
         """generates report tables"""
