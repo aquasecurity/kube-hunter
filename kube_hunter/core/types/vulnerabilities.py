@@ -31,8 +31,10 @@ class MITRECategory:
 class CVECategory:
     @classmethod
     def get_name(cls):
-        return cls.name
-
+        """ 
+        Returns the full name of the category: CVE // <CVE Category name>
+        """
+        return f"CVE // {cls.name}"
 
 """
 MITRE ATT&CK Technique Categories
@@ -183,12 +185,3 @@ class CVEPrivilegeEscalationCategory(CVECategory):
 
 class CVEDenialOfServiceTechnique(CVECategory):
     name = "Denial Of Service (CVE)"
-
-
-""" Helper Functions """
-
-def is_mitre_technique(technique):
-    return MITRECategory in technique.__mro__
-
-def is_cve_technique(technique):
-    return CVECategory in technique.__mro__
