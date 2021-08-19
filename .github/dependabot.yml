@@ -2,18 +2,22 @@
 version: 2
 updates:
   - package-ecosystem: pip
+    target-branch: chore/dependabot
     directory: /
     schedule:
       interval: weekly
   - package-ecosystem: github-actions
+    target-branch: chore/dependabot
     directory: /
     schedule:
       interval: weekly
   - package-ecosystem: 'bundler'
+    target-branch: chore/dependabot
     directory: /docs
     schedule:
       interval: 'daily'
   - package-ecosystem: docker
+    target-branch: chore/dependabot
     directory: /
     schedule:
       interval: weekly
