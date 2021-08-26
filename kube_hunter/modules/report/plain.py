@@ -42,7 +42,7 @@ class PlainReporter(BaseReporter):
         else:
             if vulnerabilities_len:
                 output += self.vulns_table()
-            output += "\nKube Hunter couldn't find any clusters"
+            output += "\nCluster Inaccessible from Kube Hunter"
         return output
 
     def nodes_table(self):
