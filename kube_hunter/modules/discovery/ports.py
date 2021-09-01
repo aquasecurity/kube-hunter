@@ -21,11 +21,15 @@ class PortDiscovery(Discovery):
         self.port = event.port
 
     def execute(self):
+        flag = True
         logger.debug(f"host {self.host} try ports: {default_ports}")
         for single_port in default_ports:
             if self.test_connection(self.host, single_port):
+                flag = False
                 logger.debug(f"Reachable port found: {single_port}")
                 self.publish_event(OpenPortEvent(port=single_port))
+        if flag:
+            logger.debug("Failed to find any Open Ports")
 
     @staticmethod
     def test_connection(host, port):
