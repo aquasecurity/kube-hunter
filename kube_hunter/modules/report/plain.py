@@ -22,13 +22,9 @@ class PlainReporter(BaseReporter):
             vulnerabilities_len = len(vulnerabilities)
 
         hunters_len = len(hunters.items())
-        print("****Services****")
-        print(services)
         with services_lock:
             services_len = len(services)
 
-        print("****HunterS List*****")
-        print(hunters.items())
         if services_len:
             output += self.nodes_table()
             if not mapping:
