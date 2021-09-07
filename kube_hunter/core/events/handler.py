@@ -224,6 +224,8 @@ class EventQueue(Queue):
         if caller:
             event.previous = caller.event
             event.hunter = caller.__class__
+            if "error" in caller.__dict__:
+                event.error = caller.error
 
     def _register_hunters(self, hook=None):
         """

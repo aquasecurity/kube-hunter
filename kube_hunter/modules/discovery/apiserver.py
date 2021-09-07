@@ -48,6 +48,7 @@ class ApiServiceDiscovery(Discovery):
         self.event = event
         self.session = requests.Session()
         self.session.verify = False
+        self.error = ""
 
     def execute(self):
         logger.debug(f"Attempting to discover an API service on {self.event.host}:{self.event.port}")
@@ -59,6 +60,7 @@ class ApiServiceDiscovery(Discovery):
                 self.publish_event(K8sApiService(protocol))
         if flag:
             logger.debug("Failed to connect to ApiServer Service")
+            self.error = "Failed to connect to ApiServer Service"
 
     def has_api_behaviour(self, protocol):
         config = get_config()

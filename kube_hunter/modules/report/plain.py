@@ -14,9 +14,11 @@ MAX_TABLE_WIDTH = 20
 
 
 class PlainReporter(BaseReporter):
-    def get_report(self, *, statistics=None, mapping=None, **kwargs):
+    def get_report(self, *, statistics=None, mapping=None,error=None, **kwargs):
         """generates report tables"""
         output = ""
+        if error is not None:
+            return error
 
         with vulnerabilities_lock:
             vulnerabilities_len = len(vulnerabilities)
@@ -24,7 +26,7 @@ class PlainReporter(BaseReporter):
         hunters_len = len(hunters.items())
         with services_lock:
             services_len = len(services)
-
+        
         if services_len:
             output += self.nodes_table()
             if not mapping:

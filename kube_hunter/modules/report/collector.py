@@ -53,7 +53,7 @@ class SendFullReport:
 
     def execute(self):
         config = get_config()
-        report = config.reporter.get_report(statistics=config.statistics, mapping=config.mapping)
+        report = config.reporter.get_report(statistics=config.statistics, mapping=config.mapping, error = self.event.error)
         config.dispatcher.dispatch(report)
         handler.publish_event(ReportDispatched())
         handler.publish_event(TablesPrinted())

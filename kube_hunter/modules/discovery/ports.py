@@ -3,7 +3,7 @@ from socket import socket
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import NewHostEvent, OpenPortEvent
+from kube_hunter.core.events.types import HuntFinished, NewHostEvent, OpenPortEvent
 
 logger = logging.getLogger(__name__)
 default_ports = [8001, 8080, 10250, 10255, 30000, 443, 6443, 2379]
@@ -19,6 +19,7 @@ class PortDiscovery(Discovery):
         self.event = event
         self.host = event.host
         self.port = event.port
+        self.error = ""
 
     def execute(self):
         flag = True
@@ -30,6 +31,8 @@ class PortDiscovery(Discovery):
                 self.publish_event(OpenPortEvent(port=single_port))
         if flag:
             logger.debug("Failed to find any Open Ports")
+            self.error = "Failed to find any Open Ports"
+            self.publish_event(HuntFinished())
 
     @staticmethod
     def test_connection(host, port):

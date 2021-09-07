@@ -32,6 +32,7 @@ class Event:
     def __init__(self):
         self.previous = None
         self.hunter = None
+        self.error = None
 
     # newest attribute gets selected first
     def __getattr__(self, name):
