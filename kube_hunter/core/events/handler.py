@@ -137,10 +137,8 @@ class EventQueue(Queue):
         # Document that the hunter published a vulnerability (if it's indeed a vulnerability)
         # For statistics options
         self._increase_vuln_count(event, caller)
-
         # sets the event's parent to be it's publisher hunter.
         self._set_event_chain(event, caller)
-
         # applying filters on the event, before publishing it to subscribers.
         # if filter returned None, not proceeding to publish
         event = self.apply_filters(event)
@@ -224,8 +222,6 @@ class EventQueue(Queue):
         if caller:
             event.previous = caller.event
             event.hunter = caller.__class__
-            if "error" in caller.__dict__:
-                event.error = caller.error
 
     def _register_hunters(self, hook=None):
         """

@@ -3,7 +3,7 @@ import requests
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import OpenPortEvent, Service, Event, EventFilterBase
+from kube_hunter.core.events.types import HuntFinished, HuntError,OpenPortEvent, Service, Event, EventFilterBase
 
 from kube_hunter.conf import get_config
 
@@ -60,7 +60,7 @@ class ApiServiceDiscovery(Discovery):
                 self.publish_event(K8sApiService(protocol))
         if flag:
             logger.debug("Failed to connect to ApiServer Service")
-            self.error = "Failed to connect to ApiServer Service"
+            self.publish_event(HuntError("Failed to connect to ApiServer Service"))
 
     def has_api_behaviour(self, protocol):
         config = get_config()

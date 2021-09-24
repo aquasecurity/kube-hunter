@@ -32,7 +32,7 @@ class Event:
     def __init__(self):
         self.previous = None
         self.hunter = None
-        self.error = None
+        #self.error = None
 
     # newest attribute gets selected first
     def __getattr__(self, name):
@@ -138,6 +138,12 @@ class Vulnerability:
     def get_severity(self):
         return self.severity.get(self.category, "low")
 
+class HuntError(Event):
+    def __init__(self,error):
+        self.error = error
+
+    def __str__(self):
+        return str(self.error)
 
 event_id_count_lock = threading.Lock()
 event_id_count = 0

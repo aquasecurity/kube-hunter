@@ -4,9 +4,11 @@ from kube_hunter.modules.report.base import BaseReporter, BASE_KB_LINK
 from kube_hunter.modules.report.collector import (
     services,
     vulnerabilities,
+    errors,
     hunters,
     services_lock,
     vulnerabilities_lock,
+    error_lock
 )
 
 EVIDENCE_PREVIEW = 100
@@ -14,18 +16,21 @@ MAX_TABLE_WIDTH = 20
 
 
 class PlainReporter(BaseReporter):
-    def get_report(self, *, statistics=None, mapping=None,error=None, **kwargs):
+    def get_report(self, *, statistics=None, mapping=None, **kwargs):
         """generates report tables"""
         output = ""
-        if error is not None:
-            return error
-
         with vulnerabilities_lock:
             vulnerabilities_len = len(vulnerabilities)
 
         hunters_len = len(hunters.items())
         with services_lock:
             services_len = len(services)
+        
+        with error_lock:
+            errors_len =  len(errors)
+        
+        if errors_len:
+            return ','.join(errors)
         
         if services_len:
             output += self.nodes_table()

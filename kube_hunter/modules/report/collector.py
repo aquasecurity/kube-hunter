@@ -9,6 +9,7 @@ from kube_hunter.core.events.types import (
     Vulnerability,
     HuntFinished,
     HuntStarted,
+    HuntError,
     ReportDispatched,
 )
 
@@ -18,9 +19,11 @@ services_lock = threading.Lock()
 services = list()
 vulnerabilities_lock = threading.Lock()
 vulnerabilities = list()
+error_lock = threading.Lock()
+errors = list()
 hunters = handler.all_hunters
 
-
+@handler.subscribe(HuntError)
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
 class Collector:
@@ -31,6 +34,7 @@ class Collector:
         """function is called only when collecting data"""
         global services
         global vulnerabilities
+        global errors
         bases = self.event.__class__.__mro__
         if Service in bases:
             with services_lock:
@@ -40,6 +44,10 @@ class Collector:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
             logger.info(f'Found vulnerability "{self.event.get_name()}" in {self.event.location()}')
+        elif HuntError in bases:
+            with error_lock:
+                errors.append(str(self.event))
+            logger.info(f'Found error "{self.event.get_name()}" in {self.event.location()}')
 
 
 class TablesPrinted(Event):
@@ -53,7 +61,7 @@ class SendFullReport:
 
     def execute(self):
         config = get_config()
-        report = config.reporter.get_report(statistics=config.statistics, mapping=config.mapping, error = self.event.error)
+        report = config.reporter.get_report(statistics=config.statistics, mapping=config.mapping)
         config.dispatcher.dispatch(report)
         handler.publish_event(ReportDispatched())
         handler.publish_event(TablesPrinted())
