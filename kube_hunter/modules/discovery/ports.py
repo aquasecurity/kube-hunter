@@ -3,7 +3,7 @@ from socket import socket
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import HuntFinished, NewHostEvent, OpenPortEvent,HuntError
+from kube_hunter.core.events.types import HuntFinished, NewHostEvent, OpenPortEvent, HuntError
 
 logger = logging.getLogger(__name__)
 default_ports = [8001, 8080, 10250, 10255, 30000, 443, 6443, 2379]

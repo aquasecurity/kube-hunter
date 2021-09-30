@@ -8,7 +8,7 @@ from kube_hunter.modules.report.collector import (
     hunters,
     services_lock,
     vulnerabilities_lock,
-    error_lock
+    error_lock,
 )
 
 EVIDENCE_PREVIEW = 100
@@ -25,12 +25,13 @@ class PlainReporter(BaseReporter):
         hunters_len = len(hunters.items())
         with services_lock:
             services_len = len(services)
-        
+  
         with error_lock:
-            errors_len =  len(errors)
-        
+            errors_len = len(errors)
+
         if errors_len:
-            return ','.join(errors)
+            return "","".join(errors)
+
         
         if services_len:
             output += self.nodes_table()

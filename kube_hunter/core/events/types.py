@@ -138,6 +138,7 @@ class Vulnerability:
         return self.severity.get(self.category, "low")
 
 class HuntError(Event):
+    
     def __init__(self,error):
         self.error = error
 
