@@ -83,7 +83,7 @@ class PlainReporter(BaseReporter):
         column_names = [
             "ID",
             "Location",
-            "Category",
+            "MITRE Category",
             "Vulnerability",
             "Description",
             "Evidence",
@@ -91,7 +91,7 @@ class PlainReporter(BaseReporter):
         vuln_table = PrettyTable(column_names, hrules=ALL)
         vuln_table.align = "l"
         vuln_table.max_width = MAX_TABLE_WIDTH
-        vuln_table.sortby = "Category"
+        vuln_table.sortby = "MITRE Category"
         vuln_table.reversesort = True
         vuln_table.padding_width = 1
         vuln_table.header_style = "upper"
@@ -101,10 +101,11 @@ class PlainReporter(BaseReporter):
                 evidence = str(vuln.evidence)
                 if len(evidence) > EVIDENCE_PREVIEW:
                     evidence = evidence[:EVIDENCE_PREVIEW] + "..."
+
                 row = [
                     vuln.get_vid(),
                     vuln.location(),
-                    vuln.category.name,
+                    vuln.category.get_name(),
                     vuln.get_name(),
                     vuln.explain(),
                     evidence,

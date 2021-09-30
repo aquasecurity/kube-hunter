@@ -6,11 +6,11 @@ from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from kube_hunter.core.types import (
     Hunter,
-    KubernetesCluster,
-    RemoteCodeExec,
-    PrivilegeEscalation,
-    DenialOfService,
     KubectlClient,
+    KubernetesCluster,
+    CVERemoteCodeExecutionCategory,
+    CVEPrivilegeEscalationCategory,
+    CVEDenialOfServiceTechnique,
 )
 from kube_hunter.modules.discovery.kubectl import KubectlClientEvent
 
@@ -25,7 +25,7 @@ class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Critical Privilege Escalation CVE",
-            category=PrivilegeEscalation,
+            category=CVEPrivilegeEscalationCategory,
             vid="KHV022",
         )
         self.evidence = evidence
@@ -40,7 +40,7 @@ class ServerApiVersionEndPointAccessDos(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Denial of Service to Kubernetes API Server",
-            category=DenialOfService,
+            category=CVEDenialOfServiceTechnique,
             vid="KHV023",
         )
         self.evidence = evidence
@@ -55,7 +55,7 @@ class PingFloodHttp2Implementation(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Possible Ping Flood Attack",
-            category=DenialOfService,
+            category=CVEDenialOfServiceTechnique,
             vid="KHV024",
         )
         self.evidence = evidence
@@ -70,7 +70,7 @@ class ResetFloodHttp2Implementation(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Possible Reset Flood Attack",
-            category=DenialOfService,
+            category=CVEDenialOfServiceTechnique,
             vid="KHV025",
         )
         self.evidence = evidence
@@ -85,7 +85,7 @@ class ServerApiClusterScopedResourcesAccess(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Arbitrary Access To Cluster Scoped Resources",
-            category=PrivilegeEscalation,
+            category=CVEPrivilegeEscalationCategory,
             vid="KHV026",
         )
         self.evidence = evidence
@@ -100,7 +100,7 @@ class IncompleteFixToKubectlCpVulnerability(Vulnerability, Event):
             self,
             KubectlClient,
             "Kubectl Vulnerable To CVE-2019-11246",
-            category=RemoteCodeExec,
+            category=CVERemoteCodeExecutionCategory,
             vid="KHV027",
         )
         self.binary_version = binary_version
@@ -116,7 +116,7 @@ class KubectlCpVulnerability(Vulnerability, Event):
             self,
             KubectlClient,
             "Kubectl Vulnerable To CVE-2019-1002101",
-            category=RemoteCodeExec,
+            category=CVERemoteCodeExecutionCategory,
             vid="KHV028",
         )
         self.binary_version = binary_version

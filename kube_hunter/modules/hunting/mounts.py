@@ -5,12 +5,7 @@ import uuid
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Event, Vulnerability
-from kube_hunter.core.types import (
-    ActiveHunter,
-    Hunter,
-    KubernetesCluster,
-    PrivilegeEscalation,
-)
+from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, HostPathMountPrivilegeEscalationTechnique
 from kube_hunter.modules.hunting.kubelet import (
     ExposedPodsHandler,
     ExposedRunHandler,
@@ -28,7 +23,7 @@ class WriteMountToVarLog(Vulnerability, Event):
             self,
             KubernetesCluster,
             "Pod With Mount To /var/log",
-            category=PrivilegeEscalation,
+            category=HostPathMountPrivilegeEscalationTechnique,
             vid="KHV047",
         )
         self.pods = pods
@@ -44,7 +39,7 @@ class DirectoryTraversalWithKubelet(Vulnerability, Event):
             self,
             KubernetesCluster,
             "Root Traversal Read On The Kubelet",
-            category=PrivilegeEscalation,
+            category=HostPathMountPrivilegeEscalationTechnique,
         )
         self.output = output
         self.evidence = f"output: {self.output}"

@@ -3,7 +3,7 @@ import json
 import requests
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.types import Hunter, RemoteCodeExec, KubernetesCluster
+from kube_hunter.core.types import Hunter, AccessK8sDashboardTechnique, KubernetesCluster
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event
 from kube_hunter.modules.discovery.dashboard import KubeDashboardEvent
@@ -19,7 +19,7 @@ class DashboardExposed(Vulnerability, Event):
             self,
             KubernetesCluster,
             "Dashboard Exposed",
-            category=RemoteCodeExec,
+            category=AccessK8sDashboardTechnique,
             vid="KHV029",
         )
         self.evidence = "nodes: {}".format(" ".join(nodes)) if nodes else None

@@ -3,15 +3,32 @@ import threading
 import requests
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.types import (
-    InformationDisclosure,
-    DenialOfService,
-    RemoteCodeExec,
-    IdentityTheft,
-    PrivilegeEscalation,
-    AccessRisk,
-    UnauthenticatedAccess,
-    KubernetesCluster,
+from kube_hunter.core.types import KubernetesCluster
+from kube_hunter.core.types.vulnerabilities import (
+    GeneralSensitiveInformationTechnique,
+    ExposedSensitiveInterfacesTechnique,
+    MountServicePrincipalTechnique,
+    ListK8sSecretsTechnique,
+    AccessContainerServiceAccountTechnique,
+    AccessK8sApiServerTechnique,
+    AccessKubeletAPITechnique,
+    AccessK8sDashboardTechnique,
+    InstanceMetadataApiTechnique,
+    ExecIntoContainerTechnique,
+    SidecarInjectionTechnique,
+    NewContainerTechnique,
+    GeneralPersistenceTechnique,
+    HostPathMountPrivilegeEscalationTechnique,
+    PrivilegedContainerTechnique,
+    ClusterAdminBindingTechnique,
+    ARPPoisoningTechnique,
+    CoreDNSPoisoningTechnique,
+    DataDestructionTechnique,
+    GeneralDefenseEvasionTechnique,
+    ConnectFromProxyServerTechnique,
+    CVERemoteCodeExecutionCategory,
+    CVEPrivilegeEscalationCategory,
+    CVEDenialOfServiceTechnique,
 )
 
 logger = logging.getLogger(__name__)
@@ -102,13 +119,30 @@ class Service:
 class Vulnerability:
     severity = dict(
         {
-            InformationDisclosure: "medium",
-            DenialOfService: "medium",
-            RemoteCodeExec: "high",
-            IdentityTheft: "high",
-            PrivilegeEscalation: "high",
-            AccessRisk: "low",
-            UnauthenticatedAccess: "low",
+            GeneralSensitiveInformationTechnique: "low",
+            ExposedSensitiveInterfacesTechnique: "high",
+            MountServicePrincipalTechnique: "high",
+            ListK8sSecretsTechnique: "high",
+            AccessContainerServiceAccountTechnique: "low",
+            AccessK8sApiServerTechnique: "medium",
+            AccessKubeletAPITechnique: "medium",
+            AccessK8sDashboardTechnique: "medium",
+            InstanceMetadataApiTechnique: "high",
+            ExecIntoContainerTechnique: "high",
+            SidecarInjectionTechnique: "high",
+            NewContainerTechnique: "high",
+            GeneralPersistenceTechnique: "high",
+            HostPathMountPrivilegeEscalationTechnique: "high",
+            PrivilegedContainerTechnique: "high",
+            ClusterAdminBindingTechnique: "high",
+            ARPPoisoningTechnique: "medium",
+            CoreDNSPoisoningTechnique: "high",
+            DataDestructionTechnique: "high",
+            GeneralDefenseEvasionTechnique: "high",
+            ConnectFromProxyServerTechnique: "low",
+            CVERemoteCodeExecutionCategory: "high",
+            CVEPrivilegeEscalationCategory: "high",
+            CVEDenialOfServiceTechnique: "medium",
         }
     )
 
@@ -213,18 +247,21 @@ class ReportDispatched(Event):
 class K8sVersionDisclosure(Vulnerability, Event):
     """The kubernetes version could be obtained from the {} endpoint"""
 
-    def __init__(self, version, from_endpoint, extra_info=""):
+    def __init__(self, version, from_endpoint, extra_info="", category=None):
         Vulnerability.__init__(
             self,
             KubernetesCluster,
             "K8s Version Disclosure",
-            category=InformationDisclosure,
+            category=ExposedSensitiveInterfacesTechnique,
             vid="KHV002",
         )
         self.version = version
         self.from_endpoint = from_endpoint
         self.extra_info = extra_info
         self.evidence = version
+        # depending from where the version came from, we might want to also override the category
+        if category:
+            self.category = category
 
     def explain(self):
         return self.__doc__.format(self.from_endpoint) + self.extra_info

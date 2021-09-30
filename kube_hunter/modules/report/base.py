@@ -36,7 +36,7 @@ class BaseReporter:
                 {
                     "location": vuln.location(),
                     "vid": vuln.get_vid(),
-                    "category": vuln.category.name,
+                    "category": vuln.category.get_name(),
                     "severity": vuln.get_severity(),
                     "vulnerability": vuln.get_name(),
                     "description": vuln.explain(),

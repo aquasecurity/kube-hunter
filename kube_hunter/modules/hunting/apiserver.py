@@ -8,10 +8,15 @@ from kube_hunter.modules.discovery.apiserver import ApiServer
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from kube_hunter.core.types import Hunter, ActiveHunter, KubernetesCluster
-from kube_hunter.core.types import (
-    AccessRisk,
-    InformationDisclosure,
-    UnauthenticatedAccess,
+from kube_hunter.core.types.vulnerabilities import (
+    AccessK8sApiServerTechnique,
+    ExposedSensitiveInterfacesTechnique,
+    GeneralDefenseEvasionTechnique,
+    DataDestructionTechnique,
+    ClusterAdminBindingTechnique,
+    NewContainerTechnique,
+    PrivilegedContainerTechnique,
+    SidecarInjectionTechnique,
 )
 
 logger = logging.getLogger(__name__)
@@ -24,10 +29,10 @@ class ServerApiAccess(Vulnerability, Event):
     def __init__(self, evidence, using_token):
         if using_token:
             name = "Access to API using service account token"
-            category = InformationDisclosure
+            category = AccessK8sApiServerTechnique
         else:
             name = "Unauthenticated access to API"
-            category = UnauthenticatedAccess
+            category = ExposedSensitiveInterfacesTechnique
         Vulnerability.__init__(
             self,
             KubernetesCluster,
@@ -44,7 +49,7 @@ class ServerApiHTTPAccess(Vulnerability, Event):
 
     def __init__(self, evidence):
         name = "Insecure (HTTP) access to API"
-        category = UnauthenticatedAccess
+        category = ExposedSensitiveInterfacesTechnique
         Vulnerability.__init__(
             self,
             KubernetesCluster,
@@ -59,7 +64,7 @@ class ApiInfoDisclosure(Vulnerability, Event):
     """Information Disclosure depending upon RBAC permissions and Kube-Cluster Setup"""
 
     def __init__(self, evidence, using_token, name):
-        category = InformationDisclosure
+        category = AccessK8sApiServerTechnique
         if using_token:
             name += " using default service account token"
         else:
@@ -111,7 +116,7 @@ class CreateANamespace(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Created a namespace",
-            category=AccessRisk,
+            category=GeneralDefenseEvasionTechnique,
         )
         self.evidence = evidence
 
@@ -125,7 +130,7 @@ class DeleteANamespace(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Delete a namespace",
-            category=AccessRisk,
+            category=DataDestructionTechnique,
         )
         self.evidence = evidence
 
@@ -136,7 +141,7 @@ class CreateARole(Vulnerability, Event):
     """
 
     def __init__(self, evidence):
-        Vulnerability.__init__(self, KubernetesCluster, name="Created a role", category=AccessRisk)
+        Vulnerability.__init__(self, KubernetesCluster, name="Created a role", category=GeneralDefenseEvasionTechnique)
         self.evidence = evidence
 
 
@@ -150,7 +155,7 @@ class CreateAClusterRole(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Created a cluster role",
-            category=AccessRisk,
+            category=ClusterAdminBindingTechnique,
         )
         self.evidence = evidence
 
@@ -165,7 +170,7 @@ class PatchARole(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Patched a role",
-            category=AccessRisk,
+            category=ClusterAdminBindingTechnique,
         )
         self.evidence = evidence
 
@@ -180,7 +185,7 @@ class PatchAClusterRole(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Patched a cluster role",
-            category=AccessRisk,
+            category=ClusterAdminBindingTechnique,
         )
         self.evidence = evidence
 
@@ -193,7 +198,7 @@ class DeleteARole(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Deleted a role",
-            category=AccessRisk,
+            category=DataDestructionTechnique,
         )
         self.evidence = evidence
 
@@ -206,7 +211,7 @@ class DeleteAClusterRole(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Deleted a cluster role",
-            category=AccessRisk,
+            category=DataDestructionTechnique,
         )
         self.evidence = evidence
 
@@ -219,7 +224,7 @@ class CreateAPod(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Created A Pod",
-            category=AccessRisk,
+            category=NewContainerTechnique,
         )
         self.evidence = evidence
 
@@ -232,7 +237,7 @@ class CreateAPrivilegedPod(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Created A PRIVILEGED Pod",
-            category=AccessRisk,
+            category=PrivilegedContainerTechnique,
         )
         self.evidence = evidence
 
@@ -245,7 +250,7 @@ class PatchAPod(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Patched A Pod",
-            category=AccessRisk,
+            category=SidecarInjectionTechnique,
         )
         self.evidence = evidence
 
@@ -258,7 +263,7 @@ class DeleteAPod(Vulnerability, Event):
             self,
             KubernetesCluster,
             name="Deleted A Pod",
-            category=AccessRisk,
+            category=DataDestructionTechnique,
         )
         self.evidence = evidence
 
@@ -377,7 +382,7 @@ class AccessApiServerWithToken(AccessApiServer):
         super().__init__(event)
         assert self.event.auth_token
         self.headers = {"Authorization": f"Bearer {self.event.auth_token}"}
-        self.category = InformationDisclosure
+        self.category = AccessK8sApiServerTechnique
         self.with_token = True
 
 
