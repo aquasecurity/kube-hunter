@@ -129,15 +129,15 @@ class FromPodHostDiscovery(Discovery):
             self.publish_event(HostScanEvent())
         else:
             # Discover cluster subnets, we'll scan all these hosts
-            cloud = None
+            cloud, subnets = None, list()
             if self.is_azure_pod():
                 subnets, cloud = self.azure_metadata_discovery()
             elif self.is_aws_pod_v1():
                 subnets, cloud = self.aws_metadata_v1_discovery()
             elif self.is_aws_pod_v2():
                 subnets, cloud = self.aws_metadata_v2_discovery()
-            else:
-                subnets = self.gateway_discovery()
+
+            subnets += self.gateway_discovery()
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -221,19 +221,27 @@ class FromPodHostDiscovery(Discovery):
             "http://169.254.169.254/latest/meta-data/mac",
             timeout=config.network_timeout,
         ).text
+        logger.debug(f"Extracted mac from aws's metadata v1: {mac_address}")
+
         cidr = requests.get(
             f"http://169.254.169.254/latest/meta-data/network/interfaces/macs/{mac_address}/subnet-ipv4-cidr-block",
             timeout=config.network_timeout,
-        ).text.split("/")
+        ).text
+        logger.debug(f"Trying to extract cidr from aws's metadata v1: {cidr}")
 
-        address, subnet = (cidr[0], cidr[1])
-        subnet = subnet if not config.quick else "24"
-        cidr = f"{address}/{subnet}"
-        logger.debug(f"From pod discovered subnet {cidr}")
+        try:
+            cidr = cidr.split("/")
+            address, subnet = (cidr[0], cidr[1])
+            subnet = subnet if not config.quick else "24"
+            cidr = f"{address}/{subnet}"
+            logger.debug(f"From pod discovered subnet {cidr}")
 
-        self.publish_event(AWSMetadataApi(cidr=cidr))
+            self.publish_event(AWSMetadataApi(cidr=cidr))
+            return [(address, subnet)], "AWS"
+        except Exception as x:
+            logger.debug(f"ERROR: could not parse cidr from aws metadata api: {cidr} - {x}")
 
-        return [(address, subnet)], "AWS"
+        return [], "AWS"
 
     # querying AWS's interface metadata api v2 | works only from a pod
     def aws_metadata_v2_discovery(self):
@@ -255,14 +263,19 @@ class FromPodHostDiscovery(Discovery):
             timeout=config.network_timeout,
         ).text.split("/")
 
-        address, subnet = (cidr[0], cidr[1])
-        subnet = subnet if not config.quick else "24"
-        cidr = f"{address}/{subnet}"
-        logger.debug(f"From pod discovered subnet {cidr}")
+        try:
+            address, subnet = (cidr[0], cidr[1])
+            subnet = subnet if not config.quick else "24"
+            cidr = f"{address}/{subnet}"
+            logger.debug(f"From pod discovered subnet {cidr}")
 
-        self.publish_event(AWSMetadataApi(cidr=cidr))
+            self.publish_event(AWSMetadataApi(cidr=cidr))
 
-        return [(address, subnet)], "AWS"
+            return [(address, subnet)], "AWS"
+        except Exception as x:
+            logger.debug(f"ERROR: could not parse cidr from aws metadata api: {cidr} - {x}")
+
+        return [], "AWS"
 
     # querying azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
