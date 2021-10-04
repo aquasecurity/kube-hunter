@@ -5,7 +5,7 @@ from enum import Enum
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Event, Vulnerability, K8sVersionDisclosure
+from kube_hunter.core.events.types import Event, Vulnerability, K8sVersionDisclosure, OpenPortEvent
 from kube_hunter.core.types import (
     ActiveHunter,
     Hunter,

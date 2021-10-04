@@ -60,7 +60,7 @@ class ApiServiceDiscovery(Discovery):
                 self.publish_event(K8sApiService(protocol))
         if flag:
             logger.debug("Failed to connect to ApiServer Service")
-            self.publish_event(HuntError("Failed to connect to ApiServer Service"))
+            self.publish_event(OpenPortEvent(error="Failed to connect to ApiServer Service at port 8080"))
 
     def has_api_behaviour(self, protocol):
         config = get_config()

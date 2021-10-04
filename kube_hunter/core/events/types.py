@@ -190,11 +190,15 @@ class NewHostEvent(Event):
 
 
 class OpenPortEvent(Event):
-    def __init__(self, port):
+    def __init__(self, port=None,error="default"):
         self.port = port
+        self.error = error
 
     def __str__(self):
         return str(self.port)
+    
+    def __repr__(self):
+        return str(self.error)
 
     # Event's logical location to be used mainly for reports.
     def location(self):

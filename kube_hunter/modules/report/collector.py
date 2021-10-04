@@ -5,11 +5,11 @@ from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import (
     Event,
+    OpenPortEvent,
     Service,
     Vulnerability,
     HuntFinished,
     HuntStarted,
-    HuntError,
     ReportDispatched,
 )
 
@@ -23,7 +23,7 @@ error_lock = threading.Lock()
 errors = list()
 hunters = handler.all_hunters
 
-@handler.subscribe(HuntError)
+@handler.subscribe(OpenPortEvent)
 @handler.subscribe(Service)
 @handler.subscribe(Vulnerability)
 class Collector:
@@ -44,10 +44,12 @@ class Collector:
             with vulnerabilities_lock:
                 vulnerabilities.append(self.event)
             logger.info(f'Found vulnerability "{self.event.get_name()}" in {self.event.location()}')
-        elif HuntError in bases:
+        elif OpenPortEvent in bases:
             with error_lock:
-                errors.append(str(self.event))
-            logger.info(f'Found error "{self.event.get_name()}" in {self.event.location()}')
+                error = repr(self.event)
+                if error!="default":
+                    errors.append(error)
+            logger.info(f'Found error OpenPortEvent in {self.event.location()}')
 
 
 class TablesPrinted(Event):

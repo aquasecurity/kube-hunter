@@ -1,3 +1,4 @@
+from logging import error
 from prettytable import ALL, PrettyTable
 
 from kube_hunter.modules.report.base import BaseReporter, BASE_KB_LINK
@@ -29,10 +30,6 @@ class PlainReporter(BaseReporter):
         with error_lock:
             errors_len = len(errors)
 
-        if errors_len:
-            return "","".join(errors)
-
-        
         if services_len:
             output += self.nodes_table()
             if not mapping:
@@ -50,6 +47,10 @@ class PlainReporter(BaseReporter):
             if vulnerabilities_len:
                 output += self.vulns_table()
             output += "\nCluster Inaccessible from Kube Hunter"
+            if len(errors):
+                output += "\n\nPossible Reasons:"
+                for index, reason in enumerate(errors):
+                    output += f"\n{index+1}-> {reason}"
         return output
 
     def nodes_table(self):

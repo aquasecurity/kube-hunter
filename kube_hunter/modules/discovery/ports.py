@@ -31,7 +31,7 @@ class PortDiscovery(Discovery):
                 self.publish_event(OpenPortEvent(port=single_port))
         if flag:
             logger.debug("Failed to find any Open Ports")
-            self.publish_event(HuntError("Failed to find any Open Ports"))
+            self.publish_event(OpenPortEvent(error="Failed to find any Open Ports"))
             
 
     @staticmethod

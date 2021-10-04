@@ -37,9 +37,14 @@ class KubeProxy(Discovery):
             if r.status_code == 200 and "APIResourceList" in r.text:
                 return True
         except requests.Timeout:
+            self.publish_event(OpenPortEvent(error=f"failed to get {endpoint}"))
             logger.debug(f"failed to get {endpoint}", exc_info=True)
         return False
 
     def execute(self):
         if self.accesible:
             self.publish_event(KubeProxyEvent())
+        else:
+            self.publish_event(OpenPortEvent(error=f"failed to get Proxy Service at 8001"))
+            logger.debug("Failed to get Proxy Service at 8001")
+

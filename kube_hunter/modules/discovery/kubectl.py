@@ -3,7 +3,7 @@ import subprocess
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import HuntStarted, Event
+from kube_hunter.core.events.types import HuntStarted, Event, OpenPortEvent
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +39,7 @@ class KubectlClientDiscovery(Discovery):
                 start = version_info.find("GitVersion")
                 version = version_info[start + len("GitVersion':\"") : version_info.find('",', start)]
         except Exception:
+            self.publish_event(OpenPortEvent(error="Could not find kubectl client"))
             logger.debug("Could not find kubectl client")
         return version
 
