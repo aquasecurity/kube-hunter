@@ -23,7 +23,9 @@ from kube_hunter.modules.hunting.apiserver import (
 from kube_hunter.modules.hunting.arp import ArpSpoofHunter
 from kube_hunter.modules.hunting.capabilities import PodCapabilitiesHunter
 from kube_hunter.modules.hunting.certificates import CertificateDiscovery
-from kube_hunter.modules.hunting.cves import K8sClusterCveHunter, KubectlCVEHunter
+
+# from kube_hunter.modules.hunting.cves import K8sClusterCveHunter,
+from kube_hunter.modules.hunting.cves import KubectlCVEHunter
 from kube_hunter.modules.hunting.dashboard import KubeDashboard
 from kube_hunter.modules.hunting.dns import DnsSpoofHunter
 from kube_hunter.modules.hunting.etcd import EtcdRemoteAccess, EtcdRemoteAccessActive
@@ -56,7 +58,7 @@ PASSIVE_HUNTERS = {
     ApiVersionHunter,
     PodCapabilitiesHunter,
     CertificateDiscovery,
-    K8sClusterCveHunter,
+    # K8sClusterCveHunter,
     KubectlCVEHunter,
     KubeDashboard,
     EtcdRemoteAccess,
