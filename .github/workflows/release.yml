@@ -10,7 +10,7 @@ name: Release
 jobs:
   build:
     name: Upload Release Asset
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -18,12 +18,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'
+          python-version: '3.8'
 
       - name: Install dependencies
+        shell: bash
         run: |
-          python -m pip install -U pip
-          python -m pip install -r requirements-dev.txt
+          pip install -U pip
+          pip install pyinstaller
+          make deps
 
       - name: Build project
         shell: bash
