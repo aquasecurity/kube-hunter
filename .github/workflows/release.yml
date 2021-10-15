@@ -10,7 +10,7 @@ name: Release
 jobs:
   build:
     name: Upload Release Asset
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

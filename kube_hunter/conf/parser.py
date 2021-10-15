@@ -77,6 +77,12 @@ def parser_add_arguments(parser):
     parser.add_argument("--active", action="store_true", help="Enables active hunting")
 
     parser.add_argument(
+        "--enable-cve-hunting",
+        action="store_true",
+        help="Show cluster CVEs based on discovered version (Depending on different vendors, may result in False Positives)",
+    )
+
+    parser.add_argument(
         "--log",
         type=str,
         metavar="LOGLEVEL",

@@ -21,6 +21,7 @@ class Config:
     - remote: Hosts to scan
     - report: Output format
     - statistics: Include hunters statistics
+    - enable_cve_hunting: enables cve hunting, shows cve results
     """
 
     active: bool = False
@@ -39,6 +40,7 @@ class Config:
     k8s_auto_discover_nodes: bool = False
     service_account_token: Optional[str] = None
     kubeconfig: Optional[str] = None
+    enable_cve_hunting: bool = False
 
 
 _config: Optional[Config] = None

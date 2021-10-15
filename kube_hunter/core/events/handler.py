@@ -62,7 +62,7 @@ class EventQueue(Queue):
     ######################################################
     """
 
-    def subscribe(self, event, hook=None, predicate=None):
+    def subscribe(self, event, hook=None, predicate=None, is_register=True):
         """
         The Subscribe Decorator - For Regular Registration
         Use this to register for one event only. Your hunter will execute each time this event is published
@@ -74,12 +74,12 @@ class EventQueue(Queue):
         """
 
         def wrapper(hook):
-            self.subscribe_event(event, hook=hook, predicate=predicate)
+            self.subscribe_event(event, hook=hook, predicate=predicate, is_register=is_register)
             return hook
 
         return wrapper
 
-    def subscribe_many(self, events, hook=None, predicates=None):
+    def subscribe_many(self, events, hook=None, predicates=None, is_register=True):
         """
         The Subscribe Many Decorator - For Multiple Registration,
         When your attack needs several prerequisites to exist in the cluster, You need to register for multiple events.
@@ -99,12 +99,12 @@ class EventQueue(Queue):
         """
 
         def wrapper(hook):
-            self.subscribe_events(events, hook=hook, predicates=predicates)
+            self.subscribe_events(events, hook=hook, predicates=predicates, is_register=is_register)
             return hook
 
         return wrapper
 
-    def subscribe_once(self, event, hook=None, predicate=None):
+    def subscribe_once(self, event, hook=None, predicate=None, is_register=True):
         """
         The Subscribe Once Decorator - For Single Trigger Registration,
         Use this when you want your hunter to execute only in your entire program run
@@ -125,7 +125,8 @@ class EventQueue(Queue):
 
             hook.__new__ = __new__unsubscribe_self
 
-            self.subscribe_event(event, hook=hook, predicate=predicate)
+            self.subscribe_event(event, hook=hook, predicate=predicate, is_register=is_register)
+
             return hook
 
         return wrapper
@@ -256,7 +257,9 @@ class EventQueue(Queue):
             self.hooks[event].append((hook, predicate))
             logging.debug("{} subscribed to {}".format(hook, event))
 
-    def subscribe_event(self, event, hook=None, predicate=None):
+    def subscribe_event(self, event, hook=None, predicate=None, is_register=True):
+        if not is_register:
+            return
         if not self._register_hunters(hook):
             return
 
@@ -267,7 +270,9 @@ class EventQueue(Queue):
         else:
             self._register_hook(event, hook, predicate)
 
-    def subscribe_events(self, events, hook=None, predicates=None):
+    def subscribe_events(self, events, hook=None, predicates=None, is_register=True):
+        if not is_register:
+            return False
         if not self._register_hunters(hook):
             return False
 
