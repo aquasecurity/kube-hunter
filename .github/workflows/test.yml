@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           pip install -U pip
-          make deps
+          make dev-deps
 
       - name: Test
         shell: bash
