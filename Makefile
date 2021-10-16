@@ -31,7 +31,7 @@ lint-check:
 
 .PHONY: test
 test:
-	pytest
+	python -m pytest
 
 .PHONY: build
 build:
