@@ -10,11 +10,7 @@ name: Release
 jobs:
   build:
     name: Upload Release Asset
-<<<<<<< HEAD
-    runs-on: ubuntu-latest
-=======
     runs-on: ubuntu-18.04
->>>>>>> main
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
