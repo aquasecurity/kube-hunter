@@ -1,6 +1,6 @@
 # flake8: noqa: E402
 
-from kube_hunter.conf import Config, set_config
+from kube_hunter.conf import Config, set_config, get_config
 
 set_config(Config(active=True))
 
@@ -23,7 +23,9 @@ from kube_hunter.modules.hunting.apiserver import (
 from kube_hunter.modules.hunting.arp import ArpSpoofHunter
 from kube_hunter.modules.hunting.capabilities import PodCapabilitiesHunter
 from kube_hunter.modules.hunting.certificates import CertificateDiscovery
-from kube_hunter.modules.hunting.cves import K8sClusterCveHunter, KubectlCVEHunter
+
+from kube_hunter.modules.hunting.cves import K8sClusterCveHunter
+from kube_hunter.modules.hunting.cves import KubectlCVEHunter
 from kube_hunter.modules.hunting.dashboard import KubeDashboard
 from kube_hunter.modules.hunting.dns import DnsSpoofHunter
 from kube_hunter.modules.hunting.etcd import EtcdRemoteAccess, EtcdRemoteAccessActive
@@ -39,6 +41,8 @@ from kube_hunter.modules.hunting.kubelet import (
 from kube_hunter.modules.hunting.mounts import VarLogMountHunter, ProveVarLogMount
 from kube_hunter.modules.hunting.proxy import KubeProxy, ProveProxyExposed, K8sVersionDisclosureProve
 from kube_hunter.modules.hunting.secrets import AccessSecrets
+
+config = get_config()
 
 PASSIVE_HUNTERS = {
     ApiServiceDiscovery,
@@ -56,7 +60,6 @@ PASSIVE_HUNTERS = {
     ApiVersionHunter,
     PodCapabilitiesHunter,
     CertificateDiscovery,
-    K8sClusterCveHunter,
     KubectlCVEHunter,
     KubeDashboard,
     EtcdRemoteAccess,
@@ -66,6 +69,9 @@ PASSIVE_HUNTERS = {
     KubeProxy,
     AccessSecrets,
 }
+
+# if config.enable_cve_hunting:
+#     PASSIVE_HUNTERS.append(K8sClusterCveHunter)
 
 ACTIVE_HUNTERS = {
     ProveAzureSpnExposure,

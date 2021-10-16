@@ -3,7 +3,8 @@ from packaging import version
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
-from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
+
+from kube_hunter.core.events.types import K8sVersionDisclosure, Vulnerability, Event
 from kube_hunter.core.types import (
     Hunter,
     KubectlClient,
@@ -15,6 +16,7 @@ from kube_hunter.core.types import (
 from kube_hunter.modules.discovery.kubectl import KubectlClientEvent
 
 logger = logging.getLogger(__name__)
+config = get_config()
 
 
 class ServerApiVersionEndPointAccessPE(Vulnerability, Event):
@@ -199,7 +201,7 @@ class CveUtils:
         return vulnerable
 
 
-@handler.subscribe_once(K8sVersionDisclosure)
+@handler.subscribe_once(K8sVersionDisclosure, is_register=config.enable_cve_hunting)
 class K8sClusterCveHunter(Hunter):
     """K8s CVE Hunter
     Checks if Node is running a Kubernetes version vulnerable to
@@ -224,6 +226,7 @@ class K8sClusterCveHunter(Hunter):
                 self.publish_event(vulnerability(self.event.version))
 
 
+# Removed due to incomplete implementation for multiple vendors revisions of kubernetes
 @handler.subscribe(KubectlClientEvent)
 class KubectlCVEHunter(Hunter):
     """Kubectl CVE Hunter

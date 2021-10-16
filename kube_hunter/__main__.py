@@ -28,6 +28,7 @@ config = Config(
     k8s_auto_discover_nodes=args.k8s_auto_discover_nodes,
     service_account_token=args.service_account_token,
     kubeconfig=args.kubeconfig,
+    enable_cve_hunting=args.enable_cve_hunting,
 )
 setup_logger(args.log, args.log_file)
 set_config(config)
