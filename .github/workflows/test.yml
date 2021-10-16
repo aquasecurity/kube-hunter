@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9"]
-        os: [ubuntu-20.04, ubuntu-18.04, ubuntu-16.04]
+        os: [ubuntu-20.04, ubuntu-18.04]
 
     steps:
       - uses: actions/checkout@v2
@@ -38,11 +38,11 @@ jobs:
             ${{ matrix.os }}-${{ matrix.python-version }}-
 
       - name: Install dependencies
+        shell: bash
         run: |
-          python -m pip install -U pip
-          python -m pip install -U wheel
-          python -m pip install -r requirements.txt
-          python -m pip install -r requirements-dev.txt
+          pip install -U pip
+          make dev-deps
+          make install
 
       - name: Test
         shell: bash

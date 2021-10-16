@@ -77,9 +77,10 @@ jobs:
           python-version: '3.9'
 
       - name: Install dependencies
+        shell: bash
         run: |
-          python -m pip install -U pip
-          python -m pip install -r requirements-dev.txt
+          pip install -U pip
+          make deps
 
       - name: Build project
         shell: bash
