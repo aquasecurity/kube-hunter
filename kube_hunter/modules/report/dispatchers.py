@@ -16,6 +16,7 @@ class HTTPDispatcher:
                 dispatch_url,
                 json=report,
                 headers={"Content-Type": "application/json"},
+                verify=False
             )
             r.raise_for_status()
             logger.info(f"Report was dispatched to: {dispatch_url}")
