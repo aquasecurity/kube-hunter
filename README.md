@@ -18,7 +18,8 @@ kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 
 **Run kube-hunter**: kube-hunter is available as a container (aquasec/kube-hunter), and we also offer a web site at [kube-hunter.aquasec.com](https://kube-hunter.aquasec.com) where you can register online to receive a token allowing you to see and share the results online. You can also run the Python code yourself as described below.
 
-**Explore vulnerabilities**: The kube-hunter knowledge base includes articles about discoverable vulnerabilities and issues. When kube-hunter reports an issue, it will show its VID (Vulnerability ID) so you can look it up in the KB at https://aquasecurity.github.io/kube-hunter/
+**Explore vulnerabilities**: The kube-hunter knowledge base includes articles about discoverable vulnerabilities and issues. When kube-hunter reports an issue, it will show its VID (Vulnerability ID) so you can look it up in the KB at https://aquasecurity.github.io/kube-hunter/  
+_If you're interested in kube-hunter's integration with the Kubernetes ATT&CK Matrix [Continue Reading](#kuberentes-attck-matrix)_
 
 **Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your First kube-hunter Module](https://github.com/aquasecurity/kube-hunter/blob/main/CONTRIBUTING.md).
 
@@ -28,6 +29,7 @@ Table of Contents
 =================
 
 - [Table of Contents](#table-of-contents)
+  - [Kuberentes ATT&CK Matrix](#kuberentes-attck-matrix)
   - [Hunting](#hunting)
     - [Where should I run kube-hunter?](#where-should-i-run-kube-hunter)
     - [Scanning options](#scanning-options)
@@ -48,7 +50,19 @@ Table of Contents
     - [Pod](#pod)
   - [Contribution](#contribution)
   - [License](#license)
-         
+
+---
+## Kuberentes ATT&CK Matrix
+kube-hunter now supports the new format of the Kubernetes ATT&CK matrix.
+While kube-hunter's vulnerabilities are a collection of creative techniques designed to mimic an attacker in the cluster (or outside it)
+The Mitre's ATT&CK defines a more general standardised categories of techniques to do so.
+
+You can think of kube-hunter vulnerabilities as small steps for an attacker, which follows the track of a more general technique he would aim for.
+Most of kube-hunter's hunters and vulnerabilities can closly fall under those techniques, That's why we moved to follow the Matrix standard.  
+ 
+_Some kube-hunter vulnerabities which we could not map to Mitre technique, are prefixed with the `General` keyword_ 
+![kube-hunter](./MITRE.png)
+
 ## Hunting
 
 ### Where should I run kube-hunter?
@@ -60,6 +74,7 @@ Run kube-hunter on any machine (including your laptop), select Remote scanning a
 You can run kube-hunter directly on a machine in the cluster, and select the option to probe all the local network interfaces.
 
 You can also run kube-hunter in a pod within the cluster. This indicates how exposed your cluster would be if one of your application pods is compromised (through a software vulnerability, for example). (_`--pod` flag_)
+
 
 ### Scanning options
 
@@ -141,7 +156,8 @@ Available dispatch methods are:
     * KUBEHUNTER_HTTP_DISPATCH_URL (defaults to: https://localhost)
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
-### Advanced Usage  
+
+### Advanced Usage 
 #### Azure Quick Scanning 
 When running **as a Pod in an Azure or AWS environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
 To hardlimit subnet scanning to a `/24` CIDR, use the `--quick` option. 
