@@ -166,8 +166,8 @@ class FromPodHostDiscovery(Discovery):
                 return True
         except requests.exceptions.ConnectionError:
             logger.debug("Failed to connect AWS metadata server v1")
-        except:
-            logger.debug(f"Unknown error when trying to connect to AWS metadata v1 API")
+        except Exception:
+            logger.debug("Unknown error when trying to connect to AWS metadata v1 API")
         return False
 
     def is_aws_pod_v2(self):
@@ -191,8 +191,8 @@ class FromPodHostDiscovery(Discovery):
                 return True
         except requests.exceptions.ConnectionError:
             logger.debug("Failed to connect AWS metadata server v2")
-        except:
-            logger.debug(f"Unknown error when trying to connect to AWS metadata v2 API")
+        except Exception:
+            logger.debug("Unknown error when trying to connect to AWS metadata v2 API")
         return False
 
     def is_azure_pod(self):
@@ -210,8 +210,8 @@ class FromPodHostDiscovery(Discovery):
                 return True
         except requests.exceptions.ConnectionError:
             logger.debug("Failed to connect Azure metadata server")
-        except:
-            logger.debug(f"Unknown error when trying to connect to Azure metadata server")
+        except Exception:
+            logger.debug("Unknown error when trying to connect to Azure metadata server")
         return False
 
     # for pod scanning
