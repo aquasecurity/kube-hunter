@@ -36,6 +36,7 @@ set_config(config)
 # Running all other registered plugins before execution
 pm.hook.load_plugin(args=args)
 
+from kube_hunter.console.manager import start_console
 from kube_hunter.core.events import handler
 from kube_hunter.core.events.types import HuntFinished, HuntStarted
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, HostScanEvent
@@ -94,11 +95,15 @@ def main():
     global hunt_started
     scan_options = [config.pod, config.cidr, config.remote, config.interface, config.k8s_auto_discover_nodes]
     try:
-        if args.list:
+        if args.console:
+            start_console()
+            return
+
+        elif args.list:
             list_hunters()
             return
 
-        if not any(scan_options):
+        elif not any(scan_options):
             if not interactive_set_config():
                 return
 

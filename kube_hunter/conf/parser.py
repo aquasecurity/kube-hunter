@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from kube_hunter.plugins import hookimpl
-
+from colorama import init, Fore, Style
 
 @hookimpl
 def parser_add_arguments(parser):
@@ -8,6 +8,15 @@ def parser_add_arguments(parser):
     This is the default hook implementation for parse_add_argument
     Contains initialization for all default arguments
     """
+    # Initializes colorma
+    init()
+
+    parser.add_argument(
+        "-c", "--console",
+        action="store_true",
+        help=f"Starts kube-hunter's {Fore.GREEN}Immersed Console{Style.RESET_ALL}"
+    )
+
     parser.add_argument(
         "--list",
         action="store_true",

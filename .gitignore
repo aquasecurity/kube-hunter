@@ -9,6 +9,7 @@ venv/
 # Distribution / packaging
 .Python
 env/
+!kube_hunter/console/env/
 build/
 develop-eggs/
 dist/
