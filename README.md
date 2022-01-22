@@ -52,7 +52,7 @@ Table of Contents
   - [License](#license)
 
 ---
-## Kuberentes ATT&CK Matrix
+## Kubernetes ATT&CK Matrix
 kube-hunter now supports the new format of the Kubernetes ATT&CK matrix.
 While kube-hunter's vulnerabilities are a collection of creative techniques designed to mimic an attacker in the cluster (or outside it)
 The Mitre's ATT&CK defines a more general standardised categories of techniques to do so.
