@@ -52,7 +52,8 @@ def parser_add_arguments(parser):
         nargs="+",
         metavar="HUNTERS",
         default=list(),
-        help="Custom hunting. Only given hunter names will register in the hunt. for a list of options run `--list --raw-hunter-names`",
+        help="Custom hunting. Only given hunter names will register in the hunt."
+        "for a list of options run `--list --raw-hunter-names`",
     )
 
     parser.add_argument(
