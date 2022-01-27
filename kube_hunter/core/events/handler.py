@@ -267,21 +267,21 @@ class EventQueue(Queue):
         Returns true if:
          1. partial hunt is disabled
          2. partial hunt is enabled and hunter is in core hunter class
-         3. partial hunt is enabled and hunter is specified in config.partial 
+         3. partial hunt is enabled and hunter is specified in config.partial
 
         @param target_hunter: hunter class for registration check
-        """ 
+        """
         config = get_config()
         if not config.custom:
             return True
-        
+
         hunter_class_name = target_hunter.__name__
         if hunter_class_name in self.core_hunters or hunter_class_name in config.custom:
             return True
-            
+
         return False
 
-    def subscribe_event(self, event, hook=None, predicate=None, is_register=True):        
+    def subscribe_event(self, event, hook=None, predicate=None, is_register=True):
         if not is_register:
             return
         if not self.allowed_for_custom_registration(hook):

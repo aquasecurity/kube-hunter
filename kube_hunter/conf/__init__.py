@@ -1,12 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+
 def get_default_core_hunters():
-    return [
-        "FromPodHostDiscovery", 
-        "HostDiscovery",
-        "PortDiscovery"
-    ]
+    return ["FromPodHostDiscovery", "HostDiscovery", "PortDiscovery"]
+
 
 @dataclass
 class Config:
@@ -53,6 +51,7 @@ class Config:
 
 
 _config: Optional[Config] = None
+
 
 def get_config() -> Config:
     if not _config:

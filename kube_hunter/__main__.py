@@ -30,7 +30,7 @@ config = Config(
     service_account_token=args.service_account_token,
     kubeconfig=args.kubeconfig,
     enable_cve_hunting=args.enable_cve_hunting,
-    custom=args.custom
+    custom=args.custom,
 )
 setup_logger(args.log, args.log_file)
 set_config(config)
