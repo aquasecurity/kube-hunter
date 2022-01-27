@@ -47,6 +47,21 @@ def parser_add_arguments(parser):
     )
 
     parser.add_argument(
+        "-p",
+        "--partial",
+        nargs="+",
+        metavar="HUNTERS",
+        default=list(),
+        help="Partial hunting. Only register given hunter names. for a list of options run `--list --partial-names`",
+    )
+
+    parser.add_argument(
+        "--partial-names",
+        action="store_true",
+        help="Use in combination with `--list` to display hunter class names to pass for partial hunting flag",
+    )
+
+    parser.add_argument(
         "--k8s-auto-discover-nodes",
         action="store_true",
         help="Enables automatic detection of all nodes in a Kubernetes cluster "

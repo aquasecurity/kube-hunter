@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 class EventQueue(Queue):
     def __init__(self, num_worker=10):
         super().__init__()
+        config = get_config()
+        self.core_hunters = config.core_hunters
         self.passive_hunters = dict()
         self.active_hunters = dict()
         self.all_hunters = dict()
@@ -257,8 +259,32 @@ class EventQueue(Queue):
             self.hooks[event].append((hook, predicate))
             logging.debug("{} subscribed to {}".format(hook, event))
 
-    def subscribe_event(self, event, hook=None, predicate=None, is_register=True):
+    def allowed_for_partial_registration(self, target_hunter):
+        """
+        Check if the partial input list contains the hunter we are about to register for events
+        If hunter is considered a Core hunter as specified in `self.core_hunters` we allow it anyway
+
+        Returns true if:
+         1. partial hunt is disabled
+         2. partial hunt is enabled and hunter is in core hunter class
+         3. partial hunt is enabled and hunter is specified in config.partial 
+
+        @param target_hunter: hunter class for registration check
+        """ 
+        config = get_config()
+        if not config.partial:
+            return True
+        
+        hunter_class_name = target_hunter.__name__
+        if hunter_class_name in self.core_hunters or hunter_class_name in config.partial:
+            return True
+            
+        return False
+
+    def subscribe_event(self, event, hook=None, predicate=None, is_register=True):        
         if not is_register:
+            return
+        if not self.allowed_for_partial_registration(hook):
             return
         if not self._register_hunters(hook):
             return
@@ -272,9 +298,11 @@ class EventQueue(Queue):
 
     def subscribe_events(self, events, hook=None, predicates=None, is_register=True):
         if not is_register:
-            return False
+            return
+        if not self.allowed_for_partial_registration(hook):
+            return
         if not self._register_hunters(hook):
-            return False
+            return
 
         if predicates is None:
             predicates = [None] * len(events)

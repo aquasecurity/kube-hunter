@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # flake8: noqa: E402
 
+from functools import partial
 import logging
 import threading
 
@@ -29,6 +30,7 @@ config = Config(
     service_account_token=args.service_account_token,
     kubeconfig=args.kubeconfig,
     enable_cve_hunting=args.enable_cve_hunting,
+    partial=args.partial
 )
 setup_logger(args.log, args.log_file)
 set_config(config)
@@ -73,16 +75,20 @@ def interactive_set_config():
     return True
 
 
-def list_hunters():
+def list_hunters(class_names=False):
     print("\nPassive Hunters:\n----------------")
     for hunter, docs in handler.passive_hunters.items():
         name, doc = hunter.parse_docs(docs)
+        if class_names:
+            name = hunter.__name__
         print(f"* {name}\n  {doc}\n")
 
     if config.active:
         print("\n\nActive Hunters:\n---------------")
         for hunter, docs in handler.active_hunters.items():
             name, doc = hunter.parse_docs(docs)
+            if class_names:
+                name = hunter.__name__
             print(f"* {name}\n  {doc}\n")
 
 
@@ -95,7 +101,10 @@ def main():
     scan_options = [config.pod, config.cidr, config.remote, config.interface, config.k8s_auto_discover_nodes]
     try:
         if args.list:
-            list_hunters()
+            if args.partial_names:
+                list_hunters(class_names=True)
+            else:
+                list_hunters()
             return
 
         if not any(scan_options):
