@@ -30,7 +30,7 @@ config = Config(
     service_account_token=args.service_account_token,
     kubeconfig=args.kubeconfig,
     enable_cve_hunting=args.enable_cve_hunting,
-    partial=args.partial
+    custom=args.custom
 )
 setup_logger(args.log, args.log_file)
 set_config(config)
@@ -101,7 +101,7 @@ def main():
     scan_options = [config.pod, config.cidr, config.remote, config.interface, config.k8s_auto_discover_nodes]
     try:
         if args.list:
-            if args.partial_names:
+            if args.raw_hunter_names:
                 list_hunters(class_names=True)
             else:
                 list_hunters()

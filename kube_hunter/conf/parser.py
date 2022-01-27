@@ -47,18 +47,18 @@ def parser_add_arguments(parser):
     )
 
     parser.add_argument(
-        "-p",
-        "--partial",
+        "-c",
+        "--custom",
         nargs="+",
         metavar="HUNTERS",
         default=list(),
-        help="Partial hunting. Only register given hunter names. for a list of options run `--list --partial-names`",
+        help="Custom hunting. Only given hunter names will register in the hunt. for a list of options run `--list --raw-hunter-names`",
     )
 
     parser.add_argument(
-        "--partial-names",
+        "--raw-hunter-names",
         action="store_true",
-        help="Use in combination with `--list` to display hunter class names to pass for partial hunting flag",
+        help="Use in combination with `--list` to display hunter class names to pass for custom hunting flag",
     )
 
     parser.add_argument(

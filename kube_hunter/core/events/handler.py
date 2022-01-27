@@ -259,7 +259,7 @@ class EventQueue(Queue):
             self.hooks[event].append((hook, predicate))
             logging.debug("{} subscribed to {}".format(hook, event))
 
-    def allowed_for_partial_registration(self, target_hunter):
+    def allowed_for_custom_registration(self, target_hunter):
         """
         Check if the partial input list contains the hunter we are about to register for events
         If hunter is considered a Core hunter as specified in `self.core_hunters` we allow it anyway
@@ -272,11 +272,11 @@ class EventQueue(Queue):
         @param target_hunter: hunter class for registration check
         """ 
         config = get_config()
-        if not config.partial:
+        if not config.custom:
             return True
         
         hunter_class_name = target_hunter.__name__
-        if hunter_class_name in self.core_hunters or hunter_class_name in config.partial:
+        if hunter_class_name in self.core_hunters or hunter_class_name in config.custom:
             return True
             
         return False
@@ -284,7 +284,7 @@ class EventQueue(Queue):
     def subscribe_event(self, event, hook=None, predicate=None, is_register=True):        
         if not is_register:
             return
-        if not self.allowed_for_partial_registration(hook):
+        if not self.allowed_for_custom_registration(hook):
             return
         if not self._register_hunters(hook):
             return
@@ -299,7 +299,7 @@ class EventQueue(Queue):
     def subscribe_events(self, events, hook=None, predicates=None, is_register=True):
         if not is_register:
             return
-        if not self.allowed_for_partial_registration(hook):
+        if not self.allowed_for_custom_registration(hook):
             return
         if not self._register_hunters(hook):
             return
