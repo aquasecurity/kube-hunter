@@ -1,5 +1,9 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Optional
+
+
+def get_default_core_hunters():
+    return ["FromPodHostDiscovery", "HostDiscovery", "PortDiscovery", "SendFullReport", "Collector", "StartedInfo"]
 
 
 @dataclass
@@ -41,6 +45,9 @@ class Config:
     service_account_token: Optional[str] = None
     kubeconfig: Optional[str] = None
     enable_cve_hunting: bool = False
+    custom: Optional[list] = None
+    raw_hunter_names: bool = False
+    core_hunters: list = field(default_factory=get_default_core_hunters)
 
 
 _config: Optional[Config] = None

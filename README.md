@@ -29,7 +29,7 @@ Table of Contents
 =================
 
 - [Table of Contents](#table-of-contents)
-  - [Kuberentes ATT&CK Matrix](#kuberentes-attck-matrix)
+  - [Kubernetes ATT&CK Matrix](#kubernetes-attck-matrix)
   - [Hunting](#hunting)
     - [Where should I run kube-hunter?](#where-should-i-run-kube-hunter)
     - [Scanning options](#scanning-options)
@@ -39,8 +39,9 @@ Table of Contents
     - [Nodes Mapping](#nodes-mapping)
     - [Output](#output)
     - [Dispatching](#dispatching)
-    - [Advanced Usage](#advanced-usage)
-      - [Azure Quick Scanning](#azure-quick-scanning)
+  - [Advanced Usage](#advanced-usage)
+    - [Azure Quick Scanning](#azure-quick-scanning)
+    - [Custom Hunting](#custom-hunting)
   - [Deployment](#deployment)
     - [On Machine](#on-machine)
       - [Prerequisites](#prerequisites)
@@ -53,6 +54,7 @@ Table of Contents
 
 ---
 ## Kubernetes ATT&CK Matrix
+
 kube-hunter now supports the new format of the Kubernetes ATT&CK matrix.
 While kube-hunter's vulnerabilities are a collection of creative techniques designed to mimic an attacker in the cluster (or outside it)
 The Mitre's ATT&CK defines a more general standardised categories of techniques to do so.
@@ -64,7 +66,6 @@ _Some kube-hunter vulnerabities which we could not map to Mitre technique, are p
 ![kube-hunter](./MITRE.png)
 
 ## Hunting
-
 ### Where should I run kube-hunter?
 
 There are three different ways to run kube-hunter, each providing a different approach to detecting weaknesses in your cluster:
@@ -157,10 +158,47 @@ Available dispatch methods are:
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
 
-### Advanced Usage 
-#### Azure Quick Scanning 
+## Advanced Usage
+### Azure Quick Scanning 
 When running **as a Pod in an Azure or AWS environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
 To hardlimit subnet scanning to a `/24` CIDR, use the `--quick` option. 
+
+### Custom Hunting
+Custom hunting enables advanced users to have control over what hunters gets registered at the start of a hunt. 
+**If you know what you are doing**, this can help if you want to adjust kube-hunter's hunting and discovery process for your needs.
+
+Example: 
+```
+kube-hunter --custom <HunterName1> <HunterName2>
+``` 
+Enabling Custom hunting removes all hunters from the hunting process, except the given whitelisted hunters.
+
+The `--custom` flag reads a list of hunters class names, in order to view all of kube-hunter's class names, you can combine the flag `--raw-hunter-names` with the `--list` flag.  
+
+Example: 
+```
+kube-hunter --active --list --raw-hunter-names
+```
+
+**Notice**: Due to kube-huner's architectural design, the following "Core Hunters/Classes" will always register (even when using custom hunting):
+* HostDiscovery 
+  * _Generates ip addresses for the hunt by given configurations_
+  * _Automatically discovers subnets using cloud Metadata APIs_
+* FromPodHostDiscovery
+  * _Auto discover attack surface ip addresses for the hunt by using Pod based environment techniques_
+  * _Automatically discovers subnets using cloud Metadata APIs_
+* PortDiscovery
+  * _Port scanning given ip addresses for known kubernetes services ports_
+* Collector
+  * _Collects discovered vulnerabilities and open services for future report_
+* StartedInfo 
+  * _Prints the start message_
+* SendFullReport 
+  * _Dispatching the report based on given configurations_
+
+
+
+
 
 ## Deployment
 There are three methods for deploying kube-hunter:
