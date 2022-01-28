@@ -158,7 +158,7 @@ Available dispatch methods are:
     * KUBEHUNTER_HTTP_DISPATCH_METHOD (defaults to: POST)
 
 
-## Advanced Usage 
+## Advanced Usage
 ### Azure Quick Scanning 
 When running **as a Pod in an Azure or AWS environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
 To hardlimit subnet scanning to a `/24` CIDR, use the `--quick` option. 
@@ -180,10 +180,21 @@ Example:
 kube-hunter --active --list --class-names
 ```
 
-**Notice**: Due to kube-huner's architectural design, the following "Core Hunters" will always register (even when using custom hunting):
+**Notice**: Due to kube-huner's architectural design, the following "Core Hunters/Classes" will always register (even when using custom hunting):
+* HostDiscovery 
+  * _Generates ip addresses for the hunt by given configurations_
+  * _Automatically discovers subnets using cloud Metadata APIs_
 * FromPodHostDiscovery
-* HostDiscovery
+  * _Auto discover attack surface ip addresses for the hunt by using Pod based environment techniques_
+  * _Automatically discovers subnets using cloud Metadata APIs_
 * PortDiscovery
+  * _Port scanning given ip addresses for known kubernetes services ports_
+* Collector
+  * _Collects discovered vulnerabilities and open services for future report_
+* StartedInfo 
+  * _Prints the start message_
+* SendFullReport 
+  * _Dispatching the report based on given configurations_
 
 
 

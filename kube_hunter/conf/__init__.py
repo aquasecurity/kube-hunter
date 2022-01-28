@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 
 def get_default_core_hunters():
-    return ["FromPodHostDiscovery", "HostDiscovery", "PortDiscovery"]
+    return ["FromPodHostDiscovery", "HostDiscovery", "PortDiscovery", "SendFullReport", "Collector", "StartedInfo"]
 
 
 @dataclass
