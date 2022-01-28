@@ -15,8 +15,6 @@ logger = logging.getLogger(__name__)
 class EventQueue(Queue):
     def __init__(self, num_worker=10):
         super().__init__()
-        config = get_config()
-        self.core_hunters = config.core_hunters
         self.passive_hunters = dict()
         self.active_hunters = dict()
         self.all_hunters = dict()
@@ -262,7 +260,7 @@ class EventQueue(Queue):
     def allowed_for_custom_registration(self, target_hunter):
         """
         Check if the partial input list contains the hunter we are about to register for events
-        If hunter is considered a Core hunter as specified in `self.core_hunters` we allow it anyway
+        If hunter is considered a Core hunter as specified in `config.core_hunters` we allow it anyway
 
         Returns true if:
          1. partial hunt is disabled
@@ -276,7 +274,7 @@ class EventQueue(Queue):
             return True
 
         hunter_class_name = target_hunter.__name__
-        if hunter_class_name in self.core_hunters or hunter_class_name in config.custom:
+        if hunter_class_name in config.core_hunters or hunter_class_name in config.custom:
             return True
 
         return False
