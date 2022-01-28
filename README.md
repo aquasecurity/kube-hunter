@@ -173,11 +173,11 @@ kube-hunter --custom <HunterName1> <HunterName2>
 ``` 
 Enabling Custom hunting removes all hunters from the hunting process, except the given whitelisted hunters.
 
-The `--custom` flag reads a list of hunters class names, in order to view all of kube-hunter's class names, you can combine the flag `--class-names` with the `--list` flag.  
+The `--custom` flag reads a list of hunters class names, in order to view all of kube-hunter's class names, you can combine the flag `--raw-hunter-names` with the `--list` flag.  
 
 Example: 
 ```
-kube-hunter --active --list --class-names
+kube-hunter --active --list --raw-hunter-names
 ```
 
 **Notice**: Due to kube-huner's architectural design, the following "Core Hunters/Classes" will always register (even when using custom hunting):
