@@ -4,10 +4,6 @@ DEFAULT_LEVEL = logging.INFO
 DEFAULT_LEVEL_NAME = logging.getLevelName(DEFAULT_LEVEL)
 LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s %(message)s"
 
-# Suppress logging from scapy
-logging.getLogger("scapy.runtime").setLevel(logging.CRITICAL)
-logging.getLogger("scapy.loading").setLevel(logging.CRITICAL)
-
 
 def setup_logger(level_name, logfile):
     # Remove any existing handlers
