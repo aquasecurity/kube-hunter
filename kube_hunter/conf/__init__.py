@@ -20,6 +20,7 @@ class Config:
     - log_file: Log File path
     - mapping: Report only found components
     - network_timeout: Timeout for network operations
+    - num_worker_threads: Add a flag --threads to change the default 800 thread count of the event handler
     - pod: From pod scanning mode
     - quick: Quick scanning mode
     - remote: Hosts to scan
@@ -36,6 +37,7 @@ class Config:
     log_file: Optional[str] = None
     mapping: bool = False
     network_timeout: float = 5.0
+    num_worker_threads: int = 800
     pod: bool = False
     quick: bool = False
     remote: Optional[str] = None

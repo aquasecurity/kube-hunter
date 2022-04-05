@@ -22,6 +22,7 @@ config = Config(
     log_file=args.log_file,
     mapping=args.mapping,
     network_timeout=args.network_timeout,
+    num_worker_threads=args.num_worker_threads,
     pod=args.pod,
     quick=args.quick,
     remote=args.remote,
