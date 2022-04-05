@@ -366,4 +366,5 @@ class EventQueue(Queue):
             self.queue.clear()
 
 
-handler = EventQueue(800)
+config = get_config()
+handler = EventQueue(config.num_worker_threads)
