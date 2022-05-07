@@ -26,4 +26,7 @@ RUN apk add --no-cache \
 COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages
 COPY --from=builder /usr/local/bin/kube-hunter /usr/local/bin/kube-hunter
 
+# Add default plugins: https://github.com/aquasecurity/kube-hunter-plugins 
+RUN pip install kube-hunter-arp-spoof>=0.0.3 kube-hunter-dns-spoof>=0.0.3
+
 ENTRYPOINT ["kube-hunter"]

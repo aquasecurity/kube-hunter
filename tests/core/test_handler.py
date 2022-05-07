@@ -20,14 +20,12 @@ from kube_hunter.modules.hunting.apiserver import (
     AccessApiServerActive,
     AccessApiServerWithToken,
 )
-from kube_hunter.modules.hunting.arp import ArpSpoofHunter
 from kube_hunter.modules.hunting.capabilities import PodCapabilitiesHunter
 from kube_hunter.modules.hunting.certificates import CertificateDiscovery
 
 from kube_hunter.modules.hunting.cves import K8sClusterCveHunter
 from kube_hunter.modules.hunting.cves import KubectlCVEHunter
 from kube_hunter.modules.hunting.dashboard import KubeDashboard
-from kube_hunter.modules.hunting.dns import DnsSpoofHunter
 from kube_hunter.modules.hunting.etcd import EtcdRemoteAccess, EtcdRemoteAccessActive
 from kube_hunter.modules.hunting.kubelet import (
     ProveAnonymousAuth,
@@ -76,8 +74,6 @@ PASSIVE_HUNTERS = {
 ACTIVE_HUNTERS = {
     ProveAzureSpnExposure,
     AccessApiServerActive,
-    ArpSpoofHunter,
-    DnsSpoofHunter,
     EtcdRemoteAccessActive,
     ProveRunHandler,
     ProveContainerLogsHandler,
