@@ -26,4 +26,6 @@ RUN apk add --no-cache \
 COPY --from=builder /usr/local/lib/python3.8/site-packages /usr/local/lib/python3.8/site-packages
 COPY --from=builder /usr/local/bin/kube-hunter /usr/local/bin/kube-hunter
 
+RUN pip install kube-hunter-arp-spoof kube-hunter-dns-spoof
+
 ENTRYPOINT ["kube-hunter"]
