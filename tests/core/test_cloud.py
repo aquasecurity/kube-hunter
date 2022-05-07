@@ -2,9 +2,10 @@ import requests_mock
 import json
 
 from kube_hunter.conf import Config, set_config
-from kube_hunter.core.events.types import NewHostEvent
 
 set_config(Config())
+
+from kube_hunter.core.events.types import NewHostEvent
 
 
 def test_presetcloud():
