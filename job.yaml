@@ -5,11 +5,13 @@ metadata:
   name: kube-hunter
 spec:
   template:
+    metadata:
+      labels:
+        app: kube-hunter
     spec:
       containers:
         - name: kube-hunter
-          image: aquasec/kube-hunter
+          image: aquasec/kube-hunter:v0.6.7
           command: ["kube-hunter"]
           args: ["--pod"]
       restartPolicy: Never
-  backoffLimit: 4
