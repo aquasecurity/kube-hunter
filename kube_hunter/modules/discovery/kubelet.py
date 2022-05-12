@@ -5,7 +5,7 @@ from enum import Enum
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.types import Discovery
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import OpenPortEvent, Event, Service
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

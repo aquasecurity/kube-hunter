@@ -2,7 +2,7 @@ import logging
 from socket import socket
 
 from kube_hunter.core.types import Discovery
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import NewHostEvent, OpenPortEvent
 
 logger = logging.getLogger(__name__)

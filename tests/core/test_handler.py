@@ -4,7 +4,7 @@ from kube_hunter.conf import Config, set_config, get_config
 
 set_config(Config(active=True))
 
-from kube_hunter.core.events.handler import handler
+from kube_hunter.core.events.handler.event_handler import handler
 from kube_hunter.modules.discovery.apiserver import ApiServiceDiscovery
 from kube_hunter.modules.discovery.dashboard import KubeDashboard as KubeDashboardDiscovery
 from kube_hunter.modules.discovery.etcd import EtcdRemoteAccess as EtcdRemoteAccessDiscovery

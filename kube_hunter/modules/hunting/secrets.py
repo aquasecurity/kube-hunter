@@ -1,7 +1,7 @@
 import logging
 import os
 
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Vulnerability, Event
 from kube_hunter.core.types import Hunter, KubernetesCluster, AccessContainerServiceAccountTechnique
 from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
