@@ -3,7 +3,7 @@ import requests_mock
 import urllib.parse
 import uuid
 
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.modules.hunting.kubelet import (
     AnonymousAuthEnabled,
     ExposedExistingPrivilegedContainersViaSecureKubeletPort,

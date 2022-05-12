@@ -5,7 +5,7 @@ set_config(Config())
 
 from kube_hunter.core.events.types import Event
 from kube_hunter.modules.hunting.certificates import CertificateDiscovery, CertificateEmail
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 
 
 def test_CertificateDiscovery():

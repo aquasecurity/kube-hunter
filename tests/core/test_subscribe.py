@@ -3,7 +3,7 @@ import time
 from kube_hunter.conf import Config, set_config
 from kube_hunter.core.types import Hunter
 from kube_hunter.core.events.types import Event, Service
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 
 counter = 0
 first_run = True

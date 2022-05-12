@@ -5,7 +5,7 @@ from kube_hunter.conf import Config, set_config
 
 set_config(Config())
 
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import K8sVersionDisclosure
 from kube_hunter.modules.hunting.cves import (
     K8sClusterCveHunter,

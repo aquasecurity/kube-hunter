@@ -3,7 +3,7 @@ import requests
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.types import Discovery
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Service, Event, OpenPortEvent
 
 logger = logging.getLogger(__name__)

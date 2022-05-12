@@ -76,7 +76,7 @@ in order to prevent circular dependency bug.
 Following the above example, let's figure out the imports:  
 ```python  
 from kube_hunter.core.types import Hunter  
-from kube_hunter.core.events import handler  
+from kube_hunter.core.events.event_handler import handler  
   
 from kube_hunter.core.events.types import OpenPortEvent  
   
@@ -206,7 +206,7 @@ __Make sure to return the event from the execute method, or the event will not g
  
 For example, if you don't want to hunt services found on a localhost IP, you can create the following module, in the `kube_hunter/modules/report/`
 ```python
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Service, EventFilterBase
 
 @handler.subscribe(Service)
@@ -222,7 +222,7 @@ That means other Hunters that are subscribed to this Service will not get trigge
 That opens up a wide variety of possible operations, as this not only can __filter out__ events, but you can actually __change event attributes__, for example:
 
 ```python
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.types import InformationDisclosure
 from kube_hunter.core.events.types import Vulnerability, EventFilterBase
 

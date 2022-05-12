@@ -3,7 +3,7 @@ import re
 import uuid
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import ActiveHunter, Hunter, KubernetesCluster, HostPathMountPrivilegeEscalationTechnique
 from kube_hunter.modules.hunting.kubelet import (

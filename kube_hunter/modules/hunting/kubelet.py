@@ -9,7 +9,7 @@ import urllib3
 import uuid
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Vulnerability, Event, K8sVersionDisclosure
 from kube_hunter.core.types import (
     Hunter,

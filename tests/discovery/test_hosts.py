@@ -6,7 +6,7 @@ from kube_hunter.modules.discovery.hosts import (
     HostDiscoveryHelpers,
 )
 from kube_hunter.core.types import Hunter
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 import json
 import requests_mock
 import pytest

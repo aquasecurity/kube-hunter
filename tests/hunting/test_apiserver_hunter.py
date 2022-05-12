@@ -23,7 +23,7 @@ from kube_hunter.modules.hunting.apiserver import ApiServerPassiveHunterFinished
 from kube_hunter.modules.hunting.apiserver import CreateANamespace, DeleteANamespace
 from kube_hunter.modules.discovery.apiserver import ApiServer
 from kube_hunter.core.types import ExposedSensitiveInterfacesTechnique, AccessK8sApiServerTechnique
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 
 counter = 0
 

@@ -4,7 +4,7 @@ import base64
 import re
 
 from kube_hunter.core.types import Hunter, KubernetesCluster, GeneralSensitiveInformationTechnique
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Vulnerability, Event, Service
 
 logger = logging.getLogger(__name__)
