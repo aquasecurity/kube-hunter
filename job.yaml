@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
         - name: kube-hunter
-          image: aquasec/kube-hunter:v0.6.7
+          image: aquasec/kube-hunter:0.6.8
           command: ["kube-hunter"]
           args: ["--pod"]
       restartPolicy: Never
