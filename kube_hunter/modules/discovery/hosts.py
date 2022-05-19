@@ -1,7 +1,6 @@
 import os
 import logging
 import itertools
-import requests
 
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
@@ -9,9 +8,9 @@ from netifaces import AF_INET, ifaddresses, interfaces, gateways
 
 from kube_hunter.conf import get_config
 from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
-from kube_hunter.core.events.event_handler import handler
-from kube_hunter.core.events.types import Event, NewHostEvent, Vulnerability
-from kube_hunter.core.types import Discovery, AWS, Azure, InstanceMetadataApiTechnique
+from kube_hunter.core.types import Discovery
+from kube_hunter.core.events import handler
+from kube_hunter.core.events.types import Event, NewHostEvent
 
 logger = logging.getLogger(__name__)
 
@@ -45,37 +44,6 @@ class RunningAsPodEvent(Event):
                 return f.read()
         except OSError:
             pass
-
-
-class AWSMetadataApi(Vulnerability, Event):
-    """Access to the AWS Metadata API exposes information about the machines associated with the cluster"""
-
-    def __init__(self, cidr):
-        Vulnerability.__init__(
-            self,
-            AWS,
-            "AWS Metadata Exposure",
-            category=InstanceMetadataApiTechnique,
-            vid="KHV053",
-        )
-        self.cidr = cidr
-        self.evidence = f"cidr: {cidr}"
-
-
-class AzureMetadataApi(Vulnerability, Event):
-    """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
-
-    def __init__(self, cidr):
-        Vulnerability.__init__(
-            self,
-            Azure,
-            "Azure Metadata Exposure",
-            category=InstanceMetadataApiTechnique,
-            vid="KHV003",
-        )
-        self.cidr = cidr
-        self.evidence = f"cidr: {cidr}"
-
 
 class HostScanEvent(Event):
     def __init__(self, pod=False, active=False, predefined_hosts=None):
@@ -128,16 +96,7 @@ class FromPodHostDiscovery(Discovery):
         if config.remote or config.cidr:
             self.publish_event(HostScanEvent())
         else:
-            # Discover cluster subnets, we'll scan all these hosts
-            cloud, subnets = None, list()
-            if self.is_azure_pod():
-                subnets, cloud = self.azure_metadata_discovery()
-            elif self.is_aws_pod_v1():
-                subnets, cloud = self.aws_metadata_v1_discovery()
-            elif self.is_aws_pod_v2():
-                subnets, cloud = self.aws_metadata_v2_discovery()
-
-            subnets += self.gateway_discovery()
+            subnets = self.gateway_discovery()
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -147,166 +106,14 @@ class FromPodHostDiscovery(Discovery):
                     should_scan_apiserver = False
                 logger.debug(f"From pod scanning subnet {ip}/{mask}")
                 for ip in IPNetwork(f"{ip}/{mask}"):
-                    self.publish_event(NewHostEvent(host=ip, cloud=cloud))
+                    self.publish_event(NewHostEvent(host=ip))
             if should_scan_apiserver:
-                self.publish_event(NewHostEvent(host=IPAddress(self.event.kubeservicehost), cloud=cloud))
-
-    def is_aws_pod_v1(self):
-        config = get_config()
-        try:
-            # Instance Metadata Service v1
-            logger.debug("From pod attempting to access AWS Metadata v1 API")
-            if (
-                requests.get(
-                    "http://169.254.169.254/latest/meta-data/",
-                    timeout=config.network_timeout,
-                ).status_code
-                == 200
-            ):
-                return True
-        except requests.exceptions.ConnectionError:
-            logger.debug("Failed to connect AWS metadata server v1")
-        except Exception:
-            logger.debug("Unknown error when trying to connect to AWS metadata v1 API")
-        return False
-
-    def is_aws_pod_v2(self):
-        config = get_config()
-        try:
-            # Instance Metadata Service v2
-            logger.debug("From pod attempting to access AWS Metadata v2 API")
-            token = requests.put(
-                "http://169.254.169.254/latest/api/token/",
-                headers={"X-aws-ec2-metatadata-token-ttl-seconds": "21600"},
-                timeout=config.network_timeout,
-            ).text
-            if (
-                requests.get(
-                    "http://169.254.169.254/latest/meta-data/",
-                    headers={"X-aws-ec2-metatadata-token": token},
-                    timeout=config.network_timeout,
-                ).status_code
-                == 200
-            ):
-                return True
-        except requests.exceptions.ConnectionError:
-            logger.debug("Failed to connect AWS metadata server v2")
-        except Exception:
-            logger.debug("Unknown error when trying to connect to AWS metadata v2 API")
-        return False
-
-    def is_azure_pod(self):
-        config = get_config()
-        try:
-            logger.debug("From pod attempting to access Azure Metadata API")
-            if (
-                requests.get(
-                    "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-                    headers={"Metadata": "true"},
-                    timeout=config.network_timeout,
-                ).status_code
-                == 200
-            ):
-                return True
-        except requests.exceptions.ConnectionError:
-            logger.debug("Failed to connect Azure metadata server")
-        except Exception:
-            logger.debug("Unknown error when trying to connect to Azure metadata server")
-        return False
+                self.publish_event(NewHostEvent(host=self.event.kubeservicehost))
 
     # for pod scanning
     def gateway_discovery(self):
         """Retrieving default gateway of pod, which is usually also a contact point with the host"""
         return [[gateways()["default"][AF_INET][0], "24"]]
-
-    # querying AWS's interface metadata api v1 | works only from a pod
-    def aws_metadata_v1_discovery(self):
-        config = get_config()
-        logger.debug("From pod attempting to access aws's metadata v1")
-        mac_address = requests.get(
-            "http://169.254.169.254/latest/meta-data/mac",
-            timeout=config.network_timeout,
-        ).text
-        logger.debug(f"Extracted mac from aws's metadata v1: {mac_address}")
-
-        cidr = requests.get(
-            f"http://169.254.169.254/latest/meta-data/network/interfaces/macs/{mac_address}/subnet-ipv4-cidr-block",
-            timeout=config.network_timeout,
-        ).text
-        logger.debug(f"Trying to extract cidr from aws's metadata v1: {cidr}")
-
-        try:
-            cidr = cidr.split("/")
-            address, subnet = (cidr[0], cidr[1])
-            subnet = subnet if not config.quick else "24"
-            cidr = f"{address}/{subnet}"
-            logger.debug(f"From pod discovered subnet {cidr}")
-
-            self.publish_event(AWSMetadataApi(cidr=cidr))
-            return [(address, subnet)], "AWS"
-        except Exception as x:
-            logger.debug(f"ERROR: could not parse cidr from aws metadata api: {cidr} - {x}")
-
-        return [], "AWS"
-
-    # querying AWS's interface metadata api v2 | works only from a pod
-    def aws_metadata_v2_discovery(self):
-        config = get_config()
-        logger.debug("From pod attempting to access aws's metadata v2")
-        token = requests.get(
-            "http://169.254.169.254/latest/api/token",
-            headers={"X-aws-ec2-metatadata-token-ttl-seconds": "21600"},
-            timeout=config.network_timeout,
-        ).text
-        mac_address = requests.get(
-            "http://169.254.169.254/latest/meta-data/mac",
-            headers={"X-aws-ec2-metatadata-token": token},
-            timeout=config.network_timeout,
-        ).text
-        cidr = requests.get(
-            f"http://169.254.169.254/latest/meta-data/network/interfaces/macs/{mac_address}/subnet-ipv4-cidr-block",
-            headers={"X-aws-ec2-metatadata-token": token},
-            timeout=config.network_timeout,
-        ).text.split("/")
-
-        try:
-            address, subnet = (cidr[0], cidr[1])
-            subnet = subnet if not config.quick else "24"
-            cidr = f"{address}/{subnet}"
-            logger.debug(f"From pod discovered subnet {cidr}")
-
-            self.publish_event(AWSMetadataApi(cidr=cidr))
-
-            return [(address, subnet)], "AWS"
-        except Exception as x:
-            logger.debug(f"ERROR: could not parse cidr from aws metadata api: {cidr} - {x}")
-
-        return [], "AWS"
-
-    # querying azure's interface metadata api | works only from a pod
-    def azure_metadata_discovery(self):
-        config = get_config()
-        logger.debug("From pod attempting to access azure's metadata")
-        machine_metadata = requests.get(
-            "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-            headers={"Metadata": "true"},
-            timeout=config.network_timeout,
-        ).json()
-        address, subnet = "", ""
-        subnets = list()
-        for interface in machine_metadata["network"]["interface"]:
-            address, subnet = (
-                interface["ipv4"]["subnet"][0]["address"],
-                interface["ipv4"]["subnet"][0]["prefix"],
-            )
-            subnet = subnet if not config.quick else "24"
-            logger.debug(f"From pod discovered subnet {address}/{subnet}")
-            subnets.append([address, subnet if not config.quick else "24"])
-
-            self.publish_event(AzureMetadataApi(cidr=f"{address}/{subnet}"))
-
-        return subnets, "Azure"
-
 
 @handler.subscribe(HostScanEvent)
 class HostDiscovery(Discovery):
