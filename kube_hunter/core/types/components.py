@@ -28,3 +28,8 @@ class Azure(CloudProvider):
     """Azure Cluster"""
 
     name = "AKS Cluster"
+
+class AWS(CloudProvider):
+    """Azure Cluster"""
+
+    name = "EKS Cluster"

@@ -6,7 +6,7 @@ import ipaddress
 from kube_hunter.conf import get_config
 from kube_hunter.core.events import handler
 
-from kube_hunter.core.types import Discovery, CloudProvider
+from kube_hunter.core.types import Discovery, AWS 
 
 from kube_hunter.core.events.types import Event, Vulnerability, NewHostEvent
 from kube_hunter.core.types.vulnerabilities import InstanceMetadataApiTechnique
@@ -15,17 +15,13 @@ from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
 
 logger = logging.getLogger(__name__)
 
-class EKSCluster(CloudProvider):
-    """AWS Cluster"""
-
-    name = "EKS Cluster"
 
 class AWSMetadataApiExposed(Vulnerability, Event):
     """Access to the AWS Metadata API exposes information about the machines associated with the cluster"""    
     def __init__(self, version):
         Vulnerability.__init__(
             self,
-            EKSCluster,
+            AWS,
             "AWS Metadata Exposure",
             category=InstanceMetadataApiTechnique,
             vid="KHV053",

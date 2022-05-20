@@ -183,7 +183,6 @@ kube-hunter --active --list --raw-hunter-names
 **Notice**: Due to kube-huner's architectural design, the following "Core Hunters/Classes" will always register (even when using custom hunting):
 * HostDiscovery 
   * _Generates ip addresses for the hunt by given configurations_
-  * _Automatically discovers subnets using cloud Metadata APIs_
 * FromPodHostDiscovery
   * _Auto discover attack surface ip addresses for the hunt by using Pod based environment techniques_
   * _Automatically discovers subnets using cloud Metadata APIs_
