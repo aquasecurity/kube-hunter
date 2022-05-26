@@ -28,7 +28,7 @@ def test_TestAzureMetadataApi():
 
     with requests_mock.Mocker() as m:
         m.get("http://169.254.169.254/metadata/versions/", text=TestAzureMetadataApiDiscovery.make_versions_response())
-        m.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", text=TestAzureMetadataApiDiscovery.make_versions_response())
+        m.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", text=TestAzureMetadataApiDiscovery.make_instance_response([("192.168.1.0","24")]))
         f.execute()
     
 
@@ -40,7 +40,7 @@ def test_TestAzureMetadataApi():
 
 class TestAzureMetadataApiDiscovery:
     @staticmethod
-    def make_instance_response() -> str:
+    def make_instance_response(subnets) -> str:
         return json.dumps(
             {
                 "network": {
