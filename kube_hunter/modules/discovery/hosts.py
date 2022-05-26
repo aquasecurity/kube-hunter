@@ -9,7 +9,7 @@ from netifaces import AF_INET, ifaddresses, interfaces, gateways
 from kube_hunter.conf import get_config
 from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
 from kube_hunter.core.types import Discovery
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Event, NewHostEvent
 
 logger = logging.getLogger(__name__)
@@ -44,6 +44,7 @@ class RunningAsPodEvent(Event):
                 return f.read()
         except OSError:
             pass
+
 
 class HostScanEvent(Event):
     def __init__(self, pod=False, active=False, predefined_hosts=None):
@@ -114,6 +115,7 @@ class FromPodHostDiscovery(Discovery):
     def gateway_discovery(self):
         """Retrieving default gateway of pod, which is usually also a contact point with the host"""
         return [[gateways()["default"][AF_INET][0], "24"]]
+
 
 @handler.subscribe(HostScanEvent)
 class HostDiscovery(Discovery):

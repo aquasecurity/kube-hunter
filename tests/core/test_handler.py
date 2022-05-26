@@ -13,6 +13,8 @@ from kube_hunter.modules.discovery.kubectl import KubectlClientDiscovery
 from kube_hunter.modules.discovery.kubelet import KubeletDiscovery
 from kube_hunter.modules.discovery.ports import PortDiscovery
 from kube_hunter.modules.discovery.proxy import KubeProxy as KubeProxyDiscovery
+from kube_hunter.modules.discovery.cloud.azure import AzureInstanceMetadataServiceDiscovery
+from kube_hunter.modules.discovery.cloud.aws import AWSMetadataAPIDiscovery, AWSMetadataHostsDiscovery
 from kube_hunter.modules.hunting.aks import AzureSpnHunter, ProveAzureSpnExposure
 from kube_hunter.modules.hunting.apiserver import (
     AccessApiServer,
@@ -66,6 +68,9 @@ PASSIVE_HUNTERS = {
     VarLogMountHunter,
     KubeProxy,
     AccessSecrets,
+    AzureInstanceMetadataServiceDiscovery,
+    AWSMetadataAPIDiscovery,
+    AWSMetadataHostsDiscovery,
 }
 
 # if config.enable_cve_hunting:

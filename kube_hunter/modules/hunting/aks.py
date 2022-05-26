@@ -9,6 +9,8 @@ from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import Hunter, ActiveHunter, MountServicePrincipalTechnique, Azure
 
+from kube_hunter.modules.discovery.cloud.azure import AzureMetadataApiExposed
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,14 +29,14 @@ class AzureSpnExposure(Vulnerability, Event):
         self.evidence = evidence
 
 
-@handler.subscribe([ExposedPodsHandler, AzureMetadataApiExposed])
+@handler.subscribe_many([ExposedPodsHandler, AzureMetadataApiExposed])
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
     """
 
     def __init__(self, event):
-        self.event = event
+        self.event = event.get_by_class(ExposedPodsHandler)
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     # getting a container that has access to the azure.json file
@@ -78,13 +80,15 @@ class ProveAzureSpnExposure(ActiveHunter):
         self.events = events
         self.exposed_run_event = self.events.get_by_class(ExposedRunHandler)
         self.spn_exposure_event = self.events.get_by_class(AzureSpnExposure)
-        
+
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
         config = get_config()
         run_url = f"{self.base_url}/run/{container['namespace']}/{container['pod']}/{container['name']}"
-        return self.exposed_run_event.session.post(run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout)
+        return self.exposed_run_event.session.post(
+            run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout
+        )
 
     def get_full_path_to_azure_file(self):
         """

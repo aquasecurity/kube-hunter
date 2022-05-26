@@ -4,9 +4,9 @@ import requests
 import ipaddress
 
 from kube_hunter.conf import get_config
-from kube_hunter.core.events import handler
+from kube_hunter.core.events.event_handler import handler
 
-from kube_hunter.core.types import Discovery, AWS 
+from kube_hunter.core.types import Discovery, AWS
 
 from kube_hunter.core.events.types import Event, Vulnerability, NewHostEvent
 from kube_hunter.core.types.vulnerabilities import InstanceMetadataApiTechnique
@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class AWSMetadataApiExposed(Vulnerability, Event):
-    """Access to the AWS Metadata API exposes information about the machines associated with the cluster"""    
+    """Access to the AWS Metadata API exposes information about the machines associated with the cluster"""
+
     def __init__(self, version):
         Vulnerability.__init__(
             self,
@@ -26,25 +27,27 @@ class AWSMetadataApiExposed(Vulnerability, Event):
             category=InstanceMetadataApiTechnique,
             vid="KHV053",
         )
-        self.version = version 
+        self.version = version
 
 
 class InstanceMetadataApi:
     URL = "http://169.254.169.254/latest/meta-data/"
-    GET_MACS_URL = "http://169.254.169.254/latest/meta-data/mac" 
-    LIST_CIDR_URL = "http://169.254.169.254/latest/meta-data/network/interfaces/macs/{mac_address}/subnet-ipv4-cidr-block"
-    
+    GET_MACS_URL = "http://169.254.169.254/latest/meta-data/mac"
+    LIST_CIDR_URL = (
+        "http://169.254.169.254/latest/meta-data/network/interfaces/macs/{mac_address}/subnet-ipv4-cidr-block"
+    )
+
     V2_REQUEST_TOKEN_URL = "http://169.254.169.254/latest/api/token/"
     V2_REQUEST_TOKEN_HEADER = {"X-aws-ec2-metatadata-token-ttl-seconds": "21600"}
     V2_TOKEN_HEADER_NAME = "X-aws-ec2-metatadata-token"
-    
+
     @classmethod
     def get_api_token(cls, network_timeout):
         return requests.put(
-                cls.V2_REQUEST_TOKEN_URL,
-                headers=cls.V2_REQUEST_TOKEN_HEADER,
-                timeout=network_timeout,
-            ).text
+            cls.V2_REQUEST_TOKEN_URL,
+            headers=cls.V2_REQUEST_TOKEN_HEADER,
+            timeout=network_timeout,
+        ).text
 
     @classmethod
     def ping_v1(cls, network_timeout):
@@ -54,10 +57,10 @@ class InstanceMetadataApi:
     @classmethod
     def ping_v2(cls, token, network_timeout):
         status = requests.get(
-                cls.URL,
-                headers={cls.V2_TOKEN_HEADER_NAME: token},
-                timeout=network_timeout,
-            ).status_code
+            cls.URL,
+            headers={cls.V2_TOKEN_HEADER_NAME: token},
+            timeout=network_timeout,
+        ).status_code
         return status == requests.codes.OK
 
 
@@ -66,6 +69,7 @@ class AWSMetadataAPIDiscovery(Discovery):
     """AWS Metadata API Discovery
     Pings all metadata api versions and determines if they are accessible from the Pod
     """
+
     def __init__(self, event):
         self.event = event
 
@@ -74,7 +78,7 @@ class AWSMetadataAPIDiscovery(Discovery):
 
         if self.check_metadata_v1(config.network_timeout):
             self.publish_event(AWSMetadataApiExposed(version="1"))
-        
+
         if self.check_metadata_v2(config.network_timeout):
             self.publish_event(AWSMetadataApiExposed(version="2"))
 
@@ -105,11 +109,12 @@ class AWSMetadataAPIDiscovery(Discovery):
 @handler.subscribe(AWSMetadataApiExposed)
 class AWSMetadataHostsDiscovery(Discovery):
     """AWS Metadata Hosts Discovery
-    Scrapes the metadata api for additional accessible network subnets for kube-hunter to scan 
+    Scrapes the metadata api for additional accessible network subnets for kube-hunter to scan
     """
+
     def __init__(self, event):
         self.event = event
-    
+
     def execute(self):
         config = get_config()
 
@@ -125,10 +130,9 @@ class AWSMetadataHostsDiscovery(Discovery):
                 # TODO: change from hardcoded 24
                 # Fallback to 24 default subnet
                 network = ipaddress.IPv4Network(f"{network.network_address}/{24}")
-        
+
         for ip in network:
             self.publish_event(NewHostEvent(host=ip))
-
 
     def extract_network_subnet_v1(self, network_timeout):
         """Extract network subnet from aws metadata api v1"""
@@ -147,12 +151,11 @@ class AWSMetadataHostsDiscovery(Discovery):
         except Exception as x:
             logger.debug(f"ERROR: could not parse cidr from aws metadata api: {cidr} - {x}")
         return None
-    
 
     def extract_network_subnet_v2(self, network_timeout):
         """Extract network subnet from aws metadata api v1"""
         logger.debug("From pod attempting to access aws's metadata v2")
-        
+
         token = InstanceMetadataApi.get_api_token()
 
         mac_address = requests.get(
@@ -174,4 +177,3 @@ class AWSMetadataHostsDiscovery(Discovery):
         except Exception as x:
             logger.debug(f"ERROR: could not parse cidr from aws metadata api: {cidr} - {x}")
         return None
-    

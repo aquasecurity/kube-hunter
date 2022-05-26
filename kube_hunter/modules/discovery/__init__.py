@@ -10,6 +10,4 @@ from . import (
     proxy,
 )
 
-from .cloud import (
-    AWS
-)
+from .cloud import aws, azure

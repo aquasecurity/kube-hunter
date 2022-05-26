@@ -3,6 +3,7 @@ class KubernetesCluster:
 
     name = "Kubernetes Cluster"
 
+
 class CloudProvider:
     name = "Cloud Provider"
 
@@ -24,10 +25,12 @@ class BareMetal(CloudProvider):
 
     name = "Bare Metal Installation"
 
+
 class Azure(CloudProvider):
     """Azure Cluster"""
 
     name = "AKS Cluster"
+
 
 class AWS(CloudProvider):
     """Azure Cluster"""
