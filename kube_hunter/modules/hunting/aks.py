@@ -4,10 +4,12 @@ import logging
 import requests
 
 from kube_hunter.conf import get_config
-from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, SecureKubeletPortHunter
+from kube_hunter.modules.hunting.kubelet import ExposedPodsHandler, ExposedRunHandler
 from kube_hunter.core.events.event_handler import handler
 from kube_hunter.core.events.types import Event, Vulnerability
 from kube_hunter.core.types import Hunter, ActiveHunter, MountServicePrincipalTechnique, Azure
+
+from kube_hunter.modules.discovery.cloud.azure import AzureMetadataApiExposed
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +29,14 @@ class AzureSpnExposure(Vulnerability, Event):
         self.evidence = evidence
 
 
-@handler.subscribe(ExposedPodsHandler, predicate=lambda x: x.cloud_type == "Azure")
+@handler.subscribe_many([ExposedPodsHandler, AzureMetadataApiExposed])
 class AzureSpnHunter(Hunter):
     """AKS Hunting
     Hunting Azure cluster deployments using specific known configurations
     """
 
     def __init__(self, event):
-        self.event = event
+        self.event = event.get_by_class(ExposedPodsHandler)
         self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     # getting a container that has access to the azure.json file
@@ -68,28 +70,25 @@ class AzureSpnHunter(Hunter):
             self.publish_event(AzureSpnExposure(container=container, evidence=evidence))
 
 
-@handler.subscribe(AzureSpnExposure)
+@handler.subscribe_many([AzureSpnExposure, ExposedRunHandler])
 class ProveAzureSpnExposure(ActiveHunter):
     """Azure SPN Hunter
     Gets the azure subscription file on the host by executing inside a container
     """
 
-    def __init__(self, event):
-        self.event = event
-        self.base_url = f"https://{self.event.host}:{self.event.port}"
+    def __init__(self, events):
+        self.events = events
+        self.exposed_run_event = self.events.get_by_class(ExposedRunHandler)
+        self.spn_exposure_event = self.events.get_by_class(AzureSpnExposure)
 
-    def test_run_capability(self):
-        """
-        Uses SecureKubeletPortHunter to test the /run handler
-        TODO: when multiple event subscription is implemented, use this here to make sure /run is accessible
-        """
-        debug_handlers = SecureKubeletPortHunter.DebugHandlers(path=self.base_url, session=self.event.session, pod=None)
-        return debug_handlers.test_run_container()
+        self.base_url = f"https://{self.event.host}:{self.event.port}"
 
     def run(self, command, container):
         config = get_config()
         run_url = f"{self.base_url}/run/{container['namespace']}/{container['pod']}/{container['name']}"
-        return self.event.session.post(run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout)
+        return self.exposed_run_event.session.post(
+            run_url, verify=False, params={"cmd": command}, timeout=config.network_timeout
+        )
 
     def get_full_path_to_azure_file(self):
         """
@@ -106,10 +105,6 @@ class ProveAzureSpnExposure(ActiveHunter):
         return azure_file_path
 
     def execute(self):
-        if not self.test_run_capability():
-            logger.debug("Not proving AzureSpnExposure because /run debug handler is disabled")
-            return
-
         try:
             azure_file_path = self.get_full_path_to_azure_file()
             logger.debug(f"trying to access the azure.json at the resolved path: {azure_file_path}")
@@ -120,8 +115,8 @@ class ProveAzureSpnExposure(ActiveHunter):
             logger.warning("failed to parse SPN")
         else:
             if "subscriptionId" in subscription:
-                self.event.subscriptionId = subscription["subscriptionId"]
-                self.event.aadClientId = subscription["aadClientId"]
-                self.event.aadClientSecret = subscription["aadClientSecret"]
-                self.event.tenantId = subscription["tenantId"]
-                self.event.evidence = f"subscription: {self.event.subscriptionId}"
+                self.spn_exposure_event.subscriptionId = subscription["subscriptionId"]
+                self.spn_exposure_event.aadClientId = subscription["aadClientId"]
+                self.spn_exposure_event.aadClientSecret = subscription["aadClientSecret"]
+                self.spn_exposure_event.tenantId = subscription["tenantId"]
+                self.spn_exposure_event.evidence = f"subscription: {self.event.subscriptionId}"

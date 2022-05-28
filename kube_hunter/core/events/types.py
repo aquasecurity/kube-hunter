@@ -1,6 +1,5 @@
 import logging
 import threading
-import requests
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.types import KubernetesCluster
@@ -180,33 +179,10 @@ class NewHostEvent(Event):
     def __init__(self, host, cloud=None):
         global event_id_count
         self.host = host
-        self.cloud_type = cloud
 
         with event_id_count_lock:
             self.event_id = event_id_count
             event_id_count += 1
-
-    @property
-    def cloud(self):
-        if not self.cloud_type:
-            self.cloud_type = self.get_cloud()
-        return self.cloud_type
-
-    def get_cloud(self):
-        config = get_config()
-        try:
-            logger.debug("Checking whether the cluster is deployed on azure's cloud")
-            # Leverage 3rd tool https://github.com/blrchen/AzureSpeed for Azure cloud ip detection
-            result = requests.get(
-                f"https://api.azurespeed.com/api/region?ipOrUrl={self.host}",
-                timeout=config.network_timeout,
-            ).json()
-            return result["cloud"] or "NoCloud"
-        except requests.ConnectionError:
-            logger.info("Failed to connect cloud type service", exc_info=True)
-        except Exception:
-            logger.warning(f"Unable to check cloud of {self.host}", exc_info=True)
-        return "NoCloud"
 
     def __str__(self):
         return str(self.host)

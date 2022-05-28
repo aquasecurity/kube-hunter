@@ -4,6 +4,10 @@ class KubernetesCluster:
     name = "Kubernetes Cluster"
 
 
+class CloudProvider:
+    name = "Cloud Provider"
+
+
 class KubectlClient:
     """The kubectl client binary is used by the user to interact with the cluster"""
 
@@ -16,13 +20,19 @@ class Kubelet(KubernetesCluster):
     name = "Kubelet"
 
 
-class AWS(KubernetesCluster):
+class BareMetal(CloudProvider):
     """AWS Cluster"""
 
-    name = "AWS"
+    name = "Bare Metal Installation"
 
 
-class Azure(KubernetesCluster):
+class Azure(CloudProvider):
     """Azure Cluster"""
 
-    name = "Azure"
+    name = "AKS Cluster"
+
+
+class AWS(CloudProvider):
+    """Azure Cluster"""
+
+    name = "EKS Cluster"
