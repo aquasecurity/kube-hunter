@@ -27,7 +27,7 @@ class AzureMetadataApiExposed(Vulnerability, Event):
 
         # dict containing all api versions instance api extracted
         self.versions_info = versions_info
-        self.evidence = f"apiVersions: {','.join(self.versions_info.keys())}"
+        self.evidence = f"apiVersions: {','.join(self.versions_info['apiVersions'].keys())}"
 
 
 class AzureInstanceMetadataService:
