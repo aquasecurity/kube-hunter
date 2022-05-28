@@ -3,7 +3,7 @@ import logging
 import itertools
 
 from enum import Enum
-from netaddr import IPNetwork, IPAddress, AddrFormatError
+from netaddr import IPNetwork, AddrFormatError
 from netifaces import AF_INET, ifaddresses, interfaces, gateways
 
 from kube_hunter.conf import get_config

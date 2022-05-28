@@ -1,6 +1,5 @@
 import logging
 import threading
-import requests
 
 from kube_hunter.conf import get_config
 from kube_hunter.core.types import KubernetesCluster

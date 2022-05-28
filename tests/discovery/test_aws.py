@@ -109,4 +109,3 @@
 #             result = f.is_aws_pod_v2()
 
 #         assert result
-

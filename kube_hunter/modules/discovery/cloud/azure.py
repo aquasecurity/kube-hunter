@@ -6,9 +6,12 @@ from kube_hunter.core.types import Discovery
 from kube_hunter.core.types.components import Azure
 from kube_hunter.core.events.types import Vulnerability, Event, InstanceMetadataApiTechnique
 from kube_hunter.core.events.event_handler import handler
-from kube_hunter.modules.discovery.hosts import RunningAsPodEvent
+from kube_hunter.modules.discovery.hosts import RunningAsPodEvent, NewHostEvent
+
+from ipaddress import IPv4Network
 
 logger = logging.getLogger(__name__)
+
 
 class AzureMetadataApiExposed(Vulnerability, Event):
     """Access to the Azure Metadata API exposes information about the machines associated with the cluster"""
@@ -106,14 +109,15 @@ class AzureSubnetsDiscovery(Discovery):
             try:
                 address = info["network"]["interface"][0]["ipv4"]["subnet"][0]["address"]
                 tmp_prefix = info["network"]["interface"][0]["ipv4"]["subnet"][0]["prefix"]
-                
+
                 if config.quick:
                     logger.debug(f"Discovered azure subnet {tmp_prefix} but scanning {prefix} due to `quick` option ")
                 else:
                     prefix = tmp_prefix
-                
+
                 return f"{address}/{prefix}"
-            except:
+            except Exception as x:
+                logger.debug(f"Skipping azure subnet discovery for version {version}: {x}")
                 continue
         return False
 
@@ -121,7 +125,5 @@ class AzureSubnetsDiscovery(Discovery):
         subnet = self.extract_subnets()
         if subnet:
             logger.debug(f"From pod discovered azure subnet {subnet}")
-            for ip in IPv4Network(f'{subnet}'):
+            for ip in IPv4Network(f"{subnet}"):
                 self.publish_event(NewHostEvent(ip))
-                
-        self.publish_event(AzureMetadataApiExposed(versions_info=versions_info))
