@@ -124,10 +124,9 @@ class AWSMetadataHostsDiscovery(Discovery):
         elif self.event.version == "2":
             network = self.extract_network_subnet_v2(config.network_timeout)
 
-        # If quick scan is enabled we ignore the prefix and only use the network address
+        # If full scan is enabled we ignore the prefix and only use the network address
         if network:
-            if config.quick:
-                # TODO: change from hardcoded 24
+            if not config.full_cloud_scan:
                 # Fallback to 24 default subnet
                 network = ipaddress.IPv4Network(f"{network.network_address}/{24}")
 

@@ -18,7 +18,7 @@ def parser_add_arguments(parser):
 
     parser.add_argument("--pod", action="store_true", help="Set hunter as an insider pod")
 
-    parser.add_argument("--quick", action="store_true", help="Prefer quick scan (subnet 24)")
+    parser.add_argument("--full-cloud-scan", action="store_true", help="Disable hardlimit of '/24' CIDR when scraping Instance Metadata API")
 
     parser.add_argument(
         "--include-patched-versions",

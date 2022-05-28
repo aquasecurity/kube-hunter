@@ -109,8 +109,8 @@ class AzureSubnetsDiscovery(Discovery):
                 address = info["network"]["interface"][0]["ipv4"]["subnet"][0]["address"]
                 tmp_prefix = info["network"]["interface"][0]["ipv4"]["subnet"][0]["prefix"]
 
-                if config.quick:
-                    logger.debug(f"Discovered azure subnet {tmp_prefix} but scanning {prefix} due to `quick` option ")
+                if not config.full_cloud_scan:
+                    logger.debug(f"Discovered azure subnet {tmp_prefix} but scanning {prefix} due to `full_cloud_scan=False` option ")
                 else:
                     prefix = tmp_prefix
 

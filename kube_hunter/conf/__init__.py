@@ -22,7 +22,7 @@ class Config:
     - network_timeout: Timeout for network operations
     - num_worker_threads: Add a flag --threads to change the default 800 thread count of the event handler
     - pod: From pod scanning mode
-    - quick: Quick scanning mode
+    - full_cloud_scan: disables limit for 24 cidr in cloud envs 
     - remote: Hosts to scan
     - report: Output format
     - statistics: Include hunters statistics
@@ -39,7 +39,7 @@ class Config:
     network_timeout: float = 5.0
     num_worker_threads: int = 800
     pod: bool = False
-    quick: bool = False
+    full_cloud_scan: bool = False
     remote: Optional[str] = None
     reporter: Optional[Any] = None
     statistics: bool = False

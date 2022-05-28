@@ -40,7 +40,7 @@ Table of Contents
     - [Output](#output)
     - [Dispatching](#dispatching)
   - [Advanced Usage](#advanced-usage)
-    - [Azure Quick Scanning](#azure-quick-scanning)
+    - [Full Cloud Scan](#full-cloud-scan)
     - [Custom Hunting](#custom-hunting)
   - [Deployment](#deployment)
     - [On Machine](#on-machine)
@@ -159,9 +159,9 @@ Available dispatch methods are:
 
 
 ## Advanced Usage
-### Azure Quick Scanning 
-When running **as a Pod in an Azure or AWS environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this makes the discovery process take longer.
-To hardlimit subnet scanning to a `/24` CIDR, use the `--quick` option. 
+### Full Cloud Scan 
+When running **as a Pod in an Azure or AWS environment**, kube-hunter will fetch subnets from the Instance Metadata Service. Naturally this will make the discovery process take longer. This is why by default kube-hunter will hardlimit `/24` CIDR. 
+If you wish to remove this limit and scan whatever subnet kube-hunter discover you can use the `--full-cloud-scan` 
 
 ### Custom Hunting
 Custom hunting enables advanced users to have control over what hunters gets registered at the start of a hunt. 
