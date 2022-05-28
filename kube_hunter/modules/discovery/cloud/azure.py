@@ -29,8 +29,8 @@ class AzureMetadataApiExposed(Vulnerability, Event):
 
 class AzureInstanceMetadataService:
     ROOT = "http://169.254.169.254/metadata/"
-    VERSIONS_ENDPOINT = "versions/"
-    INSTANCE_ENDPOINT = "instance/"
+    VERSIONS_ENDPOINT = "versions"
+    INSTANCE_ENDPOINT = "instance"
 
     VERSION_PARAMETER = "api-version"
     REQUEST_TOKEN_HEADER = {"Metadata": "true"}
@@ -92,25 +92,36 @@ class AzureInstanceMetadataServiceDiscovery(Discovery):
         self.publish_event(AzureMetadataApiExposed(versions_info=versions_info))
 
 
-# def azure_metadata_discovery(self):
-#     config = get_config()
-#     logger.debug("From pod attempting to access azure's metadata")
-#     machine_metadata = requests.get(
-#         "http://169.254.169.254/metadata/instance?api-version=2017-08-01",
-#         headers={"Metadata": "true"},
-#         timeout=config.network_timeout,
-#     ).json()
-#     address, subnet = "", ""
-#     subnets = list()
-#     for interface in machine_metadata["network"]["interface"]:
-#         address, subnet = (
-#             interface["ipv4"]["subnet"][0]["address"],
-#             interface["ipv4"]["subnet"][0]["prefix"],
-#         )
-#         subnet = subnet if not config.quick else "24"
-#         logger.debug(f"From pod discovered subnet {address}/{subnet}")
-#         subnets.append([address, subnet if not config.quick else "24"])
-# -
-#         self.publish_event(AzureMetadataApi(cidr=f"{address}/{subnet}"))
-# -
-#     return subnets, "Azure"
+@handler.subscribe(AzureMetadataApiExposed)
+class AzureSubnetsDiscovery(Discovery):
+    def __init__(self, event):
+        self.event = event
+
+    def extract_azure_subnet(self):
+        # default to 24 subnet
+        address, prefix = None, "24"
+        config = get_config()
+        # import ipdb; ipdb.set_trace()
+        for version, info in self.event.versions_info.items():
+            try:
+                address = info["network"]["interface"][0]["ipv4"]["subnet"][0]["address"]
+                tmp_prefix = info["network"]["interface"][0]["ipv4"]["subnet"][0]["prefix"]
+                
+                if config.quick:
+                    logger.debug(f"Discovered azure subnet {tmp_prefix} but scanning {prefix} due to `quick` option ")
+                else:
+                    prefix = tmp_prefix
+                
+                return f"{address}/{prefix}"
+            except:
+                continue
+        return False
+
+    def execute(self):
+        subnet = self.extract_subnets()
+        if subnet:
+            logger.debug(f"From pod discovered azure subnet {subnet}")
+            for ip in IPv4Network(f'{subnet}'):
+                self.publish_event(NewHostEvent(ip))
+                
+        self.publish_event(AzureMetadataApiExposed(versions_info=versions_info))
