@@ -122,7 +122,7 @@ class AzureSubnetsDiscovery(Discovery):
         return False
 
     def execute(self):
-        subnet = self.extract_subnets()
+        subnet = self.extract_azure_subnet()
         if subnet:
             logger.debug(f"From pod discovered azure subnet {subnet}")
             for ip in IPv4Network(f"{subnet}"):
