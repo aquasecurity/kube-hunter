@@ -126,4 +126,4 @@ class AzureSubnetsDiscovery(Discovery):
         if subnet:
             logger.debug(f"From pod discovered azure subnet {subnet}")
             for ip in IPv4Network(f"{subnet}"):
-                self.publish_event(NewHostEvent(ip))
+                self.publish_event(NewHostEvent(str(ip)))
