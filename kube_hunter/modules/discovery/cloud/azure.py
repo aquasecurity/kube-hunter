@@ -78,13 +78,13 @@ class AzureInstanceMetadataServiceDiscovery(Discovery):
 
         logger.debug("Trying to access IMDS (Azure Metadata Service) from pod")
         available_versions = AzureInstanceMetadataService.get_versions(network_timeout=config.network_timeout)
-        
+
         if not available_versions:
             logger.debug("IMDS not available")
             return
 
         versions_info = dict()
-        for version in available_versions['apiVersions']:
+        for version in available_versions["apiVersions"]:
             instance_data = AzureInstanceMetadataService.get_instance_data(
                 api_version=version, network_timeout=config.network_timeout
             )
@@ -110,7 +110,9 @@ class AzureSubnetsDiscovery(Discovery):
                 tmp_prefix = info["network"]["interface"][0]["ipv4"]["subnet"][0]["prefix"]
 
                 if not config.full_cloud_scan:
-                    logger.debug(f"Discovered azure subnet {tmp_prefix} but scanning {prefix} due to `full_cloud_scan=False` option ")
+                    logger.debug(
+                        f"Discovered azure subnet {tmp_prefix} but scanning {prefix} due to `full_cloud_scan=False` option "
+                    )
                 else:
                     prefix = tmp_prefix
 
