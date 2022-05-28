@@ -27,7 +27,7 @@ class AzureMetadataApiExposed(Vulnerability, Event):
 
         # dict containing all api versions instance api extracted
         self.versions_info = versions_info
-        self.evidence = f"apiVersions: {','.join(self.versions_info['apiVersions'].keys())}"
+        self.evidence = f"apiVersions: {','.join(self.versions_info.keys())}"
 
 
 class AzureInstanceMetadataService:
@@ -78,13 +78,13 @@ class AzureInstanceMetadataServiceDiscovery(Discovery):
 
         logger.debug("Trying to access IMDS (Azure Metadata Service) from pod")
         available_versions = AzureInstanceMetadataService.get_versions(network_timeout=config.network_timeout)
-
+        
         if not available_versions:
             logger.debug("IMDS not available")
             return
 
         versions_info = dict()
-        for version in available_versions:
+        for version in available_versions['apiVersions']:
             instance_data = AzureInstanceMetadataService.get_instance_data(
                 api_version=version, network_timeout=config.network_timeout
             )
@@ -104,7 +104,6 @@ class AzureSubnetsDiscovery(Discovery):
         # default to 24 subnet
         address, prefix = None, "24"
         config = get_config()
-        # import ipdb; ipdb.set_trace()
         for version, info in self.event.versions_info.items():
             try:
                 address = info["network"]["interface"][0]["ipv4"]["subnet"][0]["address"]
