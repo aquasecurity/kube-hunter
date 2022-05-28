@@ -125,7 +125,6 @@ def test_AccessApiServer():
 @handler.subscribe(ListNamespaces)
 class test_ListNamespaces:
     def __init__(self, event):
-        print("ListNamespaces")
         assert event.evidence == ["hello"]
         if event.host == "mocktoken":
             assert event.auth_token == "so-secret"
@@ -138,7 +137,6 @@ class test_ListNamespaces:
 @handler.subscribe(ListPodsAndNamespaces)
 class test_ListPodsAndNamespaces:
     def __init__(self, event):
-        print("ListPodsAndNamespaces")
         assert len(event.evidence) == 2
         for pod in event.evidence:
             if pod["name"] == "podA":
@@ -161,7 +159,6 @@ class test_ListPodsAndNamespaces:
 @handler.subscribe(ListRoles)
 class test_ListRoles:
     def __init__(self, event):
-        print("ListRoles")
         assert 0
         global counter
         counter += 1
@@ -172,7 +169,6 @@ class test_ListRoles:
 @handler.subscribe(ListClusterRoles)
 class test_ListClusterRoles:
     def __init__(self, event):
-        print("ListClusterRoles")
         assert event.auth_token == "so-secret"
         global counter
         counter += 1
@@ -181,7 +177,6 @@ class test_ListClusterRoles:
 @handler.subscribe(ServerApiAccess)
 class test_ServerApiAccess:
     def __init__(self, event):
-        print("ServerApiAccess")
         if event.category == ExposedSensitiveInterfacesTechnique:
             assert event.auth_token is None
         else:
@@ -194,7 +189,6 @@ class test_ServerApiAccess:
 @handler.subscribe(ApiServerPassiveHunterFinished)
 class test_PassiveHunterFinished:
     def __init__(self, event):
-        print("PassiveHunterFinished")
         assert event.namespaces == ["hello"]
         global counter
         counter += 1

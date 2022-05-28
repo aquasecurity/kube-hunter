@@ -125,7 +125,6 @@ def test_InsecureApiServer():
 @handler.subscribe(ApiServer)
 class testApiServer:
     def __init__(self, event):
-        print("Event")
         assert event.host == "mockKubernetes"
         global counter
         counter += 1
