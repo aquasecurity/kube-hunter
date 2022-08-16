@@ -1,11 +1,13 @@
 import os
+import struct
+import socket
 import logging
 import itertools
 import requests
 
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
-from netifaces import AF_INET, ifaddresses, interfaces, gateways
+from psutil import net_if_addrs
 
 from kube_hunter.conf import get_config
 from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
@@ -217,7 +219,17 @@ class FromPodHostDiscovery(Discovery):
     # for pod scanning
     def gateway_discovery(self):
         """Retrieving default gateway of pod, which is usually also a contact point with the host"""
-        return [[gateways()["default"][AF_INET][0], "24"]]
+        # read the default gateway directly from /proc
+        # netifaces currently does not have a maintainer. so we backported to linux support only for this cause.
+        # TODO: implement WMI queries for windows support
+        # https://stackoverflow.com/a/6556951
+        with open("/proc/net/route") as fh:
+            for line in fh:
+                fields = line.strip().split()
+                if fields[1] != "00000000" or not int(fields[3], 16) & 2:
+                    # If not default route or not RTF_GATEWAY, skip it
+                    continue
+            return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
 
     # querying AWS's interface metadata api v1 | works only from a pod
     def aws_metadata_v1_discovery(self):
@@ -338,12 +350,21 @@ class HostDiscovery(Discovery):
 
     # generate all subnets from all internal network interfaces
     def generate_interfaces_subnet(self, sn="24"):
-        for ifaceName in interfaces():
-            for ip in [i["addr"] for i in ifaddresses(ifaceName).setdefault(AF_INET, [])]:
-                if not self.event.localhost and InterfaceTypes.LOCALHOST.value in ip.__str__():
-                    continue
-                for ip in IPNetwork(f"{ip}/{sn}"):
-                    yield ip
+        ifaces = net_if_addrs()
+        for _, ifaceAddresses in ifaces.items():
+            # filter only ipv4 addresses on interface
+            ipv4_addresses = list(filter(lambda x: x.family == socket.AF_INET, ifaceAddresses))
+            if ipv4_addresses:
+                for address in ipv4_addresses:
+                    # unless specified explicitly with localhost scan flag, skip localhost ip addresses
+                    if not self.event.localhost and address.address.__str__().startswith(
+                        InterfaceTypes.LOCALHOST.value
+                    ):
+                        continue
+
+                    ip_network = IPNetwork(f"{address.address}/{sn}")
+                    for ip in ip_network:
+                        yield ip
 
 
 # for comparing prefixes
