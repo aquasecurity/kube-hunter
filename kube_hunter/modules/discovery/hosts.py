@@ -5,6 +5,7 @@ import logging
 import itertools
 import requests
 
+from pathlib import Path
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
 from psutil import net_if_addrs
@@ -139,7 +140,9 @@ class FromPodHostDiscovery(Discovery):
             elif self.is_aws_pod_v2():
                 subnets, cloud = self.aws_metadata_v2_discovery()
 
-            subnets += self.gateway_discovery()
+            gateway_subnet = self.gateway_discovery()
+            if gateway_subnet:
+                subnets += gateway_subnet
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -223,13 +226,20 @@ class FromPodHostDiscovery(Discovery):
         # netifaces currently does not have a maintainer. so we backported to linux support only for this cause.
         # TODO: implement WMI queries for windows support
         # https://stackoverflow.com/a/6556951
-        with open("/proc/net/route") as fh:
-            for line in fh:
-                fields = line.strip().split()
-                if fields[1] != "00000000" or not int(fields[3], 16) & 2:
-                    # If not default route or not RTF_GATEWAY, skip it
-                    continue
-            return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
+        if not Path("/proc/net/route").exists():
+            logging.debug("Error getting default gateway from /proc/net/route. not runnning in linux environment")
+            return False
+
+        try:
+            with open("/proc/net/route") as fh:
+                for line in fh:
+                    fields = line.strip().split()
+                    if fields[1] != "00000000" or not int(fields[3], 16) & 2:
+                        # If not default route or not RTF_GATEWAY, skip it
+                        continue
+                return [socket.inet_ntoa(struct.pack("<L", int(fields[2], 16))), "24"]
+        except Exception as x:
+            logging.debug(f"Exception when parsing /proc/net/route to figure default gateway: {x}")
 
     # querying AWS's interface metadata api v1 | works only from a pod
     def aws_metadata_v1_discovery(self):
