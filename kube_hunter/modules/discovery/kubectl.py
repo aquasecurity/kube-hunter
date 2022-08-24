@@ -32,7 +32,7 @@ class KubectlClientDiscovery(Discovery):
         version = None
         try:
             # kubectl version --client does not make any connection to the cluster/internet whatsoever.
-            version_info = subprocess.check_output(["kubectl", "version", "--client"], stderr=subprocess.STDOUT)
+            version_info = subprocess.check_output(shlex.split("kubectl version --client"), stderr=subprocess.STDOUT)
             if b"GitVersion" in version_info:
                 # extracting version from kubectl output
                 version_info = version_info.decode()
