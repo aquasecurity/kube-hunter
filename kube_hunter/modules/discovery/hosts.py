@@ -141,7 +141,7 @@ class FromPodHostDiscovery(Discovery):
 
             gateway_subnet = self.gateway_discovery()
             if gateway_subnet:
-                subnets += gateway_subnet
+                subnets.append(gateway_subnet)
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -237,7 +237,8 @@ class FromPodHostDiscovery(Discovery):
                 ip.release()
         else:
             logging.debug("Not running in a linux env, will not scan default subnet")
-            return False
+        
+        return False
 
     # querying AWS's interface metadata api v1 | works only from a pod
     def aws_metadata_v1_discovery(self):
