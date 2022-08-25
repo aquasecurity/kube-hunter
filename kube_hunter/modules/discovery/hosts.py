@@ -1,11 +1,13 @@
+import json
 import os
+import sys
+import socket
 import logging
 import itertools
 import requests
 
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
-from netifaces import AF_INET, ifaddresses, interfaces, gateways
 
 from kube_hunter.conf import get_config
 from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
@@ -137,7 +139,9 @@ class FromPodHostDiscovery(Discovery):
             elif self.is_aws_pod_v2():
                 subnets, cloud = self.aws_metadata_v2_discovery()
 
-            subnets += self.gateway_discovery()
+            gateway_subnet = self.gateway_discovery()
+            if gateway_subnet:
+                subnets.append(gateway_subnet)
 
             should_scan_apiserver = False
             if self.event.kubeservicehost:
@@ -217,7 +221,26 @@ class FromPodHostDiscovery(Discovery):
     # for pod scanning
     def gateway_discovery(self):
         """Retrieving default gateway of pod, which is usually also a contact point with the host"""
-        return [[gateways()["default"][AF_INET][0], "24"]]
+        # read the default gateway directly from /proc
+        # netifaces currently does not have a maintainer. so we backported to linux support only for this cause.
+        # TODO: implement WMI queries for windows support
+        # https://stackoverflow.com/a/6556951
+        if sys.platform in ["linux", "linux2"]:
+            try:
+                from pyroute2 import IPDB
+
+                ip = IPDB()
+                gateway_ip = ip.routes["default"]["gateway"]
+                ip.release()
+                return [gateway_ip, "24"]
+            except Exception as x:
+                logging.debug(f"Exception while fetching default gateway from container - {x}")
+            finally:
+                ip.release()
+        else:
+            logging.debug("Not running in a linux env, will not scan default subnet")
+
+        return False
 
     # querying AWS's interface metadata api v1 | works only from a pod
     def aws_metadata_v1_discovery(self):
@@ -338,12 +361,61 @@ class HostDiscovery(Discovery):
 
     # generate all subnets from all internal network interfaces
     def generate_interfaces_subnet(self, sn="24"):
-        for ifaceName in interfaces():
-            for ip in [i["addr"] for i in ifaddresses(ifaceName).setdefault(AF_INET, [])]:
-                if not self.event.localhost and InterfaceTypes.LOCALHOST.value in ip.__str__():
+        if sys.platform == "win32":
+            return self.generate_interfaces_subnet_windows()
+        elif sys.platform in ["linux", "linux2"]:
+            return self.generate_interfaces_subnet_linux()
+
+    def generate_interfaces_subnet_linux(self, sn="24"):
+        try:
+            from pyroute2 import IPRoute
+
+            ip = IPRoute()
+            for i in ip.get_addr():
+                # whitelist only ipv4 ips
+                if i["family"] == socket.AF_INET:
+                    ipaddress = i[0].get_attr("IFA_ADDRESS")
+                    # TODO: add this instead of hardcoded 24 subnet, (add a flag for full scan option)
+                    # subnet = i['prefixlen']
+
+                    # unless specified explicitly with localhost scan flag, skip localhost ip addresses
+                    if not self.event.localhost and ipaddress.startswith(InterfaceTypes.LOCALHOST.value):
+                        continue
+
+                    ip_network = IPNetwork(f"{ipaddress}/{sn}")
+                    for ip in ip_network:
+                        yield ip
+        except Exception as x:
+            logging.debug(f"Exception while generating subnet scan from local interfaces: {x}")
+        finally:
+            ip.release()
+
+    def generate_interfaces_subnet_windows(self, sn="24"):
+        from subprocess import check_output
+
+        local_subnets = (
+            check_output(
+                "powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy bypass -Command "
+                ' "& {'
+                "Get-NetIPConfiguration | Get-NetIPAddress | Where-Object {$_.AddressFamily -eq 'IPv4'}"
+                " | Select-Object -Property IPAddress, PrefixLength | ConvertTo-Json "
+                ' "}',
+                shell=True,
+            )
+            .decode()
+            .strip()
+        )
+        try:
+            subnets = json.loads(local_subnets)
+            for subnet in subnets:
+                if not self.event.localhost and subnet["IPAddress"].startswith(InterfaceTypes.LOCALHOST.value):
                     continue
-                for ip in IPNetwork(f"{ip}/{sn}"):
+                ip_network = IPNetwork(f"{subnet['IPAddress']}/{sn}")
+                for ip in ip_network:
                     yield ip
+
+        except Exception as x:
+            logging.debug(f"ERROR: Could not extract interface information using powershell - {x}")
 
 
 # for comparing prefixes
