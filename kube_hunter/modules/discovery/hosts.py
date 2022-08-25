@@ -1,14 +1,13 @@
 import os
-import struct
+import sys
 import socket
 import logging
 import itertools
 import requests
 
-from pathlib import Path
 from enum import Enum
 from netaddr import IPNetwork, IPAddress, AddrFormatError
-from psutil import net_if_addrs
+from pyroute2 import IPDB, IPRoute
 
 from kube_hunter.conf import get_config
 from kube_hunter.modules.discovery.kubernetes_client import list_all_k8s_cluster_nodes
@@ -226,20 +225,19 @@ class FromPodHostDiscovery(Discovery):
         # netifaces currently does not have a maintainer. so we backported to linux support only for this cause.
         # TODO: implement WMI queries for windows support
         # https://stackoverflow.com/a/6556951
-        if not Path("/proc/net/route").exists():
-            logging.debug("Error getting default gateway from /proc/net/route. not runnning in linux environment")
+        if sys.platform in ["linux", "linux2"]:
+            try:
+                ip = IPDB()
+                gateway_ip = ip.routes["default"]["gateway"]
+                ip.release()
+                return [gateway_ip, "24"]
+            except Exception as x:
+                logging.debug(f"Exception while fetching default gateway from container - {x}")
+            finally:
+                ip.release()
+        else:
+            logging.debug("Not running in a linux env, will not scan default subnet")
             return False
-
-        try:
-            with open("/proc/net/route") as fh:
-                for line in fh:
-                    fields = line.strip().split()
-                    if fields[1] != "00000000" or not int(fields[3], 16) & 2:
-                        # If not default route or not RTF_GATEWAY, skip it
-                        continue
-                return [socket.inet_ntoa(struct.pack("<L", int(fields[2], 16))), "24"]
-        except Exception as x:
-            logging.debug(f"Exception when parsing /proc/net/route to figure default gateway: {x}")
 
     # querying AWS's interface metadata api v1 | works only from a pod
     def aws_metadata_v1_discovery(self):
@@ -360,21 +358,26 @@ class HostDiscovery(Discovery):
 
     # generate all subnets from all internal network interfaces
     def generate_interfaces_subnet(self, sn="24"):
-        ifaces = net_if_addrs()
-        for _, ifaceAddresses in ifaces.items():
-            # filter only ipv4 addresses on interface
-            ipv4_addresses = list(filter(lambda x: x.family == socket.AF_INET, ifaceAddresses))
-            if ipv4_addresses:
-                for address in ipv4_addresses:
+        try:
+            ip = IPRoute()
+            for i in ip.get_addr():
+                # whitelist only ipv4 ips
+                if i["family"] == socket.AF_INET:
+                    ipaddress = i[0].get_attr("IFA_ADDRESS")
+                    # TODO: add this instead of hardcoded 24 subnet, (add a flag for full scan option)
+                    # subnet = i['prefixlen']
+
                     # unless specified explicitly with localhost scan flag, skip localhost ip addresses
-                    if not self.event.localhost and address.address.__str__().startswith(
-                        InterfaceTypes.LOCALHOST.value
-                    ):
+                    if not self.event.localhost and ipaddress.startswith(InterfaceTypes.LOCALHOST.value):
                         continue
 
-                    ip_network = IPNetwork(f"{address.address}/{sn}")
+                    ip_network = IPNetwork(f"{ipaddress}/{sn}")
                     for ip in ip_network:
                         yield ip
+        except Exception as x:
+            logging.debug(f"Exception while generating subnet scan from local interfaces: {x}")
+        finally:
+            ip.release()
 
 
 # for comparing prefixes
