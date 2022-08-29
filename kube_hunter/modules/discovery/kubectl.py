@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import shlex
 
 from kube_hunter.core.types import Discovery
 from kube_hunter.core.events.event_handler import handler
