@@ -22,6 +22,7 @@ def list_all_k8s_cluster_nodes(kube_config=None, client=None):
         logger.info("Listed %d nodes in the cluster" % len(ret.items))
         for item in ret.items:
             for addr in item.status.addresses:
-                yield addr.address
+                if addr.type == "InternalIP":
+                    yield addr.address
     except Exception as ex:
         logger.debug(f"Failed to list nodes from Kubernetes: {ex}")
