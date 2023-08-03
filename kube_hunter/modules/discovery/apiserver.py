@@ -93,7 +93,7 @@ class ApiServiceClassify(EventFilterBase):
             self.session.headers.update({"Authorization": f"Bearer {self.event.auth_token}"})
 
     def classify_using_version_endpoint(self):
-        """Tries to classify by accessing /version. if could not access succeded, returns"""
+        """Tries to classify by accessing /version. if could not access succeeded, returns"""
         config = get_config()
         try:
             endpoint = f"{self.event.protocol}://{self.event.host}:{self.event.port}/version"

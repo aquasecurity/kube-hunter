@@ -114,7 +114,7 @@ In order to mimic an attacker in it's early stages, kube-hunter requires no auth
    $ kube-hunter --active --service-account-token eyJhbGciOiJSUzI1Ni...
    ```
 
-* When runing with `--pod` flag, kube-hunter uses the service account token [mounted inside the pod](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/) to authenticate to services it finds during the hunt.
+* When running with `--pod` flag, kube-hunter uses the service account token [mounted inside the pod](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/) to authenticate to services it finds during the hunt.
   * if specified, `--service-account-token` flag takes priority when running as a pod
 
 
