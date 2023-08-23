@@ -256,7 +256,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
             if line.startswith("kubernetes_build_info"):
                 for info in line[line.find("{") + 1 : line.find("}")].split(","):
                     k, v = info.split("=")
-                    if k == "gitVersion":
+                    if k == "gitVersion" or k == "git_version":
                         return v.strip('"')
 
     # returns list of tuples of Privileged container and their pod.
