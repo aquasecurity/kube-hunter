@@ -1,3 +1,5 @@
+Notice: kube-hunter is not under active development anymore. If you're interested in scanning Kubernetes clusters for known vulnerabilities, we recommend using [Trivy](https://github.com/aquasec/trivy]. Specifically, Trivy's KBOM and Kubernetes components vulnerability scanning: 
+
 ![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/main/kube-hunter.png)
 
 [![GitHub Release][release-img]][release]
