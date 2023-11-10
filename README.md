@@ -1,22 +1,7 @@
-**Notice:** kube-hunter is not under active development anymore. If you're interested in scanning Kubernetes clusters for known vulnerabilities, we recommend using [Trivy](https://github.com/aquasec/trivy]. Specifically, Trivy's Kubernetes [misconfiguration scanning](https://blog.aquasec.com/trivy-kubernetes-cis-benchmark-scanning) and [KBOM vulnerability scanning](https://blog.aquasec.com/scanning-kbom-for-vulnerabilities-with-trivy). Learn more in the [Trivy Docs](https://aquasecurity.github.io/trivy/).
+## Notice
+kube-hunter is not under active development anymore. If you're interested in scanning Kubernetes clusters for known vulnerabilities, we recommend using [Trivy](https://github.com/aquasec/trivy]. Specifically, Trivy's Kubernetes [misconfiguration scanning](https://blog.aquasec.com/trivy-kubernetes-cis-benchmark-scanning) and [KBOM vulnerability scanning](https://blog.aquasec.com/scanning-kbom-for-vulnerabilities-with-trivy). Learn more in the [Trivy Docs](https://aquasecurity.github.io/trivy/).
 
 ---
-
-![kube-hunter](https://github.com/aquasecurity/kube-hunter/blob/main/kube-hunter.png)
-
-[![GitHub Release][release-img]][release]
-![Downloads][download]
-![Docker Pulls][docker-pull]
-[![Build Status](https://github.com/aquasecurity/kube-hunter/workflows/Test/badge.svg)](https://github.com/aquasecurity/kube-hunter/actions)
-[![codecov](https://codecov.io/gh/aquasecurity/kube-hunter/branch/main/graph/badge.svg)](https://codecov.io/gh/aquasecurity/kube-hunter)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![License](https://img.shields.io/github/license/aquasecurity/kube-hunter)](https://github.com/aquasecurity/kube-hunter/blob/main/LICENSE)
-[![Docker image](https://images.microbadger.com/badges/image/aquasec/kube-hunter.svg)](https://microbadger.com/images/aquasec/kube-hunter "Get your own image badge on microbadger.com")
-
-[download]: https://img.shields.io/github/downloads/aquasecurity/kube-hunter/total?logo=github
-[release-img]: https://img.shields.io/github/release/aquasecurity/kube-hunter.svg?logo=github
-[release]: https://github.com/aquasecurity/kube-hunter/releases
-[docker-pull]: https://img.shields.io/docker/pulls/aquasec/kube-hunter?logo=docker&label=docker%20pulls%20%2F%20kube-hunter
 
 kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was developed to increase awareness and visibility for security issues in Kubernetes environments. **You should NOT run kube-hunter on a Kubernetes cluster that you don't own!**
 
@@ -25,12 +10,9 @@ kube-hunter hunts for security weaknesses in Kubernetes clusters. The tool was d
 **Explore vulnerabilities**: The kube-hunter knowledge base includes articles about discoverable vulnerabilities and issues. When kube-hunter reports an issue, it will show its VID (Vulnerability ID) so you can look it up in the KB at https://aquasecurity.github.io/kube-hunter/  
 _If you're interested in kube-hunter's integration with the Kubernetes ATT&CK Matrix [Continue Reading](#kuberentes-attck-matrix)_
 
-**Contribute**: We welcome contributions, especially new hunter modules that perform additional tests. If you would like to develop your modules please read [Guidelines For Developing Your First kube-hunter Module](https://github.com/aquasecurity/kube-hunter/blob/main/CONTRIBUTING.md).
+[kube-hunter demo video](https://youtu.be/s2-6rTkH8a8?t=57s)
 
-[![kube-hunter demo video](https://github.com/aquasecurity/kube-hunter/blob/main/kube-hunter-screenshot.png)](https://youtu.be/s2-6rTkH8a8?t=57s)
-
-Table of Contents
-=================
+## Table of Contents
 
 - [Table of Contents](#table-of-contents)
   - [Kubernetes ATT&CK Matrix](#kubernetes-attck-matrix)
@@ -56,7 +38,6 @@ Table of Contents
   - [Contribution](#contribution)
   - [License](#license)
 
----
 ## Kubernetes ATT&CK Matrix
 
 kube-hunter now supports the new format of the Kubernetes ATT&CK matrix.
