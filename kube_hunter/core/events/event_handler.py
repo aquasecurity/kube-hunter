@@ -155,7 +155,7 @@ class EventQueue(Queue):
                 # We check if the event we want to publish is an inherited class of the current registered-to iterated event
                 # Meaning - if this is a relevant event:
                 if hooked_event in event.__class__.__mro__:
-                    # If so, we want to publish to all registerd hunters.
+                    # If so, we want to publish to all registered hunters.
                     for hook, predicate in self.hooks[hooked_event]:
                         if predicate and not predicate(event):
                             continue
