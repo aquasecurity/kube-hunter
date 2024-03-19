@@ -255,16 +255,17 @@ class FromPodHostDiscovery(Discovery):
         cidr = requests.get(
             f"http://169.254.169.254/latest/meta-data/network/interfaces/macs/{mac_address}/subnet-ipv4-cidr-block",
             timeout=config.network_timeout,
-        ).text
+        )
         logger.debug(f"Trying to extract cidr from aws's metadata v1: {cidr}")
 
         try:
-            cidr = cidr.split("/")
+            assert cidr.status_code == requests.codes.OK
+            cidr = cidr.text.split("/")
             address, subnet = (cidr[0], cidr[1])
             subnet = subnet if not config.quick else "24"
             cidr = f"{address}/{subnet}"
+            cidr = IPNetwork(cidr)
             logger.debug(f"From pod discovered subnet {cidr}")
-
             self.publish_event(AWSMetadataApi(cidr=cidr))
             return [(address, subnet)], "AWS"
         except Exception as x:
@@ -290,16 +291,17 @@ class FromPodHostDiscovery(Discovery):
             f"http://169.254.169.254/latest/meta-data/network/interfaces/macs/{mac_address}/subnet-ipv4-cidr-block",
             headers={"X-aws-ec2-metatadata-token": token},
             timeout=config.network_timeout,
-        ).text.split("/")
+        )
 
         try:
+            assert cidr.status_code == requests.codes.OK
+            cidr = cidr.text.split("/")
             address, subnet = (cidr[0], cidr[1])
             subnet = subnet if not config.quick else "24"
             cidr = f"{address}/{subnet}"
+            cidr = IPNetwork(cidr)
             logger.debug(f"From pod discovered subnet {cidr}")
-
             self.publish_event(AWSMetadataApi(cidr=cidr))
-
             return [(address, subnet)], "AWS"
         except Exception as x:
             logger.debug(f"ERROR: could not parse cidr from aws metadata api: {cidr} - {x}")

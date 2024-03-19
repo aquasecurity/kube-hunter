@@ -32,6 +32,150 @@ class TestFromPodHostDiscovery:
         )
 
     @staticmethod
+    def test_is_aws_metadata_v1_fail():
+        """
+        Test that the aws_metadata_v1_discovery returns the expected response when
+        the CIDR returns 404 from the url.
+        """
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+        expected_result = ([], "AWS")
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://169.254.169.254/latest/meta-data/mac",
+                text="39-14-C3-2C-5D-59"),
+            m.get(
+                "http://169.254.169.254/latest/meta-data/network/interfaces/macs/"
+                "39-14-C3-2C-5D-59/subnet-ipv4-cidr-block",
+                text="<head><title>404 Not Found</title></head",
+                status_code=404
+            )
+            result = f.aws_metadata_v1_discovery()
+        assert result == expected_result
+
+    @staticmethod
+    def test_is_aws_metadata_v1_fail_again():
+        """
+        Test that the aws_metadata_v1_discovery returns the expected response when
+        the CIDR is in an incorrect structure.
+        """
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+        expected_result = ([], "AWS")
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://169.254.169.254/latest/meta-data/mac",
+                text="39-14-C3-2C-5D-59"),
+            m.get(
+                ("http://169.254.169.254/latest/meta-data/network/interfaces/macs/39-14-C3-2C-5D-59/"
+                 "subnet-ipv4-cidr-block"),
+                text="1.1.1.3/23.23",
+                status_code=200
+            )
+            result = f.aws_metadata_v1_discovery()
+
+        assert result == expected_result
+
+    @staticmethod
+    def test_is_aws_metadata_v1_pass():
+        """
+        Test that the aws_metadata_v1_discovery returns the expected response when
+        the CIDR is in the correct structure.
+        """
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+        expected_result = ([('1.1.1.3', '23')], 'AWS')
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://169.254.169.254/latest/meta-data/mac",
+                headers={"X-aws-ec2-metatadata-token-ttl-seconds": "21600"},
+                text="39-14-C3-2C-5D-59")
+            m.get(
+                "http://169.254.169.254/latest/meta-data/network/interfaces/"
+                "macs/39-14-C3-2C-5D-59/subnet-ipv4-cidr-block",
+                text="1.1.1.3/23",
+                status_code=200
+            )
+            result = f.aws_metadata_v1_discovery()
+
+        assert result == expected_result
+
+    @staticmethod
+    def test_is_aws_metadata_v2_pass():
+        """
+        Test that the aws_metadata_v2_discovery returns the expected response when
+        the CIDR is in the correct structure.
+        """
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+        expected_result = ([('1.1.1.1', '23')], 'AWS')
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://169.254.169.254/latest/api/token",
+                headers={"X-aws-ec2-metatadata-token-ttl-seconds": "21600"},
+                text='random-generated-token')
+            m.get(
+                "http://169.254.169.254/latest/meta-data/mac",
+                headers={"X-aws-ec2-metatadata-token": 'random-generated-token'},
+                text="39-14-C3-2C-5D-59")
+            m.get(
+                "http://169.254.169.254/latest/meta-data/network/"
+                f"interfaces/macs/39-14-C3-2C-5D-59/subnet-ipv4-cidr-block",
+                headers={"X-aws-ec2-metatadata-token": 'random-generated-token'},
+                text="1.1.1.1/23")
+            result = f.aws_metadata_v2_discovery()
+
+        assert result == expected_result
+
+    @staticmethod
+    def test_is_aws_metadata_v2_fail_incorrect_structure():
+        """
+        Test that the aws_metadata_v2_discovery returns the expected response when
+        the CIDR is in an incorrect structure.
+        """
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+        expected_result = ([], 'AWS')
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://169.254.169.254/latest/api/token",
+                headers={"X-aws-ec2-metatadata-token-ttl-seconds": "21600"},
+                text='random-generated-token')
+            m.get(
+                "http://169.254.169.254/latest/meta-data/mac",
+                headers={"X-aws-ec2-metatadata-token": 'random-generated-token'},
+                text="39-14-C3-2C-5D-59")
+            m.get(
+                "http://169.254.169.254/latest/meta-data/network/"
+                f"interfaces/macs/39-14-C3-2C-5D-59/subnet-ipv4-cidr-block",
+                headers={"X-aws-ec2-metatadata-token": 'random-generated-token'},
+                text="1.1.1.1/23.23")
+            result = f.aws_metadata_v2_discovery()
+
+        assert result == expected_result
+
+    @staticmethod
+    def test_is_aws_metadata_v2_fail_cidr_not_found():
+        """
+        Test that the aws_metadata_v2_discovery returns the expected response when
+        the CIDR returns 404 from the url.
+        """
+        f = FromPodHostDiscovery(RunningAsPodEvent())
+        expected_result = ([], 'AWS')
+        with requests_mock.Mocker() as m:
+            m.get(
+                "http://169.254.169.254/latest/api/token",
+                headers={"X-aws-ec2-metatadata-token-ttl-seconds": "21600"},
+                text='random-generated-token')
+            m.get(
+                "http://169.254.169.254/latest/meta-data/mac",
+                headers={"X-aws-ec2-metatadata-token": 'random-generated-token'},
+                text="39-14-C3-2C-5D-59")
+            m.get(
+                "http://169.254.169.254/latest/meta-data/network/"
+                f"interfaces/macs/39-14-C3-2C-5D-59/subnet-ipv4-cidr-block",
+                headers={"X-aws-ec2-metatadata-token": 'random-generated-token'},
+                text="<head><title>404 Not Found</title></head")
+            result = f.aws_metadata_v2_discovery()
+
+        assert result == expected_result
+
+    @staticmethod
     def _make_aws_response(*data: List[str]) -> str:
         return "\n".join(data)
 
