@@ -173,8 +173,8 @@ the whole cluster"""
 
 
 class PrivilegedContainers(Vulnerability, Event):
-    """A Privileged container exist on a node
-    could expose the node/cluster to unwanted root operations"""
+    """A Privileged container exists on a node
+    and could expose the node/cluster to unwanted root operations"""
 
     def __init__(self, containers):
         Vulnerability.__init__(
@@ -185,7 +185,9 @@ class PrivilegedContainers(Vulnerability, Event):
             vid="KHV044",
         )
         self.containers = containers
-        self.evidence = f"pod: {containers[0][0]}, " f"container: {containers[0][1]}, " f"count: {len(containers)}"
+        evidence_list = [f"pod: {pod}, container: {container}" for pod, container in containers]
+        evidence = ", ".join(evidence_list)
+        self.evidence = f"{evidence}, count: {len(containers)}"
 
 
 class ExposedSystemLogs(Vulnerability, Event):
